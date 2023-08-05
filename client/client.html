@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Communication audio via WebSocket</title>
+</head>
+<body>
+<h1>Communication audio via WebSocket</h1>
+<button id="startButton">Démarrer la communication</button>
+<button id="stopButton">Arrêter la communication</button>
+<div id="output"></div>
+
+<script>
+    let mediaStream;
+    let ws;
+    let isPlaying = false;
+    let audioPlayer = document.getElementById('audioPlayer');
+
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const outputDiv = document.getElementById('output');
+
+    async function startCommunication() {
+        try {
+            // Demander l'accès au microphone
+            mediaStream = await navigator.mediaDevices.getUserMedia({audio: true});
+
+            // Connexion WebSocket au serveur
+            ws = new WebSocket('ws://localhost:11000/audio');
+
+
+            var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            var mediaStreamSource;
+
+            /*var audioContext = new AudioContext();*/
+            var mediaRecorder = audioContext.createMediaStreamSource(mediaStream);
+            var destination = audioContext.createMediaStreamDestination();
+            mediaRecorder.connect(destination);
+
+            const options = {mimeType: 'audio/webm'};
+            const mediaRecorderNode = new MediaRecorder(destination.stream, options);
+            mediaRecorderNode.ondataavailable = (event) => {
+                if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
+                    ws.send(event.data);
+                }
+            };
+
+            ws.onmessage = async function (event) {
+                event.data.arrayBuffer().then(value => {
+                    console.log(value);
+                    audioContext.decodeAudioData(value, buffer => {
+                        if (mediaStreamSource) {
+                            mediaStreamSource.disconnect();
+                        }
+                        mediaStreamSource = audioContext.createBufferSource();
+                        mediaStreamSource.buffer = buffer;
+                        mediaStreamSource.connect(audioContext.destination);
+                        mediaStreamSource.start();
+                    }, err => {
+                        console.error("Error decoding audio data: " + err);
+                    });
+                });
+            };
+            mediaRecorderNode.start(1000);
+
+            outputDiv.textContent = 'Communication audio en cours...';
+        } catch (error) {
+            console.error('Erreur lors de l\'accès au microphone:', error);
+        }
+    }
+
+    async function processAudio(data, audioContext) {
+        console.log("Le sexe j'entend !");
+        console.log(data)
+        while (isPlaying) {
+
+        }
+        isPlaying = true;
+        data.arrayBuffer().then((abuffer) => {
+            console.log(abuffer);
+            // Do something with the arrayBuffer
+            audioContext.decodeAudioData(abuffer, (buffer) => {
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                source.start();
+            });
+            isPlaying = false;
+        });
+    }
+
+
+    function stopCommunication() {
+        // Arrêter la capture audio
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+        }
+
+        // Fermer la connexion WebSocket
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.close();
+        }
+
+        outputDiv.textContent = 'Communication audio arrêtée.';
+    }
+
+    startButton.addEventListener('click', startCommunication);
+    stopButton.addEventListener('click', stopCommunication);
+</script>
+</body>
+</html>
