@@ -11,82 +11,120 @@
 <div id="output"></div>
 
 <script>
-    let mediaStream;
-    let ws;
-    let isPlaying = false;
-    let audioPlayer = document.getElementById('audioPlayer');
-
     const startButton = document.getElementById('startButton');
     const stopButton = document.getElementById('stopButton');
     const outputDiv = document.getElementById('output');
 
+    let ws;
+    let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let mediaRecorder;
+    let audioChunks = [];
+    let microphoneSource;
+
     async function startCommunication() {
         try {
-            // Demander l'accès au microphone
-            mediaStream = await navigator.mediaDevices.getUserMedia({audio: true});
+            ws = new WebSocket('ws://127.0.0.1:8080/');
 
-            // Connexion WebSocket au serveur
-            ws = new WebSocket('ws://localhost:11000/audio');
+            // Établir la connexion WebSocket
+            ws.onopen = function(event) {
+                console.log('WebSocket connecté !');
+
+                // Obtenir l'accès au microphone
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(function(stream) {
+                        // Créer un nouvel enregistreur audio
+                        const mediaRecorder = new MediaRecorder(stream);
+
+                        // Démarrer l'enregistrement lorsque l'enregistreur est prêt
+                        mediaRecorder.onstart = function() {
+                            audioChunks = [];
+                            console.log('START!');
+                        };//d dqsdsq
+
+                        var time = 100;
+                        // Capturer les données audio pendant l'enregistrement
+                        mediaRecorder.ondataavailable = function(event) {
+                            console.log('DATA AVAILABLE!');
+                            audioChunks.push(event.data);
+                            console.log(event.data);
+                            // Envoyer les données audio au serveur à chaque nouvel échantillon
+                            if (ws.readyState === WebSocket.OPEN) {
+                                ws.send(event.data);
+                            }
+                            mediaRecorder.stop()
+                            mediaRecorder.start(time);
+                        };
+
+                        // Démarrer le traitement audio en continu (sans limite de durée)
+
+                        mediaRecorder.start(time);
+
+                        // Connecter l'audioNode à la source audio (stream du microphone)
+                        const microphoneSource = audioContext.createMediaStreamSource(stream);
 
 
-            var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            var mediaStreamSource;
 
-            /*var audioContext = new AudioContext();*/
-            var mediaRecorder = audioContext.createMediaStreamSource(mediaStream);
-            var destination = audioContext.createMediaStreamDestination();
-            mediaRecorder.connect(destination);
 
-            const options = {mimeType: 'audio/webm'};
-            const mediaRecorderNode = new MediaRecorder(destination.stream, options);
-            mediaRecorderNode.ondataavailable = (event) => {
-                if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
-                    ws.send(event.data);
-                }
-            };
-
-            ws.onmessage = async function (event) {
-                event.data.arrayBuffer().then(value => {
-                    console.log(value);
-                    audioContext.decodeAudioData(value, buffer => {
-                        if (mediaStreamSource) {
-                            mediaStreamSource.disconnect();
-                        }
-                        mediaStreamSource = audioContext.createBufferSource();
-                        mediaStreamSource.buffer = buffer;
-                        mediaStreamSource.connect(audioContext.destination);
-                        mediaStreamSource.start();
-                    }, err => {
-                        console.error("Error decoding audio data: " + err);
+                    })
+                    .catch(function(error) {
+                        console.error('Erreur lors de l\'accès au microphone:', error);
                     });
-                });
-            };
-            mediaRecorderNode.start(1000);
 
-            outputDiv.textContent = 'Communication audio en cours...';
+
+                ws.onmessage = function(event) {
+                    // Récupérer les données audio reçues du serveur
+                    const audioData = event.data;
+                    // Jouer le son reçu du serveur
+                    playAudioFromServer(audioData);
+                };
+
+                // Gérer les erreurs WebSocket
+                ws.onerror = function(event) {
+                    console.error('Erreur WebSocket:', event);
+                };
+
+                // Fermer la connexion WebSocket lorsque l'enregistrement est terminé
+                ws.onclose = function(event) {
+                    console.log('WebSocket déconnecté !');
+                    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                        mediaRecorder.stop();
+                    }
+                };
+            };
         } catch (error) {
-            console.error('Erreur lors de l\'accès au microphone:', error);
+            console.error('Erreur lors de la connexion au serveur:', error);
         }
     }
 
-    async function processAudio(data, audioContext) {
-        console.log("Le sexe j'entend !");
-        console.log(data)
-        while (isPlaying) {
+    function initMediaRecorder() {
 
+    }
+
+    // Fonction pour jouer le son reçu du serveur
+    function playAudioFromServer(audioData) {
+        if (audioData instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const arrayBuffer = reader.result;
+                audioContext.decodeAudioData(arrayBuffer, function(buffer) {
+                    console.log(buffer)
+                    const audioSource = audioContext.createBufferSource();
+                    audioSource.buffer = buffer;
+                    audioSource.connect(audioContext.destination);
+                    audioSource.start();
+                }, function(error) {
+                    console.error('Erreur lors du décodage des données audio:', error);
+                });
+            };
+            reader.readAsArrayBuffer(audioData);
         }
-        isPlaying = true;
-        data.arrayBuffer().then((abuffer) => {
-            console.log(abuffer);
-            // Do something with the arrayBuffer
-            audioContext.decodeAudioData(abuffer, (buffer) => {
-                const source = audioContext.createBufferSource();
-                source.buffer = buffer;
-                source.connect(audioContext.destination);
-                source.start();
-            });
-            isPlaying = false;
-        });
+    }
+
+
+    function copy(src)  {
+        var dst = new ArrayBuffer(src.byteLength);
+        new Uint8Array(dst).set(new Uint8Array(src));
+        return dst;
     }
 
 
