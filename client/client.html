@@ -11,6 +11,7 @@
 <script>
     let websocket;
     let chunks = [];
+    let receivedChunks = [];
 
     const audioStreamConstraints = { audio: true };
     const mediaRecorderOptions = { mimeType: 'audio/webm' };
@@ -32,19 +33,31 @@
                 websocket = new WebSocket('ws://localhost:8080/');
 
                 websocket.onmessage = function(event) {
-                    // Récupérer les données audio reçues du serveur
                     const audioData = event.data;
-                    // Jouer le son reçu du serveur
-                    playAudioFromServer(audioData);
+                    receivedChunks.push(audioData)
                 };
 
                 streamGlobal = stream
                 grosSex()
+                startListening()
 
                 // Vous pouvez ajuster la durée des morceaux audio ici
             })
             .catch(error => console.error('Erreur lors de la capture audio : ', error));
     });
+
+    async function startListening() {
+        await sleep(2000)
+        setInterval(() => {
+            console.log("StartPlaying")
+            playAudioFromServer(receivedChunks.shift())
+            console.log(receivedChunks.length)
+        }, 500)
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     async function grosSex() {
         mediaRecorder = new MediaRecorder(streamGlobal, mediaRecorderOptions);
@@ -52,10 +65,7 @@
         mediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
                 chunks.push(event.data);
-                console.log("Sending")
-                console.log(event.data)
-                const blob = new Blob(chunks, { type: 'audio/webm' });
-                websocket.send(blob);
+                send()
                 chunks = [];
                 mediaRecorder.ondataavailable = (event) => {
                 };
@@ -63,27 +73,38 @@
                 grosSex()
             }
         };
-        mediaRecorder.start(200);
+        mediaRecorder.start(500);
     }
 
     async function sex() {
+
         setInterval(() => {
-            stop();
             mediaRecorder = new MediaRecorder(streamGlobal, mediaRecorderOptions);
 
             mediaRecorder.ondataavailable = async function(event) {
                 if (event.data.size > 0) {
-                    chunks.push(event.data);
+                    /*chunks.push(event.data);*/
                     console.log("Sending")
                     console.log(event.data)
-                    const blob = new Blob(chunks, { type: 'audio/webm' });
-                    websocket.send(blob);
-                    chunks = [];
-                    stop()
+                    playAudioFromServer(event.data)
+                    mediaRecorder.ondataavailable = (event) => {
+                    };
+                    mediaRecorder.stop();
+                    // send()
                 }
             };
-            mediaRecorder.start(200);
-        }, 200);
+            mediaRecorder.start(100);
+
+        }, 100);
+    }
+
+    async function send() {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        websocket.send(blob)
+        /*chunks.forEach(c => {
+            websocket.send(c);
+        })*/
+        chunks = [];
     }
 
     async function stop() {
@@ -92,17 +113,21 @@
         mediaRecorder.stop();
     }
 
-    function playAudioFromServer(audioData) {
+    async function playAudioFromServer(audioData) {
+        var t1 = Date.now()
         if (audioData instanceof Blob) {
             const reader = new FileReader();
             reader.onload = function() {
                 const arrayBuffer = reader.result;
                 audioContext.decodeAudioData(arrayBuffer, function(buffer) {
-                    console.log(buffer)
+                    /*console.log(buffer)*/
                     const audioSource = audioContext.createBufferSource();
                     audioSource.buffer = buffer;
                     audioSource.connect(audioContext.destination);
                     audioSource.start();
+                    var t2 = Date.now()
+                    var t = t2 - t1;
+                    console.log(t)
                 }, function(error) {
                     console.error('Erreur lors du décodage des données audio:', error);
                 });
