@@ -1,106 +1,97 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Communication audio via WebSocket</title>
+    <title>Enregistrement Audio</title>
 </head>
 <body>
-<h1>Communication audio via WebSocket</h1>
-<button id="startButton">Démarrer la communication</button>
-<button id="stopButton">Arrêter la communication</button>
-<div id="output"></div>
+<h1>Enregistrement Audio</h1>
+<button id="startRecordingButton">Commencer l'enregistrement</button>
+<button id="stopRecordingButton" disabled>Arrêter l'enregistrement</button>
 
 <script>
-    const startButton = document.getElementById('startButton');
-    const stopButton = document.getElementById('stopButton');
-    const outputDiv = document.getElementById('output');
+    let websocket;
+    let chunks = [];
 
-    let ws;
+    const audioStreamConstraints = { audio: true };
+    const mediaRecorderOptions = { mimeType: 'audio/webm' };
+
+    const startRecordingButton = document.getElementById('startRecordingButton');
+    const stopRecordingButton = document.getElementById('stopRecordingButton');
     let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    let mediaRecorder;
-    let audioChunks = [];
-    let microphoneSource;
 
-    async function startCommunication() {
-        try {
-            ws = new WebSocket('ws://127.0.0.1:8080/');
+    var mediaRecorder;
+    var streamGlobal;
 
-            // Établir la connexion WebSocket
-            ws.onopen = function(event) {
-                console.log('WebSocket connecté !');
+    startRecordingButton.addEventListener('click', () => {
+        startRecordingButton.disabled = true;
+        stopRecordingButton.disabled = false;
 
-                // Obtenir l'accès au microphone
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(function(stream) {
-                        // Créer un nouvel enregistreur audio
-                        const mediaRecorder = new MediaRecorder(stream);
+        navigator.mediaDevices.getUserMedia(audioStreamConstraints)
+            .then(stream => {
+                // Établir la connexion WebSocket avec le serveur
+                websocket = new WebSocket('ws://localhost:8080/');
 
-                        // Démarrer l'enregistrement lorsque l'enregistreur est prêt
-                        mediaRecorder.onstart = function() {
-                            audioChunks = [];
-                            console.log('START!');
-                        };//d dqsdsq
-
-                        var time = 100;
-                        // Capturer les données audio pendant l'enregistrement
-                        mediaRecorder.ondataavailable = function(event) {
-                            console.log('DATA AVAILABLE!');
-                            audioChunks.push(event.data);
-                            console.log(event.data);
-                            // Envoyer les données audio au serveur à chaque nouvel échantillon
-                            if (ws.readyState === WebSocket.OPEN) {
-                                ws.send(event.data);
-                            }
-                            mediaRecorder.stop()
-                            mediaRecorder.start(time);
-                        };
-
-                        // Démarrer le traitement audio en continu (sans limite de durée)
-
-                        mediaRecorder.start(time);
-
-                        // Connecter l'audioNode à la source audio (stream du microphone)
-                        const microphoneSource = audioContext.createMediaStreamSource(stream);
-
-
-
-
-                    })
-                    .catch(function(error) {
-                        console.error('Erreur lors de l\'accès au microphone:', error);
-                    });
-
-
-                ws.onmessage = function(event) {
+                websocket.onmessage = function(event) {
                     // Récupérer les données audio reçues du serveur
                     const audioData = event.data;
                     // Jouer le son reçu du serveur
                     playAudioFromServer(audioData);
                 };
 
-                // Gérer les erreurs WebSocket
-                ws.onerror = function(event) {
-                    console.error('Erreur WebSocket:', event);
-                };
+                streamGlobal = stream
+                grosSex()
 
-                // Fermer la connexion WebSocket lorsque l'enregistrement est terminé
-                ws.onclose = function(event) {
-                    console.log('WebSocket déconnecté !');
-                    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-                        mediaRecorder.stop();
-                    }
+                // Vous pouvez ajuster la durée des morceaux audio ici
+            })
+            .catch(error => console.error('Erreur lors de la capture audio : ', error));
+    });
+
+    async function grosSex() {
+        mediaRecorder = new MediaRecorder(streamGlobal, mediaRecorderOptions);
+
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                chunks.push(event.data);
+                console.log("Sending")
+                console.log(event.data)
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                websocket.send(blob);
+                chunks = [];
+                mediaRecorder.ondataavailable = (event) => {
                 };
+                mediaRecorder.stop();
+                grosSex()
+            }
+        };
+        mediaRecorder.start(200);
+    }
+
+    async function sex() {
+        setInterval(() => {
+            stop();
+            mediaRecorder = new MediaRecorder(streamGlobal, mediaRecorderOptions);
+
+            mediaRecorder.ondataavailable = async function(event) {
+                if (event.data.size > 0) {
+                    chunks.push(event.data);
+                    console.log("Sending")
+                    console.log(event.data)
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    websocket.send(blob);
+                    chunks = [];
+                    stop()
+                }
             };
-        } catch (error) {
-            console.error('Erreur lors de la connexion au serveur:', error);
-        }
+            mediaRecorder.start(200);
+        }, 200);
     }
 
-    function initMediaRecorder() {
-
+    async function stop() {
+        mediaRecorder.ondataavailable = (event) => {
+        };
+        mediaRecorder.stop();
     }
 
-    // Fonction pour jouer le son reçu du serveur
     function playAudioFromServer(audioData) {
         if (audioData instanceof Blob) {
             const reader = new FileReader();
@@ -120,30 +111,12 @@
         }
     }
 
+    stopRecordingButton.addEventListener('click', () => {
+        stopRecordingButton.disabled = true;
+        mediaRecorder.stop();
+        startRecordingButton.disabled = false;
+    });
 
-    function copy(src)  {
-        var dst = new ArrayBuffer(src.byteLength);
-        new Uint8Array(dst).set(new Uint8Array(src));
-        return dst;
-    }
-
-
-    function stopCommunication() {
-        // Arrêter la capture audio
-        if (mediaStream) {
-            mediaStream.getTracks().forEach(track => track.stop());
-        }
-
-        // Fermer la connexion WebSocket
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.close();
-        }
-
-        outputDiv.textContent = 'Communication audio arrêtée.';
-    }
-
-    startButton.addEventListener('click', startCommunication);
-    stopButton.addEventListener('click', stopCommunication);
 </script>
 </body>
 </html>
