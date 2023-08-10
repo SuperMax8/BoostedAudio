@@ -30,6 +30,7 @@ public class WebRTCSocket extends WebSocketServlet {
     @OnWebSocketConnect
     public void onConnect(Session session) {
         sessions.add(session);
+        session.setIdleTimeout(0);
         System.out.println("Nouvelle connexion WebSocket : " + session.getRemoteAddress().getAddress() + " / " + sessions.size());
     }
 
