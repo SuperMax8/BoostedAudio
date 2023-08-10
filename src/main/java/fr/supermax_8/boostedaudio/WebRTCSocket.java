@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import fr.supermax_8.boostedaudio.websocket.Packet;
 import fr.supermax_8.boostedaudio.websocket.PacketList;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
-import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.websocket.api.annotations.*;
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 
@@ -49,6 +46,11 @@ public class WebRTCSocket extends WebSocketServlet {
         sessions.remove(session);
     }
 
+/*    @OnWebSocketError
+    public void onError(Session session) {
+
+    }*/
+
     @Override
     public void configure(WebSocketServletFactory factory) {
         factory.register(WebRTCSocket.class);
@@ -65,7 +67,7 @@ public class WebRTCSocket extends WebSocketServlet {
         PacketList list = new PacketList(List.of(packets));
         String packet = gson.toJson(list);
         System.out.println("Send:");
-        for (Session sess : sessions) System.out.println("Sending to client: " + this.sessions.indexOf(sess));
+        for (Session sess : sessions) System.out.println("Sending to client: " + WebRTCSocket.sessions.indexOf(sess));
         try {
             System.out.println("SENDING: " + packet);
             for (Session s : sessions) s.getRemote().sendString(packet);
