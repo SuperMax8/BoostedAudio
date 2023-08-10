@@ -3,11 +3,16 @@ package fr.supermax_8.boostedaudio;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.websocket.PacketList;
+import fr.supermax_8.boostedaudio.websocket.packets.RTCIcePacket;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 public class Main {
 
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(PacketList.class, new PacketList.Adapter())
+            .registerTypeAdapter(RTCIcePacket.class, new RTCIcePacket.Adapter())
             .create();
 
     /*private static final int PORT = 8080;
@@ -28,8 +33,10 @@ public class Main {
     }*/
 
     public static void main(String[] args) throws Exception {
-
-        /*int port = 8080; // Port sur lequel le serveur écoutera les connexions WebSocket
+//        /*System.out.println(gson.toJson(new RTCSessionDescriptionPacket("aa", "bb")));
+//
+//        if (true) return;*/
+        int port = 8081; // Port sur lequel le serveur écoutera les connexions WebSocket
         Server server = new Server(port);
 
         // Créer un gestionnaire de contexte de servlet pour le serveur
@@ -43,7 +50,7 @@ public class Main {
         // Démarrer le serveur
         server.start();
         System.out.println("C ok mon frew: C, en ligne");
-        server.join();*/
+        server.join();
     }
 
     public static Gson getGson() {

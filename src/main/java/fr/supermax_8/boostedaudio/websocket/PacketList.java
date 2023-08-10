@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.websocket;
 
 import com.google.gson.*;
+import fr.supermax_8.boostedaudio.Main;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class PacketList {
                 String type = jsonObject.get("type").getAsString();
                 JsonElement valueElement = jsonObject.get("value");
                 Class<? extends Packet> packetClass = getPacketClass(type);
+                System.out.println("TO DESERIALIZE: " + valueElement);
                 Packet packet = context.deserialize(valueElement, packetClass);
                 packets.add(packet);
             });
@@ -46,9 +48,11 @@ public class PacketList {
             JsonArray array = new JsonArray();
             for (Packet packet : src.getPackets()) {
                 JsonObject packetObject = new JsonObject();
-                packetObject.addProperty("type", packet.getClass().getSimpleName());
-                JsonElement valueElement = context.serialize(src);
+                String packetName = packet.getClass().getSimpleName();
+                packetObject.addProperty("type", packetName);
+                JsonElement valueElement = context.serialize(packet);
                 packetObject.add("value", valueElement);
+                array.add(packetObject);
             }
             return array;
         }
