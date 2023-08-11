@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import fr.supermax_8.boostedaudio.websocket.ClientWebSocket;
 import fr.supermax_8.boostedaudio.websocket.PacketList;
 import fr.supermax_8.boostedaudio.websocket.packets.RTCIcePacket;
 import org.eclipse.jetty.server.Server;
@@ -45,7 +46,7 @@ public class Main {
         server.setHandler(context);
 
         // Ajouter la classe WebRTCSocket comme gestionnaire WebSocket à l'URL spécifique
-        context.addServlet(new ServletHolder(new WebRTCSocket()), "/");
+        context.addServlet(new ServletHolder(new ClientWebSocket()), "/");
 
         // Démarrer le serveur
         server.start();

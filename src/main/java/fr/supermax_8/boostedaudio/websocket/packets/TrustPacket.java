@@ -4,19 +4,17 @@ import fr.supermax_8.boostedaudio.websocket.ClientWebSocket;
 import fr.supermax_8.boostedaudio.websocket.Packet;
 import org.eclipse.jetty.websocket.api.Session;
 
-public class RTCSessionDescriptionPacket implements Packet {
+public class TrustPacket implements Packet {
 
-    private String sdp;
-    private String type;
-
-    public RTCSessionDescriptionPacket(String sdp, String type) {
-        this.sdp = sdp;
-        this.type = type;
-    }
+    private String token;
 
     @Override
     public void onReceive(Session session, ClientWebSocket socket) {
-        socket.sendPackets(session, this);
+        if (ClientWebSocket.playerTokens.containsValue(token))
+            ClientWebSocket.trustedUsers.put(token, session);
+        else
+            session.close();
     }
+
 
 }
