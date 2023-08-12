@@ -6,7 +6,11 @@ import org.eclipse.jetty.websocket.api.Session;
 
 public class TrustPacket implements Packet {
 
-    private String token;
+    private final String token;
+
+    public TrustPacket(String token) {
+        this.token = token;
+    }
 
     @Override
     public void onReceive(Session session, ClientWebSocket socket) {
