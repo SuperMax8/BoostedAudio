@@ -16,6 +16,7 @@ public class AddPeerPacket implements Packet {
 
 
     public record RTCDescription(String sdp, String type) {
+
     }
 
 }
