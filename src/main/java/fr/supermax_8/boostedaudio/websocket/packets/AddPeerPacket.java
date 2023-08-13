@@ -4,19 +4,18 @@ import fr.supermax_8.boostedaudio.websocket.ClientWebSocket;
 import fr.supermax_8.boostedaudio.websocket.Packet;
 import org.eclipse.jetty.websocket.api.Session;
 
-public class RTCSessionDescriptionPacket implements Packet {
+public class AddPeerPacket implements Packet {
 
-    private String sdp;
-    private String type;
-
-    public RTCSessionDescriptionPacket(String sdp, String type) {
-        this.sdp = sdp;
-        this.type = type;
-    }
+    // This is answer or offer
+    private RTCDescription rtcDescription;
 
     @Override
     public void onReceive(Session session, ClientWebSocket socket) {
         socket.sendPackets(session, this);
+    }
+
+
+    public record RTCDescription(String sdp, String type) {
     }
 
 }
