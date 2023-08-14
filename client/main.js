@@ -12,6 +12,7 @@ const peerConnections = [];
 let micStream = null;
 const ws = new WebSocket("ws://pyritemc.fr:8081/");
 const params = new URLSearchParams(window.location.search);
+const localMediaStream = new MediaStream();
 
 // HTML elements
 const callButton = document.getElementById('callButton');
@@ -45,7 +46,7 @@ ws.onopen = async () => {
 
     pc.ontrack = event => {
         if (event.track.kind === 'audio') {
-            remoteAudio.srcObject = new MediaStream([event.track]);
+            localMediaStream.addTrack(event.track)
         }
     };
 
@@ -198,6 +199,8 @@ async function populateMicrophoneOptions() {
 }
 
 async function setupAudioSystem() {
+    remoteAudio.srcObject = localMediaStream;
+
     document.body.style.setProperty('--volume', 0.5);
     microphoneMaster.addEventListener('input', function () {
         const volume = parseFloat(this.value) / 100; // Convertir la valeur en pourcentage en décimal

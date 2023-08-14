@@ -1,10 +1,10 @@
-package fr.supermax_8.boostedaudio.websocket;
+package fr.supermax_8.boostedaudio.web;
 
 import com.google.gson.*;
-import fr.supermax_8.boostedaudio.Main;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,6 +14,10 @@ public class PacketList {
 
     public PacketList(List<Packet> packets) {
         this.packets = packets;
+    }
+
+    public PacketList(Packet... packets) {
+        this.packets = Arrays.asList(packets);
     }
 
     public PacketList() {

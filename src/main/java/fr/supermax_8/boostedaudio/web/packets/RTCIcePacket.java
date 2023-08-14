@@ -1,9 +1,10 @@
-package fr.supermax_8.boostedaudio.websocket.packets;
+package fr.supermax_8.boostedaudio.web.packets;
 
 import com.google.gson.*;
 import fr.supermax_8.boostedaudio.Main;
-import fr.supermax_8.boostedaudio.websocket.ClientWebSocket;
-import fr.supermax_8.boostedaudio.websocket.Packet;
+import fr.supermax_8.boostedaudio.web.ClientWebSocket;
+import fr.supermax_8.boostedaudio.web.Packet;
+import fr.supermax_8.boostedaudio.web.User;
 import org.eclipse.jetty.websocket.api.Session;
 
 import java.lang.reflect.Type;
@@ -18,7 +19,7 @@ public class RTCIcePacket implements Packet {
     }
 
     @Override
-    public void onReceive(Session session, ClientWebSocket socket) {
+    public void onReceive(User user) {
         socket.sendPackets(session, this);
     }
 
