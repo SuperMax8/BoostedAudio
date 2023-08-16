@@ -3,9 +3,13 @@ package fr.supermax_8.boostedaudio.web;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import fr.supermax_8.boostedaudio.web.packets.AddPeerPacket;
-import org.eclipse.jetty.websocket.api.Session;
+import fr.supermax_8.boostedaudio.web.packets.RemovePeerPacket;
+import org.java_websocket.WebSocket;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class ConnectionManager {
 
@@ -13,23 +17,19 @@ public class ConnectionManager {
      * UUID: Minecraft player uuid
      * String: token
      */
-    protected final BiMap<UUID, String> playerTokens = HashBiMap.create();
+    protected final BiMap<UUID, String> playerTokens = HashBiMap.create(Map.of(
+            UUID.fromString("9008ec29-3e84-4afa-918a-f6f9f923c8b8"), "zougoulou",
+            UUID.fromString("7b1c5ff6-aec7-4a8c-9864-d35838c653bb"), "zougouloux"
+    ));
 
     /**
      * The users trusted with the token link to the minecraft client
      * String: The token gave by the server in game
      * Session: The websocket session
      */
-    protected final BiMap<UUID, User> users = HashBiMap.create();
+    protected final HashMap<UUID, User> users = new HashMap<>();
 
-    /**
-     * UUID: PlayerID
-     * List of User: The list of user that are connected to the player from the player id
-     */
-    protected final HashMap<UUID, List<User>> peerConnectionRegistry = new HashMap<>();
-
-    protected final HashSet<Session> sessions = new HashSet<>();
-
+    protected final HashMap<WebSocket, User> sessionUsers = new HashMap<>();
 
     public ConnectionManager() {
 
@@ -40,12 +40,12 @@ public class ConnectionManager {
         return playerTokens;
     }
 
-    public HashSet<Session> getSessions() {
-        return sessions;
+    public HashMap<UUID, User> getUsers() {
+        return users;
     }
 
-    public BiMap<UUID, User> getUsers() {
-        return users;
+    public HashMap<WebSocket, User> getSessionUsers() {
+        return sessionUsers;
     }
 
     public void setRemotePeers(UUID playerTo, Collection<UUID> peers) {
@@ -53,26 +53,28 @@ public class ConnectionManager {
 
         // Player to add
         for (UUID peer : peers)
-            if (!user.getRemotePeers().contains(new User.Peer(peer))) linkPeers(user, users.get(peer));
+            if (!user.getRemotePeers().contains(peer)) linkPeers(user, users.get(peer));
 
         // Player to remove
-        for (User.Peer peer : user.getRemotePeers()) {
-            if (!peers.contains(peer.playerId())) unlinkPeers(user, users.get(peer.playerId()));
-        }
-
+        for (UUID peer : user.getRemotePeers())
+            if (!peers.contains(peer)) unlinkPeers(user, users.get(peer));
     }
 
 
     public void linkPeers(User player1, User player2) {
-        player1.getRemotePeers().add(new User.Peer(player2.getPlayerId()));
-        player2.getRemotePeers().add(new User.Peer(player1.getPlayerId()));
+        player1.getRemotePeers().add(player2.getPlayerId());
+        player2.getRemotePeers().add(player1.getPlayerId());
 
         AddPeerPacket peerPacket = new AddPeerPacket(new AddPeerPacket.RTCDescription("", "createoffer"), player1.getPlayerId(), player2.getPlayerId());
-        player1.send(peerPacket);
+
+        /*String packet = Main.getGson().toJson(new PacketList(peerPacket));
+        System.out.println("Sending creating offer packet: " + packet);*/
+        player2.send(peerPacket);
     }
 
     public void unlinkPeers(User player1, User player2) {
-
+        player1.send(new PacketList(new RemovePeerPacket(player2.getPlayerId())));
+        player2.send(new PacketList(new RemovePeerPacket(player1.getPlayerId())));
     }
 
 }

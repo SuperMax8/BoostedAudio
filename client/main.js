@@ -8,8 +8,9 @@ const servers = {
 };
 
 
-const peerConnections = [];
-let micStream = null;
+const peerConnections = new Map();
+let micStream;
+let playerId;
 const ws = new WebSocket("ws://pyritemc.fr:8081/");
 const params = new URLSearchParams(window.location.search);
 const localMediaStream = new MediaStream();
@@ -28,79 +29,33 @@ let userTemplate;
 ws.onopen = async () => {
     console.log("WebSocket Open")
 
-    if (!params.has("token")) {
-        console.log("Without token this will not connected to the websocket")
-        // return
+    if (!params.has("token") || !params.has("playerId")) {
+        console.log("Without token or playerId this will not connected to the websocket")
+        return
     }
 
-    sendTrustPacket()
-    setupAudioSystem()
+    playerId = params.get("playerId")
 
+    sendTrustPacket()
+    await setupAudioSystem()
+
+    // Setup html user element
     const user = document.getElementById("user")
     userTemplate = user.outerHTML
     user.remove()
+
 
     ws.onmessage = message => {
         handlePackets(message.data)
     }
 
-    pc.ontrack = event => {
-        if (event.track.kind === 'audio') {
-            localMediaStream.addTrack(event.track)
-        }
-    };
-
-    pc.onicecandidate = (event) => {
-        if (event.candidate) {
-            const packet = [
-                {
-                    "type": "RTCIcePacket",
-                    "value": {
-                        type: 'candidate',
-                        candidate: event.candidate
-                    }
-                }
-            ]
-
-            ws.send(JSON.stringify(packet));
-            console.log("Sending ICE candidate")
-        }
-    };
-
     setInterval(() => {
-        console.log("RTCPeer State:")
-        console.log(pc.connectionState)
-
-        users.insertAdjacentElement("beforeend", htmlStringToElement(userTemplate));
-    }, 300)
-
-    callButton.onclick = async () => {
-        // Create offer
-        const offerDescription = await pc.createOffer();
-        offerDescription.type
-        await pc.setLocalDescription(offerDescription);
-
-        const offer = {
-            sdp: offerDescription.sdp,
-            type: offerDescription.type,
-        };
-
-        console.log(offer)
-
-        const packet = [
-            {
-                "type": "RTCSessionDescriptionPacket",
-                "value": {
-                    sdp: offerDescription.sdp,
-                    type: offerDescription.type
-                }
-            }
-        ]
-
-        ws.send(JSON.stringify(packet))
-        console.log("Sending Offer")
-
-    }
+        // users.insertAdjacentElement("beforeend", htmlStringToElement(userTemplate));
+        console.log("States:")
+        peerConnections.forEach((pc, k) => {
+            console.log("- State: " + pc.pc.connectionState)
+        })
+    }, 3000)
 
 }
 
@@ -122,39 +77,85 @@ async function handlePackets(packetList) {
 }
 
 async function handlePacket(type, packet) {
-    const packetFinal = packet;
+    /*    console.log("----------RECEIVING PACKET----------")
+        console.log(JSON.stringify(packet))
+        console.log("------------------------------------")*/
+    let from;
+    let to;
+    let pc
     switch (type) {
-        case "RTCSessionDescriptionPacket":
-            switch (packet.type) {
+        case "AddPeerPacket":
+            from = packet.from;
+            to = packet.to;
+            switch (packet.rtcDesc.type) {
+                // Packet action from server
+                case "createoffer":
+                    pc = createPeerConnection(from)
+                    const offer = await pc.createOffer()
+                    await pc.setLocalDescription(offer)
+
+                    const offerPacket = [
+                        {
+                            "type": "AddPeerPacket",
+                            "value": {
+                                "from": playerId,
+                                "to": from,
+                                "rtcDesc": {
+                                    "type": offer.type,
+                                    "sdp": offer.sdp,
+                                }
+                            }
+                        }
+                    ]
+                    /*console.log("Offer: " + JSON.stringify(offerPacket))*/
+
+                    /*console.log("Creating offer")*/
+                    ws.send(JSON.stringify(offerPacket))
+                    break
+                // Packet action from other user, check by server
+                // Receive offer
                 case "offer":
-                    await pc.setRemoteDescription(new RTCSessionDescription(packetFinal))
+                    pc = await createPeerConnection(from)
+                    const desc = new RTCSessionDescription(packet.rtcDesc);
+                    await pc.setRemoteDescription(desc)
+
                     const answer = await pc.createAnswer()
                     await pc.setLocalDescription(answer)
 
-                    const packet = [
+                    const answerPacket = [
                         {
-                            "type": "RTCSessionDescriptionPacket",
+                            "type": "AddPeerPacket",
                             "value": {
-                                type: answer.type,
-                                sdp: answer.sdp,
+                                "from": to,
+                                "to": from,
+                                "rtcDesc": {
+                                    "type": answer.type,
+                                    "sdp": answer.sdp,
+                                }
                             }
                         }
                     ]
 
-                    ws.send(JSON.stringify(packet))
-                    console.log("Receive OFFER, Sending answer")
+                    ws.send(JSON.stringify(answerPacket))
+                    /*console.log("Receive OFFER, Sending answer")*/
                     break
+                // Packet action from other user, check by server
+                // Receive answer
                 case "answer":
-                    await pc.setRemoteDescription(new RTCSessionDescription(packetFinal))
-                    console.log("Receive answer")
+                    pc = peerConnections.get(from).pc
+                    await pc.setRemoteDescription(new RTCSessionDescription(packet.rtcDesc))
+                    /*console.log("Receive answer")*/
                     break
             }
             break
         case "RTCIcePacket":
+            from = packet.from;
+            to = packet.to;
+            pc = peerConnections.get(from).pc
             const iceCandidate = new RTCIceCandidate({
-                candidate: packetFinal.candidate.candidate,
-                sdpMid: packetFinal.candidate.sdpMid,
-                sdpMLineIndex: packetFinal.candidate.sdpMLineIndex
+                "candidate": packet.candidate.candidate,
+                "sdpMid": packet.candidate.sdpMid,
+                "sdpMLineIndex": packet.candidate.sdpMLineIndex
             });
 
             const candidate = new RTCIceCandidate(iceCandidate);
@@ -164,7 +165,7 @@ async function handlePacket(type, packet) {
                     console.error("Erreur with ICE candidate set : ", error);
                 });
 
-            console.log("ICE Candidate set")
+            /*console.log("ICE Candidate set")*/
             break
     }
 }
@@ -178,6 +179,64 @@ function sendTrustPacket() {
     }]
 
     ws.send(JSON.stringify(trustPacket))
+}
+
+
+function createPeerConnection(from) {
+    let pc = new RTCPeerConnection(servers)
+    if (peerConnections.has(from)) closePeerConnection(peerConnections.get(from))
+
+    const tracks = [];
+
+    const connection = {
+        pc: pc,
+        tracks: tracks
+    }
+    peerConnections.set(from, connection)
+
+    pc.ontrack = event => {
+        if (event.track.kind === 'audio') {
+            const track = event.track;
+            localMediaStream.addTrack(track)
+            tracks.push(track)
+        }
+    };
+
+    pc.onicecandidate = (event) => {
+        if (event.candidate) {
+            let to = null;
+            peerConnections.forEach((pcc, id) => {
+                if (pcc.pc === pc) to = id
+            })
+            const packet = [
+                {
+                    "type": "RTCIcePacket",
+                    "value": {
+                        "from": playerId,
+                        "to": to,
+                        type: 'candidate',
+                        candidate: event.candidate
+                    }
+                }
+            ]
+
+            ws.send(JSON.stringify(packet));
+            // console.log("Sending ICE candidate")
+        }
+    };
+
+    micStream.getTracks().forEach((track) => {
+        pc.addTrack(track, micStream);
+    });
+
+    return pc;
+}
+
+function closePeerConnection(peerConnectionContainer) {
+    for (const track of peerConnectionContainer.tracks) {
+        localMediaStream.removeTrack(track)
+    }
+    peerConnectionContainer.pc.close()
 }
 
 async function populateMicrophoneOptions() {
@@ -208,10 +267,6 @@ async function setupAudioSystem() {
     });
 
     micStream = await navigator.mediaDevices.getUserMedia({audio: true});
-
-    micStream.getTracks().forEach((track) => {
-        pc.addTrack(track, micStream);
-    });
 
     await populateMicrophoneOptions(); // Populate the options initially
 

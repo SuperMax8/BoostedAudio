@@ -2,25 +2,35 @@ package fr.supermax_8.boostedaudio.web.packets;
 
 import com.google.gson.*;
 import fr.supermax_8.boostedaudio.Main;
-import fr.supermax_8.boostedaudio.web.ClientWebSocket;
+import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.Packet;
 import fr.supermax_8.boostedaudio.web.User;
-import org.eclipse.jetty.websocket.api.Session;
 
 import java.lang.reflect.Type;
+import java.util.UUID;
 
 public class RTCIcePacket implements Packet {
-    private String type;
-    private String candidate;
+    private final String type;
+    private final String candidate;
 
-    public RTCIcePacket(String type, String candidate) {
+    private final UUID from;
+    private final UUID to;
+
+    public RTCIcePacket(String type, String candidate, UUID from, UUID to) {
         this.type = type;
         this.candidate = candidate;
+        this.from = from;
+        this.to = to;
     }
 
     @Override
-    public void onReceive(User user) {
-        socket.sendPackets(session, this);
+    public void onReceive(User user, AudioWebSocketServer server) {
+        if (user.getRemotePeers().contains(to))
+            server.manager.getUsers().get(to).send(this);
+        else {
+            user.getSession().close();
+            System.out.println("KickICE");
+        }
     }
 
     public static class Adapter implements JsonSerializer<RTCIcePacket>, JsonDeserializer<RTCIcePacket> {
@@ -30,14 +40,18 @@ public class RTCIcePacket implements Packet {
         public RTCIcePacket deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             JsonObject object = jsonElement.getAsJsonObject();
             String typeRTC = object.get("type").getAsString();
+            UUID from = UUID.fromString(object.get("from").getAsString());
+            UUID to = UUID.fromString(object.get("to").getAsString());
             String candidate = Main.getGson().toJson(object.get("candidate").getAsJsonObject());
-            return new RTCIcePacket(typeRTC, candidate);
+            return new RTCIcePacket(typeRTC, candidate, from, to);
         }
 
         @Override
         public JsonElement serialize(RTCIcePacket rtcIcePacket, Type type, JsonSerializationContext jsonSerializationContext) {
             JsonObject object = new JsonObject();
             object.addProperty("type", rtcIcePacket.type);
+            object.addProperty("from", rtcIcePacket.from.toString());
+            object.addProperty("to", rtcIcePacket.to.toString());
             object.add("candidate", JsonParser.parseString(rtcIcePacket.candidate).getAsJsonObject());
             return object;
         }

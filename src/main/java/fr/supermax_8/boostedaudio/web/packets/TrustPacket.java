@@ -1,9 +1,8 @@
 package fr.supermax_8.boostedaudio.web.packets;
 
-import fr.supermax_8.boostedaudio.web.ClientWebSocket;
+import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.Packet;
 import fr.supermax_8.boostedaudio.web.User;
-import org.eclipse.jetty.websocket.api.Session;
 
 import java.util.UUID;
 
@@ -16,10 +15,14 @@ public class TrustPacket implements Packet {
     }
 
     @Override
-    public void onReceive(User user) {
+    public void onReceive(User user, AudioWebSocketServer server) {
         UUID playerId;
-        if ((playerId = ClientWebSocket.manager.getPlayerTokens().inverse().get(token)) != null)
-            ClientWebSocket.manager.getUsers().put(playerId, new User(user.getSession(), token, playerId));
+        if ((playerId = server.manager.getPlayerTokens().inverse().get(token)) != null) {
+            User newUser = new User(user.getSession(), token, playerId);
+            server.manager.getUsers().put(playerId, newUser);
+            server.manager.getSessionUsers().put(user.getSession(), newUser);
+            System.out.println("New trusted: " + playerId);
+        }
         else
             user.getSession().close();
     }

@@ -2,12 +2,17 @@ package fr.supermax_8.boostedaudio;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import fr.supermax_8.boostedaudio.web.ClientWebSocket;
+import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.PacketList;
+import fr.supermax_8.boostedaudio.web.User;
 import fr.supermax_8.boostedaudio.web.packets.RTCIcePacket;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
@@ -16,46 +21,34 @@ public class Main {
             .registerTypeAdapter(RTCIcePacket.class, new RTCIcePacket.Adapter())
             .create();
 
-    /*private static final int PORT = 8080;
-
     public static void main(String[] args) {
-        Server server = new Server("127.0.0.1", PORT, "/", null, VocalWebSocket.class);
+        int port = 8081;
 
-        try {
-            server.start();
-            System.out.println("Serveur WebSocket démarré");
-            System.out.println("Appuyez sur Enter pour arrêter le serveur.");
-            System.in.read();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            server.stop();
-        }
-    }*/
+        AudioWebSocketServer server = new AudioWebSocketServer(new InetSocketAddress("pyritemc.fr", port));
 
-    public static void main(String[] args) throws Exception {
-//        /*System.out.println(gson.toJson(new RTCSessionDescriptionPacket("aa", "bb")));
-//
-//        if (true) return;*/
-        int port = 8081; // Port sur lequel le serveur écoutera les connexions WebSocket
-        Server server = new Server(port);
-
-        // Créer un gestionnaire de contexte de servlet pour le serveur
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        server.setHandler(context);
-
-        // Ajouter la classe WebRTCSocket comme gestionnaire WebSocket à l'URL spécifique
-        context.addServlet(new ServletHolder(new ClientWebSocket()), "/");
+        scheduleWithInterval(() -> {
+            try {
+                List<User> users = new ArrayList<>(server.manager.getUsers().values());
+                server.manager.linkPeers(users.get(0), users.get(1));
+                System.out.println("Linking...");
+            } catch (Exception e) {
+                System.out.println("Not Linking ;(");
+            }
+        }, 5000);
 
         // Démarrer le serveur
-        server.start();
+        server.run();
         System.out.println("C ok mon frew: C, en ligne");
-        server.join();
     }
 
     public static Gson getGson() {
         return gson;
+    }
+
+    public static void scheduleWithInterval(Runnable action, long intervalInMillis) {
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        scheduler.scheduleAtFixedRate(action, 0, intervalInMillis, TimeUnit.MILLISECONDS);
     }
 
 }
