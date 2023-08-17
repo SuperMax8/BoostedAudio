@@ -1,0 +1,11 @@
+name: BoostedAudio
+version: '${project.version}'
+main: fr.supermax_8.boostedaudio.BoostedAudio
+api-version: 1.16
+authors: [ SuperMax_8 ]
+description: Realtime music and proximity voice chat
+website: https://www.spigotmc.org/resources/conversation.107834/
+softdepend:
+  - WorldGuard
+commands:
+  audio:

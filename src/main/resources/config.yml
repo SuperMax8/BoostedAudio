@@ -1,0 +1,8 @@
+# Show debug messages, websocket connections and others
+debugMode: false
+
+# WebSocket Configuration
+port: 8080
+hostName: localhost
+
+maxVoiceDistance: 30
