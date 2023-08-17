@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.web.packets;
 
 import com.google.gson.*;
-import fr.supermax_8.boostedaudio.Main;
+import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.Packet;
 import fr.supermax_8.boostedaudio.web.User;
@@ -29,7 +29,7 @@ public class RTCIcePacket implements Packet {
             server.manager.getUsers().get(to).send(this);
         else {
             user.getSession().close();
-            System.out.println("KickICE");
+            BoostedAudio.debug("KickICE");
         }
     }
 
@@ -42,7 +42,7 @@ public class RTCIcePacket implements Packet {
             String typeRTC = object.get("type").getAsString();
             UUID from = UUID.fromString(object.get("from").getAsString());
             UUID to = UUID.fromString(object.get("to").getAsString());
-            String candidate = Main.getGson().toJson(object.get("candidate").getAsJsonObject());
+            String candidate = BoostedAudio.getGson().toJson(object.get("candidate").getAsJsonObject());
             return new RTCIcePacket(typeRTC, candidate, from, to);
         }
 

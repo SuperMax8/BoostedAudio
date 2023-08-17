@@ -23,21 +23,36 @@ public class AddPeerPacket implements Packet {
 
     @Override
     public void onReceive(User user, AudioWebSocketServer server) {
-        System.out.println("RECEIVED PEER MESSAGE FROM " + user.getPlayerId());
-        System.out.println("TO " + to);
-        System.out.println("FROM " + from);
-        System.out.println("PEERS" + user.getRemotePeers());
+/*        BoostedAudio.debug("RECEIVED PEER MESSAGE FROM " + user.getPlayerId());
+        BoostedAudio.debug("TO " + to);
+        BoostedAudio.debug("FROM " + from);
+        BoostedAudio.debug("PEERS" + user.getRemotePeers());*/
         if (user.getRemotePeers().contains(to))
             server.manager.getUsers().get(to).send(this);
         else {
             user.getSession().close();
-            System.out.println("KickPEER");
+            /*BoostedAudio.debug("KickPEER");*/
         }
     }
 
+    public static class RTCDescription {
 
-    public record RTCDescription(String sdp, String type) {
+        private final String sdp;
+        private final String type;
 
+        public RTCDescription(String sdp, String type) {
+            this.sdp = sdp;
+            this.type = type;
+        }
+
+        public String getSdp() {
+            return sdp;
+        }
+
+        public String getType() {
+            return type;
+        }
+        
     }
 
 }

@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.web.packets;
 
+import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.Packet;
 import fr.supermax_8.boostedaudio.web.User;
@@ -17,14 +18,12 @@ public class TrustPacket implements Packet {
     @Override
     public void onReceive(User user, AudioWebSocketServer server) {
         UUID playerId;
-        if ((playerId = server.manager.getPlayerTokens().inverse().get(token)) != null) {
+        if ((playerId = server.manager.getPlayerTokens().getKey(token)) != null) {
             User newUser = new User(user.getSession(), token, playerId);
             server.manager.getUsers().put(playerId, newUser);
             server.manager.getSessionUsers().put(user.getSession(), newUser);
-            System.out.println("New trusted: " + playerId);
-        }
-        else
-            user.getSession().close();
+            BoostedAudio.debug("New trusted: " + playerId);
+        } else user.getSession().close();
     }
 
 

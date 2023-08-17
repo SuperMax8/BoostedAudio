@@ -1,14 +1,12 @@
 package fr.supermax_8.boostedaudio.web;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import fr.supermax_8.boostedaudio.utils.HashBiMap;
 import fr.supermax_8.boostedaudio.web.packets.AddPeerPacket;
 import fr.supermax_8.boostedaudio.web.packets.RemovePeerPacket;
 import org.java_websocket.WebSocket;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class ConnectionManager {
@@ -17,10 +15,10 @@ public class ConnectionManager {
      * UUID: Minecraft player uuid
      * String: token
      */
-    protected final BiMap<UUID, String> playerTokens = HashBiMap.create(Map.of(
-            UUID.fromString("9008ec29-3e84-4afa-918a-f6f9f923c8b8"), "zougoulou",
-            UUID.fromString("7b1c5ff6-aec7-4a8c-9864-d35838c653bb"), "zougouloux"
-    ));
+    protected final HashBiMap<UUID, String> playerTokens = new HashBiMap<>(new HashMap<UUID, String>() {{
+        put(UUID.fromString("d2491bf7-e8bb-4eba-8721-bbec75d3af0c"), "SuperMax_8");
+        put(UUID.fromString("cce44059-edce-4801-89ba-acac1acfd459"), "Ender_Griefeur99");
+    }});
 
     /**
      * The users trusted with the token link to the minecraft client
@@ -36,7 +34,7 @@ public class ConnectionManager {
     }
 
 
-    public BiMap<UUID, String> getPlayerTokens() {
+    public HashBiMap<UUID, String> getPlayerTokens() {
         return playerTokens;
     }
 
@@ -68,11 +66,13 @@ public class ConnectionManager {
         AddPeerPacket peerPacket = new AddPeerPacket(new AddPeerPacket.RTCDescription("", "createoffer"), player1.getPlayerId(), player2.getPlayerId());
 
         /*String packet = Main.getGson().toJson(new PacketList(peerPacket));
-        System.out.println("Sending creating offer packet: " + packet);*/
+        BoostedAudio.debug("Sending creating offer packet: " + packet);*/
         player2.send(peerPacket);
     }
 
     public void unlinkPeers(User player1, User player2) {
+        player1.getRemotePeers().remove(player2.getPlayerId());
+        player2.getRemotePeers().remove(player1.getPlayerId());
         player1.send(new PacketList(new RemovePeerPacket(player2.getPlayerId())));
         player2.send(new PacketList(new RemovePeerPacket(player1.getPlayerId())));
     }

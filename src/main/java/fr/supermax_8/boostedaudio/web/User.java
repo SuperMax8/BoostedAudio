@@ -1,6 +1,6 @@
 package fr.supermax_8.boostedaudio.web;
 
-import fr.supermax_8.boostedaudio.Main;
+import fr.supermax_8.boostedaudio.BoostedAudio;
 import org.java_websocket.WebSocket;
 
 import java.util.HashSet;
@@ -59,12 +59,12 @@ public class User {
     }
 
     public void send(PacketList packetList) {
-        String packet = Main.getGson().toJson(packetList);
+        String packet = BoostedAudio.getGson().toJson(packetList);
         send(packet);
     }
 
     public void send(String packet) {
-        session.send(packet);
+        if (session.isOpen()) session.send(packet);
     }
 
 }
