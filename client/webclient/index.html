@@ -94,7 +94,7 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
     let micStream;
     let playerId;
     const params = new URLSearchParams(window.location.search);
-    const ws = new WebSocket("ws://pyritemc.fr:8081/");
+    const ws = new WebSocket("%WS_IP%");
     const localMediaStream = new MediaStream();
     let audioContext;
     let gainNode;

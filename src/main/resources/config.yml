@@ -1,8 +1,19 @@
 # Show debug messages, websocket connections and others
 debugMode: false
 
-# WebSocket Configuration
-port: 8080
-hostName: localhost
+# Web client (change http by https if you are using ssl)
+client-link: http://localhost:8080
+autoHost: true
+autoHostPort: 8080
 
+# SSL, ssl will be used for WebClient if enabled and websocket
+ssl: false
+keystorePassword: "YOUR_PASSWORD"
+keystoreFileName: "keystore.jks"
+
+# WebSocket
+webSocketPort: 8081
+webSocketHostName: localhost
+
+# In game params
 maxVoiceDistance: 30

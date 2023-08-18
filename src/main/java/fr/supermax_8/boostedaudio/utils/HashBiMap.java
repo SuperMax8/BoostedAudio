@@ -24,6 +24,14 @@ public class HashBiMap<K, V> {
         backwardMap.put(value, key);
     }
 
+    public boolean containsKey(K key) {
+        return forwardMap.containsKey(key);
+    }
+
+    public boolean containsValue(V value) {
+        return backwardMap.containsKey(value);
+    }
+
     public V get(K key) {
         return forwardMap.get(key);
     }
