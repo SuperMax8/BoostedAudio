@@ -14,6 +14,8 @@ public class BoostedAudioConfiguration {
     private int webSocketPort;
     private String webSocketHostName;
     private float maxVoiceDistance;
+    private String connectionMessage;
+    private String connectionHoverMessage;
 
     public BoostedAudioConfiguration() {
         load();
@@ -37,6 +39,9 @@ public class BoostedAudioConfiguration {
         webSocketHostName = config.getString("webSocketHostName", "localhost");
 
         maxVoiceDistance = (float) config.getDouble("maxVoiceDistance", 30);
+
+        connectionMessage = config.getString("connectionMessage", "§6Join the audio client by clicking here!");
+        connectionHoverMessage = config.getString("connectionHoverMessage", "Click here");
     }
 
     public boolean isDebugMode() {
@@ -77,5 +82,13 @@ public class BoostedAudioConfiguration {
 
     public float getMaxVoiceDistance() {
         return maxVoiceDistance;
+    }
+
+    public String getConnectionMessage() {
+        return connectionMessage;
+    }
+
+    public String getConnectionHoverMessage() {
+        return connectionHoverMessage;
     }
 }

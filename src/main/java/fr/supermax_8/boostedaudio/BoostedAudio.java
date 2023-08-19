@@ -7,10 +7,12 @@ import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
 import fr.supermax_8.boostedaudio.commands.AudioCommand;
+import fr.supermax_8.boostedaudio.ingame.VocalLinker;
 import fr.supermax_8.boostedaudio.utils.FileUtils;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.PacketList;
 import fr.supermax_8.boostedaudio.web.packets.RTCIcePacket;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 
@@ -18,15 +20,22 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.security.KeyStore;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.concurrent.CompletableFuture;
 
 public class BoostedAudio extends JavaPlugin {
 
     private static BoostedAudio instance;
+
+    public static double bukkitVersion;
+
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(PacketList.class, new PacketList.Adapter())
             .registerTypeAdapter(RTCIcePacket.class, new RTCIcePacket.Adapter())
@@ -40,10 +49,20 @@ public class BoostedAudio extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
+        try {
+            NumberFormat f = NumberFormat.getInstance();
+            bukkitVersion = f.parse(Bukkit.getBukkitVersion()).doubleValue();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+
         configuration = new BoostedAudioConfiguration();
         getCommand("audio").setExecutor(new AudioCommand());
 
         CompletableFuture.runAsync(this::startServers);
+
+        Bukkit.getScheduler().runTaskLater(this, () -> new VocalLinker().runTaskTimerAsynchronously(this, 0, 0), 20);
     }
 
     @Override

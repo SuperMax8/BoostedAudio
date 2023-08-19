@@ -41,7 +41,7 @@ public class AudioWebSocketServer extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-        manager.sessionUsers.put(webSocket, null);
+        manager.sessionUsers.put(webSocket, new User(null));
 
         BoostedAudio.debug("New connection WebSocket : " + webSocket.getRemoteSocketAddress().getAddress() + " / " + manager.getSessionUsers().size());
     }
@@ -55,7 +55,6 @@ public class AudioWebSocketServer extends WebSocketServer {
 
         UUID playerId = user.getPlayerId();
         User realUser = manager.getUsers().remove(playerId);
-        if (playerId != null) manager.playerTokens.removeByKey(playerId);
 
         for (UUID id : realUser.getRemotePeers()) {
             User usr = manager.getUsers().get(id);
@@ -74,7 +73,7 @@ public class AudioWebSocketServer extends WebSocketServer {
         }
 
         User user = manager.getSessionUsers().get(client);
-        if (user != null)
+        if (user != null && user.getSession() != null)
             for (Packet packet : packetList.getPackets()) packet.onReceive(user, this);
         else
             testToTrust(client, packetList);

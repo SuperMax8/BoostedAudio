@@ -12,13 +12,12 @@ public class User {
     private final Set<UUID> remotePeers = new HashSet<>();
     private final WebSocket session;
     private final String connectionToken;
-
     private final UUID playerId;
 
     /**
      * Use only this constructor if you only want to use the hashcode method of this class
      *
-     * @param session The session
+     * @param session The sessionq
      */
     public User(WebSocket session) {
         this.session = session;

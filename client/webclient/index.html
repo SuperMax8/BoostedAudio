@@ -94,7 +94,8 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
     let micStream;
     let playerId;
     const params = new URLSearchParams(window.location.search);
-    const ws = new WebSocket("%WS_IP%");
+    const wsIP = "%WS_IP%";
+    let ws;
     const localMediaStream = new MediaStream();
     let audioContext;
     let gainNode;
@@ -110,17 +111,20 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
 
     let userTemplate;
 
-    let panner;
-
+    try {
+        ws = new WebSocket(wsIP);
+    } catch (e) {
+    }
 
     // Setup html user element
     const user = document.getElementById("user")
     userTemplate = user.outerHTML
     user.remove()
 
-
     ws.onopen = async () => {
         console.log("WebSocket Open")
+
+        await setupAudioSystem()
 
         if (!params.has("token") || !params.has("playerId")) {
             console.log("Without token or playerId this will not connected to the websocket")
@@ -130,8 +134,6 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
         playerId = params.get("playerId")
 
         sendTrustPacket()
-        await setupAudioSystem()
-
 
         ws.onmessage = message => {
             handlePackets(message.data)
@@ -273,10 +275,10 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
         const nameElement = element.getElementsByClassName("username").item(0)
         const logoElement = element.getElementsByClassName("logo").item(0)
 
-        element.id = userName
+        element.id = peerObj.playerId
 
         nameElement.textContent = userName;
-        logoElement.src = "http://cravatar.eu/avatar/" + userName + "/512.png"
+        logoElement.src = "https://cravatar.eu/avatar/" + userName + "/512.png"
 
         peerObj.element = element;
 
@@ -358,6 +360,7 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
             localMediaStream.removeTrack(track)
         }
         peerConnectionContainer.pc.close()
+        document.getElementById(peerConnectionContainer.playerId).remove()
     }
 
     function htmlStringToElement(htmlString) {

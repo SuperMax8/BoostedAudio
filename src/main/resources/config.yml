@@ -17,3 +17,7 @@ webSocketHostName: localhost
 
 # In game params
 maxVoiceDistance: 30
+
+# Messages
+connectionMessage: "§6Join the audio client by clicking here!"
+connectionHoverMessage: "Click here"
