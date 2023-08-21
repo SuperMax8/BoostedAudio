@@ -41,24 +41,32 @@ public class AudioWebSocketServer extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-        manager.sessionUsers.put(webSocket, new User(null));
-
-        BoostedAudio.debug("New connection WebSocket : " + webSocket.getRemoteSocketAddress().getAddress() + " / " + manager.getSessionUsers().size());
+        try {
+            manager.sessionUsers.put(webSocket, new User(null));
+            BoostedAudio.debug("New connection WebSocket : " + webSocket.getRemoteSocketAddress().getAddress() + " / " + manager.getSessionUsers().size());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onClose(WebSocket webSocket, int i, String s, boolean b) {
-        BoostedAudio.debug("WebSocket connection closed : " + webSocket.getRemoteSocketAddress().getAddress());
-        BoostedAudio.debug("REASON " + s + " STATUSCODE: " + i);
-        User user = manager.getSessionUsers().remove(webSocket);
-        if (user == null) return;
+        try {
+            BoostedAudio.debug("WebSocket connection closed : " + webSocket.getRemoteSocketAddress().getAddress());
+            BoostedAudio.debug("REASON " + s + " STATUSCODE: " + i);
 
-        UUID playerId = user.getPlayerId();
-        User realUser = manager.getUsers().remove(playerId);
+            User user = manager.getSessionUsers().remove(webSocket);
+            if (user == null) return;
 
-        for (UUID id : realUser.getRemotePeers()) {
-            User usr = manager.getUsers().get(id);
-            manager.unlinkPeers(realUser, usr);
+            UUID playerId = user.getPlayerId();
+            User realUser = manager.getUsers().remove(playerId);
+
+            for (UUID id : realUser.getRemotePeers()) {
+                User usr = manager.getUsers().get(id);
+                manager.unlinkPeers(realUser, usr);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

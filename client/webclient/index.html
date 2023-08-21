@@ -12,8 +12,7 @@
             }
         }
     </script>
-    <audio id="remoteAudio" muted autoplay></audio>
-    <title>WebRTC Demo</title>
+    <title>BoostedAudio</title>
 </head>
 <body class="h-screen w-screen bg-center">
 <div class="h-full w-full bg-center
@@ -23,10 +22,10 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
 <div class="absolute inset-0 h-full w-full p-8 text-slate-200">
     <div class="bg-gray-700/50 p-6 rounded-lg shadow-2xl max-h-screen">
         <h1 class="text-2xl font-bold mb-4">Boosted Audio</h1>
-        <div class="flex mb-6">
+        <div class="flex mb-6 items-center">
             <div class="w-1/3 pr-4">
                 <label class="block text-sm font-medium mb-2">Main Volume</label>
-                <input id="microphoneMaster" type="range" class="w-full ring-slate-800" min="-100" max="150">
+                <input id="master" type="range" class="w-full ring-slate-800" min="0" max="150">
             </div>
             <div class="w-1/3 px-2">
                 <label class="block text-sm font-medium mb-2">Microphone Noise</label>
@@ -39,9 +38,8 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
                 </select>
             </div>
         </div>
-        <h2 class="text-lg font-bold mb-4">User List</h2>
 
-        <input id="panning-slider" type="range" min="-1" max="1" step="0.1" value="0">
+        <h2 class="text-lg font-bold mb-4">User List</h2>
 
         <div class="p-1 w-1/5 mb-4 relative">
             <input type="text"
@@ -61,12 +59,13 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
         sm:max-h-[5rem] md:max-h-[20rem] 2xl:sm:max-h-[30rem]
          min-h-0 bg-gray-700/40 p-2 rounded-lg bg-scroll grid gap-4 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
 
-            <div id="user" class="flex items-center bg-gray-800 p-4 rounded-lg">
+            <div id="user"
+                 class="flex items-center bg-gray-800 p-4 rounded-lg focus:outline-none focus:ring hover:ring duration-300">
                 <!--https://cravatar.eu/avatar/SuperMax_8/512-->
                 <img src="" alt="User 1" class="logo w-12 h-12 rounded-lg mr-4">
                 <div class="flex-grow">
                     <p class="font-medium username"></p>
-                    <input type="range" class="w-full mt-1">
+                    <input type="range" class="user-volume w-full mt-1" min="0" max="150">
                 </div>
                 <button class="ml-4 active:text-red-500 hover:text-red-300">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -96,32 +95,54 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
     const params = new URLSearchParams(window.location.search);
     const wsIP = "%WS_IP%";
     let ws;
-    const localMediaStream = new MediaStream();
     let audioContext;
-    let gainNode;
-    let source;
+    let masterVolume = 1;
+
+    let clientLoc;
+
+    let maxDistance;
+    let rolloffFactor;
+    let refDistance;
+    let distanceModel;
+
 
     // HTML elements
-    const callButton = document.getElementById('callButton');
-    const remoteAudio = document.getElementById('remoteAudio');
     const users = document.getElementById('users');
-    const microphoneMaster = document.getElementById('microphoneMaster');
+    const microphoneMaster = document.getElementById('master');
     const microphoneNoise = document.getElementById('microphoneNoise');
     const microphoneSelect = document.getElementById('microphoneSelect');
 
     let userTemplate;
 
-    try {
-        ws = new WebSocket(wsIP);
-    } catch (e) {
-    }
+
+    let isOpen = false;
 
     // Setup html user element
     const user = document.getElementById("user")
     userTemplate = user.outerHTML
     user.remove()
 
-    ws.onopen = async () => {
+    let onopen;
+
+    ws = new WebSocket(wsIP);
+
+    const f = () => {
+        const intervalId = setInterval(() => {
+            if (isOpen === true) {
+                clearInterval(intervalId)
+                console.log("Connection etablished")
+                return;
+            }
+            console.log("Reset WebSocket")
+            ws.close()
+            ws = new WebSocket(wsIP);
+            ws.onopen = onopen;
+        }, 3500)
+    }
+    setTimeout(f, 2000)
+
+    onopen = async () => {
+        isOpen = true;
         console.log("WebSocket Open")
 
         await setupAudioSystem()
@@ -138,6 +159,9 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
         ws.onmessage = message => {
             handlePackets(message.data)
         }
+        ws.onclose = () => {
+            console.log("WebSocket closed :!")
+        }
 
         setInterval(() => {
             console.log("States:")
@@ -145,8 +169,8 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
                 console.log("- State: " + pc.pc.connectionState)
             })
         }, 3000)
-
     }
+    ws.onopen = onopen;
 
     async function handlePacket(type, packet) {
         /*    console.log("----------RECEIVING PACKET----------")
@@ -162,7 +186,7 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
                 switch (packet.rtcDesc.type) {
                     // Packet action from server
                     case "createoffer":
-                        pc = createPeerConnection(from)
+                        pc = await createPeerConnection(from)
                         const offer = await pc.createOffer()
                         await pc.setLocalDescription(offer)
 
@@ -242,88 +266,114 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
             case "RemovePeerPacket":
                 const playerToRemoveId = packet.playerToRemove;
                 closePeerConnection(peerConnections.get(playerToRemoveId))
-                peerConnections.delete(playerToRemoveId)
                 break
+            case "UpdateVocalPositionsPacket":
+                // Parse clientloc
+                clientLoc = packet.clientLoc;
+                // Parse peers info
+                const players = packet.playersAround;
+                const map = new Map();
+                for (const key in players) {
+                    if (players.hasOwnProperty(key)) map.set(key, players[key]);
+                }
+
+                peerConnections.forEach((peerObj, uuid) => {
+                    peerObj.loc = map.get(uuid)
+                    spatializeAudio(peerObj.panner, peerObj.loc)
+                })
+                break
+            case "TrustPacket":
+                const serverInfo = packet.serverInfo;
+                maxDistance = serverInfo.maxDistance;
+                rolloffFactor = serverInfo.rolloffFactor;
+                refDistance = serverInfo.refDistance;
+                distanceModel = serverInfo.distanceModel;
+                console.log("ServerInfo set")
+                break;
             default:
                 break;
         }
     }
 
-    function fetchDataWithCORSAnywhere(url) {
-        const corsAnywhereUrl = 'https://cors-anywhere.herokuapp.com/';
+    function showUser(peerObj) {
+        return new Promise(async (resolve, reject) => {
+            const url = 'https://corsproxy.io/?' + encodeURIComponent('https://minecraft-api.com/api/pseudo/' + peerObj.playerId + '/json');
+            const response = await fetch(url);
+            const userName = JSON.parse(await response.text()).pseudo;
 
-        return fetch(corsAnywhereUrl + url, {
-            method: 'GET',
-            headers: {
-                'Origin': '',  // Laissez l'en-tête Origin vide pour que CORS Anywhere fonctionne
-            },
+            const element = htmlStringToElement(userTemplate)
+            const nameElement = element.getElementsByClassName("username").item(0)
+            const logoElement = element.getElementsByClassName("logo").item(0)
+
+            element.id = peerObj.playerId
+
+            nameElement.textContent = userName;
+            logoElement.src = "https://cravatar.eu/avatar/" + userName + "/512.png"
+
+            peerObj.element = element;
+
+            users.insertAdjacentElement("beforeend", element);
+            resolve()
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            });
     }
 
-    async function showUser(peerObj) {
-        const url = 'https://corsproxy.io/?' + encodeURIComponent('https://minecraft-api.com/api/pseudo/' + peerObj.playerId + '/json');
-        const response = await fetch(url);
-        const userName = JSON.parse(await response.text()).pseudo;
+    function spatializeAudio(panner, peerLocation) {
+        if (peerLocation == null) return
+        // Calc peer loc relative to the client
+        const x = peerLocation.x - clientLoc.x;
+        const y = peerLocation.y - clientLoc.y;
+        const z = peerLocation.z - clientLoc.z;
 
-        const element = htmlStringToElement(userTemplate)
-        const nameElement = element.getElementsByClassName("username").item(0)
-        const logoElement = element.getElementsByClassName("logo").item(0)
+        // Calc yaw
+        const yaw = degrees_to_radians(-clientLoc.yaw)
 
-        element.id = peerObj.playerId
+        // Rotate
+        const newX = x * Math.cos(yaw) - z * Math.sin(yaw);
+        const newZ = x * Math.sin(yaw) + z * Math.cos(yaw);
 
-        nameElement.textContent = userName;
-        logoElement.src = "https://cravatar.eu/avatar/" + userName + "/512.png"
+        // Set the values
+        panner.positionX.value = newX
+        panner.positionY.value = y
+        panner.positionZ.value = newZ
 
-        peerObj.element = element;
-
-        users.insertAdjacentElement("beforeend", element);
+        //panner.setPosition(newX, y, newZ);
     }
 
-    function createPeerConnection(from) {
+    function degrees_to_radians(degrees) {
+        const pi = Math.PI;
+        return degrees * (pi / 180);
+    }
+
+    async function createPeerConnection(from) {
+        console.log("New RTCPeerConnection")
         let pc = new RTCPeerConnection(servers)
         if (peerConnections.has(from)) closePeerConnection(peerConnections.get(from))
 
-        const tracks = [];
-        const panner = audioContext.createStereoPanner();
+        // Init var
+        const panner = new PannerNode(audioContext, {
+            panningModel: "HRTF",
+            distanceModel: distanceModel,
+            refDistance: Math.max(refDistance, 0.1),
+            rolloffFactor: rolloffFactor,
+            coneInnerAngle: 40,
+            coneOuterAngle: 30,
+            coneOuterGain: 0.4,
+        });
+
+        const gain = audioContext.createGain();
+
+        const mediaStreamTrack = new MediaStream();
 
         const connection = {
             pc: pc,
-            tracks: tracks,
             panner: panner,
+            gain: gain,
+            gainValue: 1,
             playerId: from,
-            htmlElement: null
+            mute: false,
+            loc: null,
+            element: null
         }
-
-        showUser(connection)
-
-        peerConnections.set(from, connection)
-
-
-        pc.ontrack = event => {
-            if (event.track.kind === 'audio') {
-                const track = event.track;
-
-                localMediaStream.addTrack(track)
-
-                source = audioContext.createMediaStreamSource(localMediaStream);
-                source.connect(panner);
-                source.connect(gainNode);
-                panner.connect(audioContext.destination);
-
-                const panningSlider = document.getElementById('panning-slider');
-                panningSlider.addEventListener('input', () => {
-                    panner.pan.value = parseFloat(panningSlider.value);
-                });
-
-                tracks.push(track)
-            }
-        };
 
         pc.onicecandidate = (event) => {
             if (event.candidate) {
@@ -344,23 +394,60 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
                 ]
 
                 ws.send(JSON.stringify(packet));
-                // console.log("Sending ICE candidate")
+                console.log("Sending ICE candidate")
             }
-        };
+        }
+        peerConnections.set(from, connection)
+
+        pc.ontrack = event => {
+            if (event.track.kind === 'audio') {
+                console.log("Track set")
+                const track = event.track;
+
+                mediaStreamTrack.addTrack(track)
+                // Connecting things
+                const source = audioContext.createMediaStreamSource(mediaStreamTrack);
+                source.connect(panner)
+                panner.connect(gain)
+                gain.connect(audioContext.destination)
+                gain.gain.value = 1;
+
+                // We use a dummy audio muted, because of a bug in chrome https://bugs.chromium.org/p/chromium/issues/detail?id=933677
+                const dummyAudio = new Audio();
+                dummyAudio.muted = true;
+                dummyAudio.srcObject = mediaStreamTrack;
+            }
+        }
 
         micStream.getTracks().forEach((track) => {
             pc.addTrack(track, micStream);
         });
 
+        async function userThing() {
+            // Show user
+            await showUser(connection)
+
+            // Setup user bar
+            const userVolume = connection.element.getElementsByClassName("user-volume").item(0);
+            gain.gain.value = 1;
+            userVolume.value = 100;
+            userVolume.addEventListener('input', (e) => {
+                const volume = parseFloat(e.target.value) / 100;
+                connection.gainValue = volume;
+                gain.gain.value = volume * masterVolume;
+            });
+        }
+
+        userThing()
+
         return pc;
     }
 
     function closePeerConnection(peerConnectionContainer) {
-        for (const track of peerConnectionContainer.tracks) {
-            localMediaStream.removeTrack(track)
-        }
+        if (peerConnectionContainer == null) return
         peerConnectionContainer.pc.close()
-        document.getElementById(peerConnectionContainer.playerId).remove()
+        if (peerConnectionContainer.element != null) peerConnectionContainer.element.remove()
+        peerConnections.delete(peerConnectionContainer.playerId)
     }
 
     function htmlStringToElement(htmlString) {
@@ -399,23 +486,16 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
     }
 
     async function setupAudioSystem() {
-        //-Compatibility chrome-
-        remoteAudio.srcObject = localMediaStream;
-        //----------------------
-
-
         micStream = await navigator.mediaDevices.getUserMedia({audio: true});
 
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        gainNode = audioContext.createGain();
-        gainNode.connect(audioContext.destination);
 
-        gainNode.gain.value = 1;
         microphoneMaster.value = 100;
         microphoneMaster.addEventListener('input', function () {
-            const volume = parseFloat(this.value) / 100;
-            gainNode.gain.value = volume;
-            console.log(volume)
+            masterVolume = parseFloat(this.value) / 100;
+            peerConnections.forEach((peerObj, id) => {
+                peerObj.gain.gain.value = peerObj.gainValue * masterVolume;
+            })
         });
 
         await populateMicrophoneOptions();
@@ -423,8 +503,22 @@ bg-gradient-to-tl from-gray-950 to-blue-800/50 opcatiy-5"></div>
         microphoneSelect.addEventListener("change", async () => {
             try {
                 const selectedDeviceId = microphoneSelect.value;
+                console.log("New device selected: " + selectedDeviceId)
                 const constraints = {audio: {deviceId: selectedDeviceId}};
                 micStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                for (const peerObj in peerConnections.values()) {
+                    const pc = peerObj.pc;
+                    pc.getSenders().forEach(sender => {
+                        pc.removeTrack(sender)
+                    })
+                    micStream.getTracks().forEach((track) => {
+                        pc.addTrack(track, micStream);
+                    });
+                    pc.getSenders().forEach(sender => {
+                        console.log(sender)
+                    })
+                }
             } catch (error) {
                 console.error("Error getting selected microphone stream:", error);
             }

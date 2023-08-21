@@ -28,14 +28,12 @@ public class UpdateVocalPositionsPacket implements Packet {
         private final double x;
         private final double y;
         private final double z;
-        private final float pitch;
         private final float yaw;
 
-        public Location(float x, float y, float z, float pitch, float yaw) {
+        public Location(float x, float y, float z, float yaw) {
             this.x = x;
             this.y = y;
             this.z = z;
-            this.pitch = pitch;
             this.yaw = yaw;
         }
 
@@ -44,8 +42,10 @@ public class UpdateVocalPositionsPacket implements Packet {
             y = location.getY();
             z = location.getZ();
 
-            pitch = location.getPitch();
-            yaw = location.getYaw();
+            float convertedYaw = (location.getYaw() + 180) % 360;
+            if (convertedYaw < 0) convertedYaw += 360;
+
+            yaw = convertedYaw;
         }
 
 

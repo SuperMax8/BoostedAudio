@@ -18,6 +18,17 @@ webSocketHostName: localhost
 # In game params
 maxVoiceDistance: 30
 
+# The calculation model for the distance volume attenuation
+# linear, inverse, exponential
+distanceModel: exponential
+
+# This property defines the distance from which the sound begins to attenuate
+refDistance: 3
+
+# This property controls how quickly the sound attenuates as distance increases
+rolloffFactor: 2
+
+
 # Messages
 connectionMessage: "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"

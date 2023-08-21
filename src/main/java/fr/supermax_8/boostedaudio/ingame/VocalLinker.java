@@ -3,17 +3,15 @@ package fr.supermax_8.boostedaudio.ingame;
 import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.web.ConnectionManager;
 import fr.supermax_8.boostedaudio.web.User;
+import fr.supermax_8.boostedaudio.web.packets.UpdateVocalPositionsPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class VocalLinker extends BukkitRunnable {
 
@@ -37,10 +35,31 @@ public class VocalLinker extends BukkitRunnable {
 
     private void setPeers(Player player, User user) {
         Bukkit.getScheduler().runTask(BoostedAudio.getInstance(), () -> {
-            List<UUID> peers = player.getNearbyEntities(maxDistance, maxDistance, maxDistance).stream()
-                    .filter(e -> e.getType() == EntityType.PLAYER)
-                    .map(Entity::getUniqueId).collect(Collectors.toList());
-            CompletableFuture.runAsync(() -> manager.setRemotePeers(user, peers));
+            List<Player> players = new LinkedList<>();
+            
+            // Get Nearby Players
+            for (Entity entity : player.getNearbyEntities(maxDistance, maxDistance, maxDistance)) {
+                if (entity.getType() != EntityType.PLAYER) continue;
+                players.add((Player) entity);
+            }
+
+            List<UUID> peers = new LinkedList<>();
+            for (Player p : players) peers.add(p.getUniqueId());
+
+            CompletableFuture.runAsync(() -> {
+                // Set new Peers
+                manager.setRemotePeers(user, peers);
+
+                // Send update position packet, for spatialization
+                HashMap<UUID, UpdateVocalPositionsPacket.Location> peersLocs = new HashMap<>();
+                for (Player p : players) peersLocs.put(p.getUniqueId(), new UpdateVocalPositionsPacket.Location(p.getLocation()));
+
+                UpdateVocalPositionsPacket updatePacket = new UpdateVocalPositionsPacket(
+                        new UpdateVocalPositionsPacket.Location(player.getLocation()),
+                        peersLocs
+                );
+                user.send(updatePacket);
+            });
         });
     }
 

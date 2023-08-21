@@ -1,10 +1,12 @@
 package fr.supermax_8.boostedaudio.web;
 
+import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.web.packets.AddPeerPacket;
 import fr.supermax_8.boostedaudio.web.packets.RemovePeerPacket;
 import org.java_websocket.WebSocket;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -54,8 +56,16 @@ public class ConnectionManager {
 
 
     public void linkPeers(User player1, User player2) {
-        player1.getRemotePeers().add(player2.getPlayerId());
-        player2.getRemotePeers().add(player1.getPlayerId());
+        UUID p1 = player1.getPlayerId();
+        UUID p2 = player2.getPlayerId();
+        Set<UUID> peers1 = player1.getRemotePeers();
+        Set<UUID> peers2 = player2.getRemotePeers();
+        if (peers1.contains(p2) || peers2.contains(p1)) {
+            BoostedAudio.debug("Peers already set !");
+            return;
+        }
+        peers1.add(p2);
+        peers2.add(p1);
 
         AddPeerPacket peerPacket = new AddPeerPacket(new AddPeerPacket.RTCDescription("", "createoffer"), player1.getPlayerId(), player2.getPlayerId());
 
