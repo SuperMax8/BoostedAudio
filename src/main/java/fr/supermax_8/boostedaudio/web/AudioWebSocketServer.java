@@ -14,7 +14,7 @@ import java.util.UUID;
 public class AudioWebSocketServer extends WebSocketServer {
 
     public final ConnectionManager manager = new ConnectionManager();
-
+    private boolean isOpen = false;
     private static final Gson gson = BoostedAudio.getGson();
 
     public AudioWebSocketServer(InetSocketAddress address) {
@@ -89,12 +89,14 @@ public class AudioWebSocketServer extends WebSocketServer {
 
     @Override
     public void onError(WebSocket webSocket, Exception e) {
+        BoostedAudio.debug("ERRRRREEEEUR WEBSOCKET " + webSocket.getRemoteSocketAddress());
         e.printStackTrace();
     }
 
     @Override
     public void onStart() {
         BoostedAudio.debug("WebSocketServer Open");
+        isOpen = true;
     }
 
     private void testToTrust(WebSocket session, PacketList message) {
@@ -105,4 +107,8 @@ public class AudioWebSocketServer extends WebSocketServer {
         } else packet.onReceive(new User(session), this);
     }
 
+
+    public boolean isOpen() {
+        return isOpen;
+    }
 }

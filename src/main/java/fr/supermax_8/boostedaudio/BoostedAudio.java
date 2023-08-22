@@ -62,7 +62,12 @@ public class BoostedAudio extends JavaPlugin {
 
         CompletableFuture.runAsync(this::startServers);
 
-        Bukkit.getScheduler().runTaskLater(this, () -> new VocalLinker().runTaskTimerAsynchronously(this, 0, 0), 20);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, s -> {
+            if (webSocketServer != null && webSocketServer.isOpen()) {
+                new VocalLinker().runTaskTimerAsynchronously(this, 0, 0);
+                s.cancel();
+            }
+        }, 0, 0);
     }
 
     @Override
@@ -115,7 +120,10 @@ public class BoostedAudio extends JavaPlugin {
             webSocketServer.setWebSocketFactory(new DefaultSSLWebSocketServerFactory(sslContext));
         }
         webSocketServer.setReuseAddr(true);
-        CompletableFuture.runAsync(() -> webSocketServer.run());
+        CompletableFuture.runAsync(() -> {
+            webSocketServer.run();
+
+        });
     }
 
     private void startSelfHostWebServer() throws IOException {
