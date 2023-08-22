@@ -1,9 +1,7 @@
 package fr.supermax_8.boostedaudio;
 
-import com.tchristofferson.configupdater.ConfigUpdater;
 import org.bukkit.configuration.file.FileConfiguration;
-
-import java.io.File;
+import org.bukkit.configuration.ConfigurationSection;
 
 public class BoostedAudioConfiguration {
 
@@ -16,12 +14,13 @@ public class BoostedAudioConfiguration {
     private String keystoreFileName;
     private int webSocketPort;
     private String webSocketHostName;
+    private boolean voiceChatEnabled;
     private float maxVoiceDistance;
-    private String connectionMessage;
-    private String connectionHoverMessage;
     private String distanceModel;
     private float refDistance;
     private float rolloffFactor;
+    private String connectionMessage;
+    private String connectionHoverMessage;
 
     public BoostedAudioConfiguration() {
         load();
@@ -29,14 +28,6 @@ public class BoostedAudioConfiguration {
 
     private void load() {
         BoostedAudio.getInstance().saveDefaultConfig();
-        try {
-            File configFile = new File(BoostedAudio.getInstance().getDataFolder(), "config.yml");
-            ConfigUpdater.update(BoostedAudio.getInstance(), "config.yml", configFile);
-            BoostedAudio.getInstance().reloadConfig();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         FileConfiguration config = BoostedAudio.getInstance().getConfig();
 
         debugMode = config.getBoolean("debugMode");
@@ -45,21 +36,30 @@ public class BoostedAudioConfiguration {
         autoHost = config.getBoolean("autoHost", true);
         autoHostPort = config.getInt("autoHostPort", 8080);
 
-        ssl = config.getBoolean("ssl", false);
-        keystorePassword = config.getString("keystorePassword", "YOUR_PASSWORD");
-        keystoreFileName = config.getString("keystoreFileName", "keystore.jks");
+        ConfigurationSection sslSection = config.getConfigurationSection("ssl");
+        if (sslSection != null) {
+            ssl = sslSection.getBoolean("ssl", false);
+            keystorePassword = sslSection.getString("keystorePassword", "YOUR_PASSWORD");
+            keystoreFileName = sslSection.getString("keystoreFileName", "keystore.jks");
+        }
 
-        webSocketPort = config.getInt("webSocketPort", 8081);
-        webSocketHostName = config.getString("webSocketHostName", "localhost");
+        ConfigurationSection webSocketSection = config.getConfigurationSection("webSocket");
+        if (webSocketSection != null) {
+            webSocketPort = webSocketSection.getInt("webSocketPort", 8081);
+            webSocketHostName = webSocketSection.getString("webSocketHostName", "localhost");
+        }
 
-        maxVoiceDistance = (float) config.getDouble("maxVoiceDistance", 30);
+        ConfigurationSection voiceChatSection = config.getConfigurationSection("voicechat");
+        if (voiceChatSection != null) {
+            voiceChatEnabled = voiceChatSection.getBoolean("voicechat", true);
+            maxVoiceDistance = (float) voiceChatSection.getDouble("maxVoiceDistance", 30);
+            distanceModel = voiceChatSection.getString("distanceModel", "exponential");
+            refDistance = (float) voiceChatSection.getDouble("refDistance", 3);
+            rolloffFactor = (float) voiceChatSection.getDouble("rolloffFactor", 2);
+        }
 
         connectionMessage = config.getString("connectionMessage", "§6Join the audio client by clicking here!");
         connectionHoverMessage = config.getString("connectionHoverMessage", "Click here");
-
-        distanceModel = config.getString("distanceModel", "exponential");
-        refDistance = (float) config.getDouble("refDistance", 3);
-        rolloffFactor = (float) config.getDouble("rolloffFactor", 2);
     }
 
     public boolean isDebugMode() {
@@ -98,16 +98,12 @@ public class BoostedAudioConfiguration {
         return webSocketHostName;
     }
 
+    public boolean isVoiceChatEnabled() {
+        return voiceChatEnabled;
+    }
+
     public float getMaxVoiceDistance() {
         return maxVoiceDistance;
-    }
-
-    public String getConnectionMessage() {
-        return connectionMessage;
-    }
-
-    public String getConnectionHoverMessage() {
-        return connectionHoverMessage;
     }
 
     public String getDistanceModel() {
@@ -122,4 +118,11 @@ public class BoostedAudioConfiguration {
         return rolloffFactor;
     }
 
+    public String getConnectionMessage() {
+        return connectionMessage;
+    }
+
+    public String getConnectionHoverMessage() {
+        return connectionHoverMessage;
+    }
 }

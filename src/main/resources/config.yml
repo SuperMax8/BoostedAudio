@@ -7,26 +7,32 @@ autoHost: true
 autoHostPort: 8080
 
 # SSL, ssl will be used for WebClient if enabled and websocket
-ssl: false
-keystorePassword: "YOUR_PASSWORD"
-keystoreFileName: "keystore.jks"
+ssl:
+  ssl: false
+  keystorePassword: "YOUR_PASSWORD"
+  keystoreFileName: "keystore.jks"
 
 # WebSocket
-webSocketPort: 8081
-webSocketHostName: localhost
+webSocket:
+  webSocketPort: 8081
+  webSocketHostName: localhost
 
-# In game params
-maxVoiceDistance: 30
+#VoiceChat
+voicechat:
+  # If the system is enabled
+  voicechat: true
+  # The maximum distance at which players can be heard
+  maxVoiceDistance: 30
 
-# The calculation model for the distance volume attenuation
-# linear, inverse, exponential
-distanceModel: exponential
+  # The calculation model for the distance volume attenuation
+  # linear, inverse, exponential
+  distanceModel: exponential
 
-# This property defines the distance from which the sound begins to attenuate
-refDistance: 3
+  # This property defines the distance from which the sound begins to attenuate
+  refDistance: 4
 
-# This property controls how quickly the sound attenuates as distance increases
-rolloffFactor: 2
+  # This property controls how quickly the sound attenuates as distance increases
+  rolloffFactor: 1
 
 
 # Messages
