@@ -29,12 +29,14 @@ public class UpdateVocalPositionsPacket implements Packet {
         private final double y;
         private final double z;
         private final float yaw;
+        private final String world;
 
-        public Location(float x, float y, float z, float yaw) {
+        public Location(float x, float y, float z, float yaw, String world) {
             this.x = x;
             this.y = y;
             this.z = z;
             this.yaw = yaw;
+            this.world = world;
         }
 
         public Location(org.bukkit.Location location) {
@@ -46,6 +48,7 @@ public class UpdateVocalPositionsPacket implements Packet {
             if (convertedYaw < 0) convertedYaw += 360;
 
             yaw = convertedYaw;
+            world = location.getWorld().getName();
         }
 
 

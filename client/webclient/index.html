@@ -28,20 +28,56 @@
 </head>
 <body class="flex h-screen w-screen bg-[url(https://i.imgur.com/6MelMqC.jpg)] bg-no-repeat bg-cover">
 
-<div class="z-10 relative flex">
-    <div class="z-10 relative flex">
-        <!-- Sidebar and Toggle Button -->
-        <div id="sidebar"
-             class="w-64 bg-gray-800 text-white p-4 transform -translate-x-full transition-transform duration-300 ease-in-out fixed h-screen">
-            <!-- Sidebar content here -->
-            Sidebar Content
+<div class="z-10 relative drop-shadow-lg">
+    <div id="toogleDiv" class="hover:scale-150 duration-100 absolute top-1/2 -left-6">
+        <div id="toggleButton" class="h-10 w-14
+        rounded-3xl bg-main text-white cursor-pointer transition-transform duration-300 ease-in-out">
+            <svg class="h-full w-full relative left-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+            </svg>
         </div>
-        <button id="toggleButton"
-                class="bg-gray-800 text-white p-4 absolute top-1/2 -translate-y-1/2 transition-transform duration-300 ease-in-out">
-            Toggle Sidebar
-        </button>
+    </div>
+    <!-- Sidebar and Toggle Button -->
+    <div id="sidebar"
+         class="w-64 bg-main text-white p-4 transform -translate-x-full transition-transform duration-300 ease-in-out fixed h-screen">
+        <!-- Sidebar content here -->
+        Sidebar Content
     </div>
 </div>
+
+<script>
+    // Side bar
+    const sidebar = document.getElementById('sidebar');
+    const toggleButton = document.getElementById('toggleButton');
+    const toogleDiv = document.getElementById('toogleDiv');
+    let barOpen = false;
+
+    document.addEventListener('click', (event) => {
+        if (sidebar.contains(event.target) || toggleButton.contains(event.target) || sidebar.classList.contains("-translate-x-full")) return;
+        sidebar.classList.add('-translate-x-full');
+        toggleButton.classList.toggle('translate-x-64');
+        barOpen = false;
+    });
+
+    toggleButton.addEventListener('click', () => {
+        sidebar.classList.toggle('-translate-x-full');
+        toggleButton.classList.toggle('translate-x-64');
+        barOpen = !barOpen;
+    });
+
+    toogleDiv.addEventListener("click", e => {
+        if (toogleDiv.classList.contains("hover:scale-150")) {
+            toogleDiv.classList.remove("hover:scale-150")
+        } else {
+            setTimeout(() => {
+                if (!barOpen) {
+                    toogleDiv.classList.add("hover:scale-150")
+                }
+            }, 300)
+        }
+    })
+</script>
 
 <div class="w-full h-full
 bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
@@ -49,11 +85,11 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     <div id="connection"
          class="z-50 fixed bg-gray-800/60 left-0 w-full h-full flex justify-center items-center text-slate-200">
         <div class="flex justify-center">
-            <p class="animate-colors relative bottom-20 text-5xl">Click on the page to connect</p>
+            <p class="gray-animation relative bottom-20 text-5xl">Click on the page to connect</p>
         </div>
     </div>
     <style>
-        @keyframes colorChange {
+        @keyframes grayChange {
             0% {
                 color: #f3f4f6;
             }
@@ -65,8 +101,24 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             }
         }
 
-        .animate-colors {
-            animation: colorChange 2s ease-in-out infinite;
+        .gray-animation {
+            animation: grayChange 2s ease-in-out infinite;
+        }
+
+        @keyframes redChange {
+            0% {
+                color: #f3f4f6;
+            }
+            50% {
+                color: #ef8080;
+            }
+            100% {
+                color: #f3f4f6;
+            }
+        }
+
+        .red-animation:hover {
+            animation: redChange 1.5s ease-in-out infinite;
         }
     </style>
     <!--Settings-->
@@ -113,7 +165,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
                     <!--MuteButton-->
                     <svg id="muteButton" class="h-12 w-12 p-1 text-white cursor-pointer
-                    bg-secondary hover:bg-accent duration-300 font-bold rounded"
+                    bg-secondary hover:bg-accent duration-300 font-bold rounded red-animation"
                          stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg" width="512.000000pt"
                          height="512.000000pt" viewBox="0 0 512.000000 512.000000" preserveAspectRatio="xMidYMid meet">
                         <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="currentColor"
@@ -138,15 +190,16 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     </svg>
 
                     <!--ParamButton-->
-                    <svg id="paramButton"
-                         class="h-12 w-12 p-1
-                            bg-secondary hover:bg-accent duration-300 text-white font-bold rounded cursor-pointer"
-                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                         stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
+                    <div id="paramButton" class="h-12 w-12 p-1
+                            bg-secondary hover:bg-accent duration-300 text-white font-bold rounded cursor-pointer">
+                        <svg class="hover:animate-spin"
+                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
                 </div>
 
                 <h2 class="text-lg font-bold mb-4">User List</h2>
@@ -157,13 +210,26 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                            class="w-full px-4 py-2 ring focus:ring-accent hover:ring-accent duration-300 bg-secondary text-gray-300 border-none rounded-full focus:outline-none"
                            placeholder="Search..." maxlength="20">
                     <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300" viewBox="0 0 20 20"
+                        <svg id="search-logo" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300"
+                             viewBox="0 0 20 20"
                              fill="currentColor">
                             <path fill-rule="evenodd"
                                   d="M14.833 13.392a8 8 0 1 0-1.44 1.44l5.334 5.333a1 1 0 0 0 1.5-1.333l-5.333-5.333zM2 8a6 6 0 1 1 12 0A6 6 0 0 1 2 8z"/>
                         </svg>
                     </div>
                 </div>
+                <script>
+                    const searchInput = document.getElementById('search');
+                    const svgIcon = document.getElementById('search-logo');
+
+                    searchInput.addEventListener('focus', () => {
+                        svgIcon.classList.add('animate-bounce');
+                    });
+
+                    searchInput.addEventListener('blur', () => {
+                        svgIcon.classList.remove('animate-bounce');
+                    });
+                </script>
 
                 <!--UserCount-->
                 <div class="text-sm pb-3 flex gap-1">
@@ -263,7 +329,6 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
     let userTemplate;
 
-
     let isOpen = false;
 
     // Setup html user element
@@ -328,22 +393,6 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             }
         }
     }, 100);
-
-    // Side bar
-    const sidebar = document.getElementById('sidebar');
-    const toggleButton = document.getElementById('toggleButton');
-
-    document.addEventListener('click', (event) => {
-        if (sidebar.contains(event.target) || toggleButton.contains(event.target) || sidebar.classList.contains("-translate-x-full")) return;
-        sidebar.classList.add('-translate-x-full');
-        toggleButton.classList.toggle('translate-x-64');
-    });
-
-    toggleButton.addEventListener('click', () => {
-        sidebar.classList.toggle('-translate-x-full');
-        toggleButton.classList.toggle('translate-x-64');
-
-    });
 
 
     let onopen;
@@ -574,7 +623,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
         const gain = audioContext.createGain();
 
-        const mediaStreamTrack = new MediaStream();
+        const mediaStream = new MediaStream();
 
         const connection = {
             pc: pc,
@@ -616,9 +665,9 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 console.log("Track set")
                 const track = event.track;
 
-                mediaStreamTrack.addTrack(track)
+                mediaStream.addTrack(track)
                 // Connecting things
-                const source = audioContext.createMediaStreamSource(mediaStreamTrack);
+                const source = audioContext.createMediaStreamSource(mediaStream);
                 source.connect(panner)
                 panner.connect(gain)
                 gain.connect(audioContext.destination)
@@ -627,7 +676,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 // We use a dummy audio muted, because of a bug in chrome https://bugs.chromium.org/p/chromium/issues/detail?id=933677
                 const dummyAudio = new Audio();
                 dummyAudio.muted = true;
-                dummyAudio.srcObject = mediaStreamTrack;
+                dummyAudio.srcObject = mediaStream;
             }
         }
 
@@ -740,7 +789,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     }
 
     async function setupAudioSystem() {
-        micStream = await navigator.mediaDevices.getUserMedia({audio: true});
+        micStream = await navigator.mediaDevices.getUserMedia({audio: true, noiseSuppression: true});
         connectionDiv.classList.add("hidden");
 
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -759,21 +808,21 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             try {
                 const selectedDeviceId = microphoneSelect.value;
                 console.log("New device selected: " + selectedDeviceId)
-                const constraints = {audio: {deviceId: selectedDeviceId}};
+                const constraints = {audio: {deviceId: selectedDeviceId, noiseSuppression: true}};
+                const isMuted = micStream.getTracks().at(0).enabled;
                 micStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-                for (const peerObj in peerConnections.values()) {
+                const newAudioTrack = micStream.getAudioTracks()[0];
+                newAudioTrack.enabled = isMuted;
+                peerConnections.forEach((peerObj, id) => {
                     const pc = peerObj.pc;
-                    pc.getSenders().forEach(sender => {
-                        pc.removeTrack(sender)
-                    })
-                    micStream.getTracks().forEach((track) => {
-                        pc.addTrack(track, micStream);
-                    });
-                    pc.getSenders().forEach(sender => {
-                        console.log(sender)
-                    })
-                }
+                    const senders = pc.getSenders();
+                    const audioSender = senders.find(sender => sender.track.kind === 'audio');
+                    if (audioSender) {
+                        const currentAudioTrack = audioSender.track;
+                        currentAudioTrack.stop();
+                        audioSender.replaceTrack(newAudioTrack);
+                    }
+                });
             } catch (error) {
                 console.error("Error getting selected microphone stream:", error);
             }

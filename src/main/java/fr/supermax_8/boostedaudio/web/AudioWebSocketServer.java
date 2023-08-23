@@ -56,6 +56,7 @@ public class AudioWebSocketServer extends WebSocketServer {
             BoostedAudio.debug("REASON " + s + " STATUSCODE: " + i);
 
             User user = manager.getSessionUsers().remove(webSocket);
+            BoostedAudio.debug("SessionUsersSize " + manager.getSessionUsers().size());
             if (user == null) return;
 
             UUID playerId = user.getPlayerId();
