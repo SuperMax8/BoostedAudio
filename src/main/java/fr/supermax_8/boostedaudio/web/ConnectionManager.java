@@ -1,13 +1,14 @@
 package fr.supermax_8.boostedaudio.web;
 
-import fr.supermax_8.boostedaudio.utils.HashBiMap;
+import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.web.packets.AddPeerPacket;
 import fr.supermax_8.boostedaudio.web.packets.RemovePeerPacket;
 import org.java_websocket.WebSocket;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
 
@@ -15,53 +16,56 @@ public class ConnectionManager {
      * UUID: Minecraft player uuid
      * String: token
      */
-    protected final HashBiMap<UUID, String> playerTokens = new HashBiMap<>(new HashMap<UUID, String>() {{
-        put(UUID.fromString("d2491bf7-e8bb-4eba-8721-bbec75d3af0c"), "SuperMax_8");
-        put(UUID.fromString("cce44059-edce-4801-89ba-acac1acfd459"), "Ender_Griefeur99");
-    }});
+    protected final ConcurrentHashMap<UUID, String> playerTokens = new ConcurrentHashMap<>();
 
     /**
      * The users trusted with the token link to the minecraft client
      * String: The token gave by the server in game
      * Session: The websocket session
      */
-    protected final HashMap<UUID, User> users = new HashMap<>();
+    protected final ConcurrentHashMap<UUID, User> users = new ConcurrentHashMap<>();
 
-    protected final HashMap<WebSocket, User> sessionUsers = new HashMap<>();
+    protected final ConcurrentHashMap<WebSocket, User> sessionUsers = new ConcurrentHashMap<>();
 
     public ConnectionManager() {
 
     }
 
 
-    public HashBiMap<UUID, String> getPlayerTokens() {
+    public ConcurrentHashMap<UUID, String> getPlayerTokens() {
         return playerTokens;
     }
 
-    public HashMap<UUID, User> getUsers() {
+    public ConcurrentHashMap<UUID, User> getUsers() {
         return users;
     }
 
-    public HashMap<WebSocket, User> getSessionUsers() {
+    public ConcurrentHashMap<WebSocket, User> getSessionUsers() {
         return sessionUsers;
     }
 
-    public void setRemotePeers(UUID playerTo, Collection<UUID> peers) {
-        User user = users.get(playerTo);
-
+    public void setRemotePeers(User playerTo, Collection<UUID> peers) {
         // Player to add
         for (UUID peer : peers)
-            if (!user.getRemotePeers().contains(peer)) linkPeers(user, users.get(peer));
+            if (!playerTo.getRemotePeers().contains(peer)) linkPeers(playerTo, users.get(peer));
 
         // Player to remove
-        for (UUID peer : user.getRemotePeers())
-            if (!peers.contains(peer)) unlinkPeers(user, users.get(peer));
+        for (UUID peer : playerTo.getRemotePeers())
+            if (!peers.contains(peer)) unlinkPeers(playerTo, users.get(peer));
     }
 
 
     public void linkPeers(User player1, User player2) {
-        player1.getRemotePeers().add(player2.getPlayerId());
-        player2.getRemotePeers().add(player1.getPlayerId());
+        UUID p1 = player1.getPlayerId();
+        UUID p2 = player2.getPlayerId();
+        Set<UUID> peers1 = player1.getRemotePeers();
+        Set<UUID> peers2 = player2.getRemotePeers();
+        if (peers1.contains(p2) || peers2.contains(p1)) {
+            BoostedAudio.debug("Peers already set !");
+            return;
+        }
+        peers1.add(p2);
+        peers2.add(p1);
 
         AddPeerPacket peerPacket = new AddPeerPacket(new AddPeerPacket.RTCDescription("", "createoffer"), player1.getPlayerId(), player2.getPlayerId());
 

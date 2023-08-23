@@ -14,7 +14,7 @@ import java.util.UUID;
 public class AudioWebSocketServer extends WebSocketServer {
 
     public final ConnectionManager manager = new ConnectionManager();
-
+    private boolean isOpen = false;
     private static final Gson gson = BoostedAudio.getGson();
 
     public AudioWebSocketServer(InetSocketAddress address) {
@@ -41,25 +41,33 @@ public class AudioWebSocketServer extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-        manager.sessionUsers.put(webSocket, null);
-
-        BoostedAudio.debug("New connection WebSocket : " + webSocket.getRemoteSocketAddress().getAddress() + " / " + manager.getSessionUsers().size());
+        try {
+            manager.sessionUsers.put(webSocket, new User(null));
+            BoostedAudio.debug("New connection WebSocket : " + webSocket.getRemoteSocketAddress().getAddress() + " / " + manager.getSessionUsers().size());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onClose(WebSocket webSocket, int i, String s, boolean b) {
-        BoostedAudio.debug("WebSocket connection closed : " + webSocket.getRemoteSocketAddress().getAddress());
-        BoostedAudio.debug("REASON " + s + " STATUSCODE: " + i);
-        User user = manager.getSessionUsers().remove(webSocket);
-        if (user == null) return;
+        try {
+            BoostedAudio.debug("WebSocket connection closed : " + webSocket.getRemoteSocketAddress().getAddress());
+            BoostedAudio.debug("REASON " + s + " STATUSCODE: " + i);
 
-        UUID playerId = user.getPlayerId();
-        User realUser = manager.getUsers().remove(playerId);
-        if (playerId != null) manager.playerTokens.removeByKey(playerId);
+            User user = manager.getSessionUsers().remove(webSocket);
+            BoostedAudio.debug("SessionUsersSize " + manager.getSessionUsers().size());
+            if (user == null) return;
 
-        for (UUID id : realUser.getRemotePeers()) {
-            User usr = manager.getUsers().get(id);
-            manager.unlinkPeers(realUser, usr);
+            UUID playerId = user.getPlayerId();
+            User realUser = manager.getUsers().remove(playerId);
+
+            for (UUID id : realUser.getRemotePeers()) {
+                User usr = manager.getUsers().get(id);
+                manager.unlinkPeers(realUser, usr);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -74,7 +82,7 @@ public class AudioWebSocketServer extends WebSocketServer {
         }
 
         User user = manager.getSessionUsers().get(client);
-        if (user != null)
+        if (user != null && user.getSession() != null)
             for (Packet packet : packetList.getPackets()) packet.onReceive(user, this);
         else
             testToTrust(client, packetList);
@@ -82,12 +90,14 @@ public class AudioWebSocketServer extends WebSocketServer {
 
     @Override
     public void onError(WebSocket webSocket, Exception e) {
+        BoostedAudio.debug("ERRRRREEEEUR WEBSOCKET " + webSocket.getRemoteSocketAddress());
         e.printStackTrace();
     }
 
     @Override
     public void onStart() {
         BoostedAudio.debug("WebSocketServer Open");
+        isOpen = true;
     }
 
     private void testToTrust(WebSocket session, PacketList message) {
@@ -98,4 +108,8 @@ public class AudioWebSocketServer extends WebSocketServer {
         } else packet.onReceive(new User(session), this);
     }
 
+
+    public boolean isOpen() {
+        return isOpen;
+    }
 }

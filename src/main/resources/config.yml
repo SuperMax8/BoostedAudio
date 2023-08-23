@@ -1,8 +1,40 @@
 # Show debug messages, websocket connections and others
 debugMode: false
 
-# WebSocket Configuration
-port: 8080
-hostName: localhost
+# Web client (change http by https if you are using ssl)
+client-link: http://localhost:8080
+autoHost: true
+autoHostPort: 8080
 
-maxVoiceDistance: 30
+# SSL, ssl will be used for WebClient if enabled and websocket
+ssl:
+  ssl: false
+  keystorePassword: "YOUR_PASSWORD"
+  keystoreFileName: "keystore.jks"
+
+# WebSocket
+webSocket:
+  webSocketPort: 8081
+  webSocketHostName: localhost
+
+#VoiceChat
+voicechat:
+  # If the system is enabled
+  voicechat: true
+  # The maximum distance at which players can be heard
+  maxVoiceDistance: 30
+
+  # The calculation model for the distance volume attenuation
+  # linear, inverse, exponential
+  distanceModel: exponential
+
+  # This property defines the distance from which the sound begins to attenuate
+  refDistance: 4
+
+  # This property controls how quickly the sound attenuates as distance increases
+  rolloffFactor: 1
+
+
+# Messages
+connectionMessage: "§6Join the audio client by clicking here!"
+connectionHoverMessage: "Click here"

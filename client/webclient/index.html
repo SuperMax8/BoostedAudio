@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            module: {
+                exports: {
+                    darkMode: 'media'
+                }
+            },
+            theme: {
+                extend: {
+                    colors: {
+                        transparent: 'transparent',
+                        current: 'currentColor',
+                        'main': '#262c3c',
+                        'primary': '#202433',
+                        'secondary': '#205295',
+                        'accent': '#4797de',
+                    }
+                }
+            }
+        }
+    </script>
+    <title>BoostedAudio</title>
+</head>
+<body class="flex h-screen w-screen bg-[url(https://i.imgur.com/6MelMqC.jpg)] bg-no-repeat bg-cover">
+
+<div class="z-10 relative drop-shadow-lg">
+    <div id="toogleDiv" class="hover:scale-150 duration-100 absolute top-1/2 -left-6">
+        <div id="toggleButton" class="h-10 w-14
+        rounded-3xl bg-main text-white cursor-pointer transition-transform duration-300 ease-in-out">
+            <svg class="h-full w-full relative left-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+            </svg>
+        </div>
+    </div>
+    <!-- Sidebar and Toggle Button -->
+    <div id="sidebar"
+         class="w-64 bg-main text-white p-4 transform -translate-x-full transition-transform duration-300 ease-in-out fixed h-screen">
+        <!-- Sidebar content here -->
+        Sidebar Content
+    </div>
+</div>
+
+<script>
+    // Side bar
+    const sidebar = document.getElementById('sidebar');
+    const toggleButton = document.getElementById('toggleButton');
+    const toogleDiv = document.getElementById('toogleDiv');
+    let barOpen = false;
+
+    document.addEventListener('click', (event) => {
+        if (sidebar.contains(event.target) || toggleButton.contains(event.target) || sidebar.classList.contains("-translate-x-full")) return;
+        sidebar.classList.add('-translate-x-full');
+        toggleButton.classList.toggle('translate-x-64');
+        barOpen = false;
+    });
+
+    toggleButton.addEventListener('click', () => {
+        sidebar.classList.toggle('-translate-x-full');
+        toggleButton.classList.toggle('translate-x-64');
+        barOpen = !barOpen;
+    });
+
+    toogleDiv.addEventListener("click", e => {
+        if (toogleDiv.classList.contains("hover:scale-150")) {
+            toogleDiv.classList.remove("hover:scale-150")
+        } else {
+            setTimeout(() => {
+                if (!barOpen) {
+                    toogleDiv.classList.add("hover:scale-150")
+                }
+            }, 300)
+        }
+    })
+</script>
+
+<div class="w-full h-full
+bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
+    <!--Connection-->
+    <div id="connection"
+         class="z-50 fixed bg-gray-800/60 left-0 w-full h-full flex justify-center items-center text-slate-200">
+        <div class="flex justify-center">
+            <p class="gray-animation relative bottom-20 text-5xl">Click on the page to connect</p>
+        </div>
+    </div>
+    <style>
+        @keyframes grayChange {
+            0% {
+                color: #f3f4f6;
+            }
+            50% {
+                color: #9CA3AF;
+            }
+            100% {
+                color: #f3f4f6;
+            }
+        }
+
+        .gray-animation {
+            animation: grayChange 2s ease-in-out infinite;
+        }
+
+        @keyframes redChange {
+            0% {
+                color: #f3f4f6;
+            }
+            50% {
+                color: #ef8080;
+            }
+            100% {
+                color: #f3f4f6;
+            }
+        }
+
+        .red-animation:hover {
+            animation: redChange 1.5s ease-in-out infinite;
+        }
+    </style>
+    <!--Settings-->
+    <div id="settings"
+         class="z-50 fixed top-0 left-0 w-full h-full bg-gray-800/50 flex justify-center items-center hidden text-slate-200">
+        <!--Params-->
+        <div id="params"
+             class="bg-main p-4 rounded-lg w-2/3 h-fit grid gap-5 drop-shadow-lg ring ring-2 hover:ring-accent duration-300">
+            <div class="text-center">
+                <h1 class="text-xl font-bold">Parameters</h1>
+                <label class="text-sm text-slate-400">Parameters of the audio client</label>
+            </div>
+            <div class="w-full">
+                <label class="block text-m font-medium mb-2">Microphone Noise</label>
+                <input id="microphoneNoise" type="range" class="w-full" min="0" max="100">
+            </div>
+            <div class="w-full h-10">
+                <label class="block text-m font-medium mb-2">Microphone Device</label>
+                <select id="microphoneSelect"
+                        class="w-full h-full bg-primary rounded focus:outline-none focus:ring hover:ring duration-300">
+                </select>
+            </div>
+            <div class="mt-5"></div>
+            <div class="flex justify-center">
+                <button id="closeSettings"
+                        class="bg-secondary px-3 py-2 hover:bg-accent text-xl text-white font-bold rounded-xl duration-300">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="h-full w-full p-8 text-slate-200">
+        <div class="bg-main rounded-lg shadow-2xl max-h-screen">
+            <!--Content-->
+            <div class="p-6">
+                <h1 class="text-2xl font-bold mb-4">Boosted Audio</h1>
+                <!--Main Volume-->
+                <label class="block text-sm font-medium mb-2">Main Volume</label>
+                <div class="flex mb-6 items-center gap-5">
+                    <div class="w-1/3 pr-4">
+                        <input id="master" type="range" class="w-full ring-slate-800" min="0" max="150">
+                    </div>
+
+                    <!--MuteButton-->
+                    <svg id="muteButton" class="h-12 w-12 p-1 text-white cursor-pointer
+                    bg-secondary hover:bg-accent duration-300 font-bold rounded red-animation"
+                         stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg" width="512.000000pt"
+                         height="512.000000pt" viewBox="0 0 512.000000 512.000000" preserveAspectRatio="xMidYMid meet">
+                        <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="currentColor"
+                           stroke="currentColor">
+                            <path d="M2393 4786 c-401 -77 -709 -387 -778 -785 -12 -69 -15 -226 -15 -881 0 -848 2 -885 49 -1023 65 -188 194 -361 358 -480 70 -51 224 -123 319 -149 114 -31 354 -31 467 0 217 59 408 188 535 360 66 88 136 235 164 342 l23 85 0 865 0 865 -23 85 c-92 348 -367 620 -713 705 -90 22 -296 28 -386 11z m357 -335 c93 -29 185 -86 260 -161 75 -76 120 -148 158 -252 l27 -73 0 -845 0 -845 -27 -73 c-38 -104 -83 -176 -158 -252 -76 -76 -167 -132 -265 -163 -57 -18 -93 -22 -190 -22 -104 1 -130 5 -193 27 -104 37 -176 83 -252 158 -75 76 -120 147 -158 252 l-27 73 -3 812 c-3 888 -3 886 56 1014 83 181 253 321 444 364 86 20 243 13 328 -14z"/>
+                            <path d="M1066 2520 c-40 -13 -83 -56 -97 -99 -15 -45 -6 -206 20 -338 60 -311 205 -578 440 -814 259 -258 568 -413 924 -464 l47 -6 0 -185 c0 -164 2 -189 20 -223 54 -108 209 -114 273 -11 20 32 22 52 27 219 l5 184 106 18 c730 123 1314 785 1322 1501 2 138 -4 155 -67 202 -38 29 -134 29 -172 0 -58 -43 -67 -65 -76 -191 -18 -259 -86 -463 -221 -663 -66 -98 -202 -238 -302 -312 -116 -86 -295 -172 -440 -210 -115 -30 -128 -32 -315 -32 -186 0 -200 2 -313 32 -227 60 -417 170 -588 341 -237 237 -353 496 -377 844 -9 125 -18 149 -73 189 -29 21 -103 31 -143 18z"/>
+                        </g>
+                    </svg>
+
+                    <svg id="mutedButton" class="h-12 w-12 p-1 text-red-500 cursor-pointer
+                    bg-secondary hover:bg-accent duration-300 font-bold rounded"
+                         stroke="currentColor" fill="currentColor"
+                         xmlns="http://www.w3.org/2000/svg"
+                         width="128.000000pt" height="128.000000pt" viewBox="0 0 128.000000 128.000000"
+                         preserveAspectRatio="xMidYMid meet">
+                        <g transform="translate(0.000000,128.000000) scale(0.100000,-0.100000)"
+                           fill="currentColor" stroke="currentColor">
+                            <path d="M52 1228 c-7 -7 -12 -19 -12 -28 0 -20 1140 -1160 1161 -1160 19 0 39 20 39 39 0 9 -59 75 -131 147 l-131 131 31 48 c61 96 87 244 48 269 -30 20 -51 -4 -59 -70 -7 -55 -61 -184 -77 -184 -3 0 -28 21 -54 48 l-46 47 29 59 30 59 0 200 c0 239 -5 263 -75 332 -101 102 -229 102 -330 0 -56 -55 -75 -102 -75 -181 l0 -49 -153 153 c-84 83 -159 152 -168 152 -8 0 -20 -5 -27 -12z m676 -95 c65 -48 67 -56 70 -276 3 -173 1 -206 -14 -239 -9 -21 -20 -38 -23 -38 -3 0 -68 62 -143 137 l-138 138 0 87 c0 121 24 171 95 204 40 19 119 12 153 -13z"/>
+                            <path d="M400 681 c0 -63 22 -114 75 -167 52 -52 116 -80 166 -72 23 3 21 6 -26 51 -77 72 -111 107 -165 167 l-50 55 0 -34z"/>
+                            <path d="M212 668 c-26 -26 -8 -138 34 -223 59 -115 162 -200 283 -231 l70 -18 3 -70 c3 -76 21 -102 56 -80 13 9 18 28 20 82 3 69 4 72 30 78 44 9 116 34 132 44 13 8 11 13 -11 36 l-27 26 -68 -17 c-215 -54 -426 90 -451 307 -3 29 -10 59 -16 66 -12 15 -39 16 -55 0z"/>
+                        </g>
+                    </svg>
+
+                    <!--ParamButton-->
+                    <div id="paramButton" class="h-12 w-12 p-1
+                            bg-secondary hover:bg-accent duration-300 text-white font-bold rounded cursor-pointer">
+                        <svg class="hover:animate-spin"
+                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <h2 class="text-lg font-bold mb-4">User List</h2>
+
+                <!--Search-->
+                <div class="p-1 w-1/5 mb-4 relative">
+                    <input id="search" type="text"
+                           class="w-full px-4 py-2 ring focus:ring-accent hover:ring-accent duration-300 bg-secondary text-gray-300 border-none rounded-full focus:outline-none"
+                           placeholder="Search..." maxlength="20">
+                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <svg id="search-logo" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300"
+                             viewBox="0 0 20 20"
+                             fill="currentColor">
+                            <path fill-rule="evenodd"
+                                  d="M14.833 13.392a8 8 0 1 0-1.44 1.44l5.334 5.333a1 1 0 0 0 1.5-1.333l-5.333-5.333zM2 8a6 6 0 1 1 12 0A6 6 0 0 1 2 8z"/>
+                        </svg>
+                    </div>
+                </div>
+                <script>
+                    const searchInput = document.getElementById('search');
+                    const svgIcon = document.getElementById('search-logo');
+
+                    searchInput.addEventListener('focus', () => {
+                        svgIcon.classList.add('animate-bounce');
+                    });
+
+                    searchInput.addEventListener('blur', () => {
+                        svgIcon.classList.remove('animate-bounce');
+                    });
+                </script>
+
+                <!--UserCount-->
+                <div class="text-sm pb-3 flex gap-1">
+                    <p class="text-slate-400">Players you can hear: </p>
+                    <p id="userCount" class="text-slate-200">0</p>
+                </div>
+
+                <div id="users" class="overflow-auto
+        sm:max-h-[5rem] md:max-h-[20rem] 2xl:sm:max-h-[30rem]
+         min-h-0 bg-gray-700/40 p-2 rounded-lg bg-scroll grid gap-4 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 drop-shadow-lg">
+                    <!--User-->
+                    <div id="user"
+                         class="user flex items-center bg-gray-800 p-4 rounded-lg focus:outline-none focus:ring hover:ring duration-300">
+                        <img src="" alt="User 1" class="logo w-12 h-12 rounded-lg mr-4">
+                        <div class="flex-grow">
+                            <p class="font-medium username"></p>
+                            <input type="range" class="user-volume w-full mt-1" min="0" max="150">
+                        </div>
+                        <!--User Mute Button-->
+                        <svg class="muteButton h-12 w-12 p-1 text-secondary hover:text-accent cursor-pointer
+                    duration-300 font-bold rounded"
+                             stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg" width="512.000000pt"
+                             height="512.000000pt" viewBox="0 0 512.000000 512.000000"
+                             preserveAspectRatio="xMidYMid meet">
+                            <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="currentColor"
+                               stroke="currentColor">
+                                <path d="M2393 4786 c-401 -77 -709 -387 -778 -785 -12 -69 -15 -226 -15 -881 0 -848 2 -885 49 -1023 65 -188 194 -361 358 -480 70 -51 224 -123 319 -149 114 -31 354 -31 467 0 217 59 408 188 535 360 66 88 136 235 164 342 l23 85 0 865 0 865 -23 85 c-92 348 -367 620 -713 705 -90 22 -296 28 -386 11z m357 -335 c93 -29 185 -86 260 -161 75 -76 120 -148 158 -252 l27 -73 0 -845 0 -845 -27 -73 c-38 -104 -83 -176 -158 -252 -76 -76 -167 -132 -265 -163 -57 -18 -93 -22 -190 -22 -104 1 -130 5 -193 27 -104 37 -176 83 -252 158 -75 76 -120 147 -158 252 l-27 73 -3 812 c-3 888 -3 886 56 1014 83 181 253 321 444 364 86 20 243 13 328 -14z"/>
+                                <path d="M1066 2520 c-40 -13 -83 -56 -97 -99 -15 -45 -6 -206 20 -338 60 -311 205 -578 440 -814 259 -258 568 -413 924 -464 l47 -6 0 -185 c0 -164 2 -189 20 -223 54 -108 209 -114 273 -11 20 32 22 52 27 219 l5 184 106 18 c730 123 1314 785 1322 1501 2 138 -4 155 -67 202 -38 29 -134 29 -172 0 -58 -43 -67 -65 -76 -191 -18 -259 -86 -463 -221 -663 -66 -98 -202 -238 -302 -312 -116 -86 -295 -172 -440 -210 -115 -30 -128 -32 -315 -32 -186 0 -200 2 -313 32 -227 60 -417 170 -588 341 -237 237 -353 496 -377 844 -9 125 -18 149 -73 189 -29 21 -103 31 -143 18z"/>
+                            </g>
+                        </svg>
+                        <svg class="mutedButton h-12 w-12 p-1 text-red-500 hover:text-accent cursor-pointer
+                        duration-300 font-bold rounded"
+                             stroke="currentColor" fill="currentColor"
+                             xmlns="http://www.w3.org/2000/svg"
+                             width="128.000000pt" height="128.000000pt" viewBox="0 0 128.000000 128.000000"
+                             preserveAspectRatio="xMidYMid meet">
+                            <g transform="translate(0.000000,128.000000) scale(0.100000,-0.100000)"
+                               fill="currentColor" stroke="currentColor">
+                                <path d="M52 1228 c-7 -7 -12 -19 -12 -28 0 -20 1140 -1160 1161 -1160 19 0 39 20 39 39 0 9 -59 75 -131 147 l-131 131 31 48 c61 96 87 244 48 269 -30 20 -51 -4 -59 -70 -7 -55 -61 -184 -77 -184 -3 0 -28 21 -54 48 l-46 47 29 59 30 59 0 200 c0 239 -5 263 -75 332 -101 102 -229 102 -330 0 -56 -55 -75 -102 -75 -181 l0 -49 -153 153 c-84 83 -159 152 -168 152 -8 0 -20 -5 -27 -12z m676 -95 c65 -48 67 -56 70 -276 3 -173 1 -206 -14 -239 -9 -21 -20 -38 -23 -38 -3 0 -68 62 -143 137 l-138 138 0 87 c0 121 24 171 95 204 40 19 119 12 153 -13z"/>
+                                <path d="M400 681 c0 -63 22 -114 75 -167 52 -52 116 -80 166 -72 23 3 21 6 -26 51 -77 72 -111 107 -165 167 l-50 55 0 -34z"/>
+                                <path d="M212 668 c-26 -26 -8 -138 34 -223 59 -115 162 -200 283 -231 l70 -18 3 -70 c3 -76 21 -102 56 -80 13 9 18 28 20 82 3 69 4 72 30 78 44 9 116 34 132 44 13 8 11 13 -11 36 l-27 26 -68 -17 c-215 -54 -426 90 -451 307 -3 29 -10 59 -16 66 -12 15 -39 16 -55 0z"/>
+                            </g>
+                        </svg>
+                    </div>
+
+                </div>
+            </div>
+            <!--Footer of the div-->
+            <div class="relative p-2">
+                <p class="z-10 absolute bottom-2 right-2">&copy; 2023 BoostedAudio. Tous droits réservés.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const servers = {
+        iceServers: [
+            {
+                urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
+            },
+        ],
+        iceCandidatePoolSize: 10,
+    };
+
+    const peerConnections = new Map();
+    let micStream;
+    let playerId;
+    const params = new URLSearchParams(window.location.search);
+    const wsIP = "%WS_IP%";
+    let proximityChat = true;
+    let serverInfoSet = false;
+    let ws;
+    let audioContext;
+    let masterVolume = 1;
+
+    let clientLoc;
+
+    let maxDistance;
+    let rolloffFactor;
+    let refDistance;
+    let distanceModel;
+
+
+    // HTML elements
+    const users = document.getElementById('users');
+    const microphoneMaster = document.getElementById('master');
+    const microphoneNoise = document.getElementById('microphoneNoise');
+    const microphoneSelect = document.getElementById('microphoneSelect');
+    const paramButton = document.getElementById('paramButton');
+    const closeButton = document.getElementById('closeSettings');
+    const settingsMenu = document.getElementById('settings');
+    const paramsWindow = document.getElementById('params');
+    const connectionDiv = document.getElementById("connection");
+
+    const muteButton = document.getElementById('muteButton');
+    const mutedButton = document.getElementById('mutedButton');
+
+    let userTemplate;
+
+    let isOpen = false;
+
+    // Setup html user element
+    const user = document.getElementById("user")
+    userTemplate = user.outerHTML
+    user.remove()
+
+
+    // CONNECT BUTTON
+    connectionDiv.addEventListener("click", () => {
+        connectionDiv.classList.add("hidden");
+    });
+
+
+    paramButton.addEventListener('click', () => {
+        settingsMenu.classList.remove('hidden');
+    });
+
+    closeButton.addEventListener('click', () => {
+        settingsMenu.classList.add('hidden');
+    });
+
+    settingsMenu.addEventListener('click', e => {
+        if (paramsWindow.contains(e.target)) return
+        settingsMenu.classList.add('hidden');
+    });
+
+    // Mute Button
+    mutedButton.classList.add('hidden');
+    muteButton.addEventListener('click', e => {
+        muteButton.classList.add('hidden');
+        mutedButton.classList.remove('hidden');
+        micStream.getTracks().forEach(t => {
+            t.enabled = false
+        })
+    });
+
+    mutedButton.addEventListener('click', e => {
+        mutedButton.classList.add('hidden');
+        muteButton.classList.remove('hidden');
+        micStream.getTracks().forEach(t => {
+            t.enabled = true
+        })
+    });
+
+    // Search bar
+    const search = document.getElementById("search");
+    const userCount = document.getElementById("userCount");
+    setInterval(() => {
+        userCount.textContent = peerConnections.size
+        const userElement = users.getElementsByClassName("user")
+        if (search.value.length === 0) return
+        for (let i = 0; i < userElement.length; i++) {
+            const usr = userElement[i];
+            const nameElement = usr.querySelector(".username");
+            if (nameElement) {
+                if (nameElement.toLowerCase().textContent.includes(search.value.toLowerCase())) {
+                    usr.classList.remove('hidden');
+                } else {
+                    usr.classList.add('hidden');
+                }
+            }
+        }
+    }, 100);
+
+
+    let onopen;
+
+    ws = new WebSocket(wsIP);
+
+    const f = () => {
+        const intervalId = setInterval(() => {
+            if (isOpen === true) {
+                clearInterval(intervalId)
+                console.log("Connection etablished")
+                return;
+            }
+            console.log("Reset WebSocket")
+            ws.close()
+            ws = new WebSocket(wsIP);
+            ws.onopen = onopen;
+        }, 3500)
+    }
+    setTimeout(f, 2000)
+
+    onopen = async () => {
+        isOpen = true;
+        console.log("WebSocket Open")
+
+        setupAudioSystem()
+
+        if (!params.has("token") || !params.has("playerId")) {
+            console.log("Without token or playerId this will not connected to the websocket")
+            return
+        }
+
+        playerId = params.get("playerId")
+
+        sendTrustPacket()
+
+        ws.onmessage = message => {
+            handlePackets(message.data)
+        }
+        ws.onclose = () => {
+            console.log("WebSocket closed :!")
+        }
+
+        setInterval(() => {
+            console.log("States:")
+            peerConnections.forEach((pc, k) => {
+                console.log("- State: " + pc.pc.connectionState)
+            })
+        }, 3000)
+    }
+    ws.onopen = onopen;
+
+    async function handlePacket(type, packet) {
+        /*    console.log("----------RECEIVING PACKET----------")
+            console.log(JSON.stringify(packet))
+            console.log("------------------------------------")*/
+        let from;
+        let to;
+        let pc
+        if (type !== "TrustPacket") {
+            if (!serverInfoSet) {
+                console.log("DelayPacket waiting for server response...")
+                setTimeout(function () {
+                    handlePacket(type, packet)
+                }, 100)
+                return
+            }
+        }
+        switch (type) {
+            case "AddPeerPacket":
+                from = packet.from;
+                to = packet.to;
+                switch (packet.rtcDesc.type) {
+                    // Packet action from server
+                    case "createoffer":
+                        pc = await createPeerConnection(from)
+                        const offer = await pc.createOffer()
+                        await pc.setLocalDescription(offer)
+
+                        const offerPacket = [
+                            {
+                                "type": "AddPeerPacket",
+                                "value": {
+                                    "from": playerId,
+                                    "to": from,
+                                    "rtcDesc": {
+                                        "type": offer.type,
+                                        "sdp": offer.sdp,
+                                    }
+                                }
+                            }
+                        ]
+                        /*console.log("Offer: " + JSON.stringify(offerPacket))*/
+
+                        /*console.log("Creating offer")*/
+                        ws.send(JSON.stringify(offerPacket))
+                        break
+                    // Packet action from other user, check by server
+                    // Receive offer
+                    case "offer":
+                        pc = await createPeerConnection(from)
+                        const desc = new RTCSessionDescription(packet.rtcDesc);
+                        await pc.setRemoteDescription(desc)
+
+                        const answer = await pc.createAnswer()
+                        await pc.setLocalDescription(answer)
+
+                        const answerPacket = [
+                            {
+                                "type": "AddPeerPacket",
+                                "value": {
+                                    "from": to,
+                                    "to": from,
+                                    "rtcDesc": {
+                                        "type": answer.type,
+                                        "sdp": answer.sdp,
+                                    }
+                                }
+                            }
+                        ]
+
+                        ws.send(JSON.stringify(answerPacket))
+                        /*console.log("Receive OFFER, Sending answer")*/
+                        break
+                    // Packet action from other user, check by server
+                    // Receive answer
+                    case "answer":
+                        pc = peerConnections.get(from).pc
+                        await pc.setRemoteDescription(new RTCSessionDescription(packet.rtcDesc))
+                        /*console.log("Receive answer")*/
+                        break
+                }
+                break
+            case "RTCIcePacket":
+                from = packet.from;
+                to = packet.to;
+                pc = peerConnections.get(from).pc
+                const iceCandidate = new RTCIceCandidate({
+                    "candidate": packet.candidate.candidate,
+                    "sdpMid": packet.candidate.sdpMid,
+                    "sdpMLineIndex": packet.candidate.sdpMLineIndex
+                });
+
+                const candidate = new RTCIceCandidate(iceCandidate);
+
+                pc.addIceCandidate(candidate)
+                    .catch((error) => {
+                        console.error("Erreur with ICE candidate set : ", error);
+                    });
+
+                /*console.log("ICE Candidate set")*/
+                break
+            case "RemovePeerPacket":
+                const playerToRemoveId = packet.playerToRemove;
+                closePeerConnection(peerConnections.get(playerToRemoveId))
+                break
+            case "UpdateVocalPositionsPacket":
+                // Parse clientloc
+                clientLoc = packet.clientLoc;
+                // Parse peers info
+                const players = packet.playersAround;
+                const map = new Map();
+                for (const key in players) {
+                    if (players.hasOwnProperty(key)) map.set(key, players[key]);
+                }
+
+                peerConnections.forEach((peerObj, uuid) => {
+                    peerObj.loc = map.get(uuid)
+                    spatializeAudio(peerObj.panner, peerObj.loc)
+                })
+                break
+            case "TrustPacket":
+                const serverInfo = packet.serverInfo;
+                maxDistance = serverInfo.maxDistance;
+                rolloffFactor = serverInfo.rolloffFactor;
+                refDistance = serverInfo.refDistance;
+                distanceModel = serverInfo.distanceModel;
+                console.log("ServerInfo set")
+                serverInfoSet = true;
+                break;
+            default:
+                break;
+        }
+    }
+
+    function spatializeAudio(panner, peerLocation) {
+        if (peerLocation == null) return
+        // Calc peer loc relative to the client
+        const x = peerLocation.x - clientLoc.x;
+        const y = peerLocation.y - clientLoc.y;
+        const z = peerLocation.z - clientLoc.z;
+
+        // Calc yaw
+        const yaw = degrees_to_radians(-clientLoc.yaw)
+
+        // Rotate
+        const newX = x * Math.cos(yaw) - z * Math.sin(yaw);
+        const newZ = x * Math.sin(yaw) + z * Math.cos(yaw);
+
+        // Set the values
+        panner.positionX.value = newX
+        panner.positionY.value = y
+        panner.positionZ.value = newZ
+
+        //panner.setPosition(newX, y, newZ);
+    }
+
+    function degrees_to_radians(degrees) {
+        const pi = Math.PI;
+        return degrees * (pi / 180);
+    }
+
+    async function createPeerConnection(from) {
+        console.log("New RTCPeerConnection")
+        let pc = new RTCPeerConnection(servers)
+        if (peerConnections.has(from)) closePeerConnection(peerConnections.get(from))
+
+        // Init var
+        const panner = new PannerNode(audioContext, {
+            panningModel: "HRTF",
+            distanceModel: distanceModel,
+            refDistance: Math.max(refDistance, 0.1),
+            rolloffFactor: rolloffFactor,
+            coneInnerAngle: 40,
+            coneOuterAngle: 30,
+            coneOuterGain: 0.4,
+        });
+
+        const gain = audioContext.createGain();
+
+        const mediaStream = new MediaStream();
+
+        const connection = {
+            pc: pc,
+            panner: panner,
+            gain: gain,
+            gainValue: 1,
+            playerId: from,
+            mute: false,
+            loc: null,
+            element: null
+        }
+
+        pc.onicecandidate = (event) => {
+            if (event.candidate) {
+                let to = null;
+                peerConnections.forEach((pcc, id) => {
+                    if (pcc.pc === pc) to = id
+                })
+                const packet = [
+                    {
+                        "type": "RTCIcePacket",
+                        "value": {
+                            "from": playerId,
+                            "to": to,
+                            type: 'candidate',
+                            candidate: event.candidate
+                        }
+                    }
+                ]
+
+                ws.send(JSON.stringify(packet));
+                console.log("Sending ICE candidate")
+            }
+        }
+        peerConnections.set(from, connection)
+
+        pc.ontrack = event => {
+            if (event.track.kind === 'audio') {
+                console.log("Track set")
+                const track = event.track;
+
+                mediaStream.addTrack(track)
+                // Connecting things
+                const source = audioContext.createMediaStreamSource(mediaStream);
+                source.connect(panner)
+                panner.connect(gain)
+                gain.connect(audioContext.destination)
+                gain.gain.value = 1;
+
+                // We use a dummy audio muted, because of a bug in chrome https://bugs.chromium.org/p/chromium/issues/detail?id=933677
+                const dummyAudio = new Audio();
+                dummyAudio.muted = true;
+                dummyAudio.srcObject = mediaStream;
+            }
+        }
+
+        micStream.getTracks().forEach((track) => {
+            pc.addTrack(track, micStream);
+        });
+
+        async function userThing() {
+            // Show user
+            await showUser(connection)
+
+            // Setup user bar
+            const userVolume = connection.element.getElementsByClassName("user-volume").item(0);
+            gain.gain.value = 1;
+            userVolume.value = 100;
+            userVolume.addEventListener('input', (e) => {
+                const volume = parseFloat(e.target.value) / 100;
+                connection.gainValue = volume;
+                if (connection.mute) return
+                gain.gain.value = volume * masterVolume;
+            });
+        }
+
+        userThing()
+
+        return pc;
+    }
+
+    function showUser(peerObj) {
+        return new Promise(async (resolve, reject) => {
+            const url = 'https://corsproxy.io/?' + encodeURIComponent('https://minecraft-api.com/api/pseudo/' + peerObj.playerId + '/json');
+            const response = await fetch(url);
+            const userName = JSON.parse(await response.text()).pseudo;
+
+            const element = htmlStringToElement(userTemplate)
+            const nameElement = element.getElementsByClassName("username").item(0)
+            const logoElement = element.getElementsByClassName("logo").item(0)
+
+            const muteButton = element.getElementsByClassName("muteButton").item(0)
+            const mutedButton = element.getElementsByClassName("mutedButton").item(0)
+
+            // Mute User Button
+            mutedButton.classList.add('hidden');
+            muteButton.addEventListener('click', e => {
+                muteButton.classList.add('hidden');
+                mutedButton.classList.remove('hidden');
+                peerObj.mute = true
+                peerObj.gain.gain.value = 0
+            });
+
+            mutedButton.addEventListener('click', e => {
+                mutedButton.classList.add('hidden');
+                muteButton.classList.remove('hidden');
+                peerObj.mute = false
+                peerObj.gain.gain.value = peerObj.gainValue * masterVolume;
+            });
+
+            element.id = peerObj.playerId
+
+            nameElement.textContent = userName;
+            logoElement.src = "https://cravatar.eu/avatar/" + userName + "/512.png"
+
+            peerObj.element = element;
+
+            users.insertAdjacentElement("beforeend", element);
+            resolve()
+        })
+    }
+
+    function closePeerConnection(peerConnectionContainer) {
+        if (peerConnectionContainer == null) return
+        peerConnectionContainer.pc.close()
+        if (peerConnectionContainer.element != null) peerConnectionContainer.element.remove()
+        peerConnections.delete(peerConnectionContainer.playerId)
+    }
+
+    function htmlStringToElement(htmlString) {
+        const tempContainer = document.createElement("div");
+        tempContainer.innerHTML = htmlString;
+        return tempContainer.firstElementChild;
+    }
+
+    function sendTrustPacket() {
+        const trustPacket = [{
+            "type": "TrustPacket",
+            "value": {
+                "token": params.get("token")
+            }
+        }]
+
+        ws.send(JSON.stringify(trustPacket))
+    }
+
+    async function populateMicrophoneOptions() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputDevices = devices.filter(device => device.kind === "audioinput");
+
+            microphoneSelect.innerHTML = ""; // Clear previous options
+
+            audioInputDevices.forEach(device => {
+                const option = document.createElement("option");
+                option.value = device.deviceId;
+                option.textContent = device.label || `Microphone ${microphoneSelect.childElementCount + 1}`;
+                microphoneSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error populating microphone options:", error);
+        }
+    }
+
+    async function setupAudioSystem() {
+        micStream = await navigator.mediaDevices.getUserMedia({audio: true, noiseSuppression: true});
+        connectionDiv.classList.add("hidden");
+
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        microphoneMaster.value = 100;
+        microphoneMaster.addEventListener('input', function () {
+            masterVolume = parseFloat(this.value) / 100;
+            peerConnections.forEach((peerObj, id) => {
+                peerObj.gain.gain.value = peerObj.gainValue * masterVolume;
+            })
+        });
+
+        await populateMicrophoneOptions();
+
+        microphoneSelect.addEventListener("change", async () => {
+            try {
+                const selectedDeviceId = microphoneSelect.value;
+                console.log("New device selected: " + selectedDeviceId)
+                const constraints = {audio: {deviceId: selectedDeviceId, noiseSuppression: true}};
+                const isMuted = micStream.getTracks().at(0).enabled;
+                micStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const newAudioTrack = micStream.getAudioTracks()[0];
+                newAudioTrack.enabled = isMuted;
+                peerConnections.forEach((peerObj, id) => {
+                    const pc = peerObj.pc;
+                    const senders = pc.getSenders();
+                    const audioSender = senders.find(sender => sender.track.kind === 'audio');
+                    if (audioSender) {
+                        const currentAudioTrack = audioSender.track;
+                        currentAudioTrack.stop();
+                        audioSender.replaceTrack(newAudioTrack);
+                    }
+                });
+            } catch (error) {
+                console.error("Error getting selected microphone stream:", error);
+            }
+        });
+    }
+
+    async function handlePackets(packetList) {
+        const jsonArray = JSON.parse(packetList);
+        for (const packetObject of jsonArray) {
+            const type = packetObject.type;
+            const value = packetObject.value;
+            await handlePacket(type, value)
+        }
+
+    }
+
+</script>
+</body>
+</html>
