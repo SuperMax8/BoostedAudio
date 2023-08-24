@@ -2,33 +2,31 @@ package fr.supermax_8.boostedaudio;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
-import com.sun.net.httpserver.HttpsServer;
 import fr.supermax_8.boostedaudio.commands.AudioCommand;
 import fr.supermax_8.boostedaudio.ingame.VocalLinker;
 import fr.supermax_8.boostedaudio.utils.FileUtils;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.PacketList;
 import fr.supermax_8.boostedaudio.web.packets.RTCIcePacket;
+import io.undertow.Undertow;
+import io.undertow.server.handlers.resource.FileResourceManager;
+import io.undertow.server.handlers.resource.ResourceHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
+import org.xnio.Options;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLParameters;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.security.KeyStore;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BoostedAudio extends JavaPlugin {
 
@@ -42,7 +40,7 @@ public class BoostedAudio extends JavaPlugin {
             .create();
 
     private AudioWebSocketServer webSocketServer;
-    private HttpServer selfWebServer;
+    private Undertow webServer;
     private SSLContext sslContext;
     private BoostedAudioConfiguration configuration;
 
@@ -74,7 +72,7 @@ public class BoostedAudio extends JavaPlugin {
     public void onDisable() {
         try {
             webSocketServer.stop();
-            if (selfWebServer != null) selfWebServer.stop(0);
+            if (webServer != null) webServer.stop();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -106,6 +104,19 @@ public class BoostedAudio extends JavaPlugin {
 
     private void startServers() {
         if (configuration.isSsl()) initSSL();
+
+        File webserver = new File(getDataFolder(), "webhost");
+        saveResource("webhost/index.html", true);
+
+        String ip = (configuration.isSsl() ? "wss://" : "ws://") +
+                configuration.getWebSocketHostName() +
+                ":" + configuration.getWebSocketPort();
+
+        debug("WebSocket IP: " + ip);
+        File index = new File(webserver, "index.html");
+        FileUtils.replaceInFile(index, "%WS_IP%", ip);
+        FileUtils.replaceInFile(index, "let proximityChat = true;", "let proximityChat = " + configuration.isVoiceChatEnabled());
+
         if (configuration.isAutoHost())
             try {
                 startSelfHostWebServer();
@@ -122,54 +133,35 @@ public class BoostedAudio extends JavaPlugin {
         webSocketServer.setReuseAddr(true);
         CompletableFuture.runAsync(() -> {
             webSocketServer.run();
-
         });
     }
 
-    private void startSelfHostWebServer() throws IOException {
+    private void startSelfHostWebServer() {
+        Logger undertowLogger = Logger.getLogger("io.undertow");
+        undertowLogger.setLevel(Level.OFF); // Utiliser ERROR pour désactiver complètement les logs
+
         int port = configuration.getAutoHostPort();
 
-        if (configuration.isSsl()) {
-            selfWebServer = HttpsServer.create(new InetSocketAddress(port), 0);
-            HttpsServer server = (HttpsServer) selfWebServer;
+        // Spécifiez le répertoire où se trouvent les fichiers à servir
+        File webserver = new File(getDataFolder(), "webhost");
 
-            server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
-                public void configure(HttpsParameters params) {
-                    try {
-                        SSLContext context = getSSLContext();
-                        SSLEngine engine = context.createSSLEngine();
-                        params.setCipherSuites(engine.getEnabledCipherSuites());
-                        params.setProtocols(engine.getEnabledProtocols());
-                        SSLParameters sslParameters = context.getDefaultSSLParameters();
-                        params.setSSLParameters(sslParameters);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        } else selfWebServer = HttpServer.create(new InetSocketAddress(port), 0);
+        // Créez un gestionnaire de ressources pour le répertoire spécifié
+        FileResourceManager resourceManager = new FileResourceManager(webserver);
 
-        File webserver = new File(getDataFolder(), "webclient");
-        saveResource("webclient/index.html", true);
+        // Créez un gestionnaire de ressources pour gérer les demandes de fichiers
+        ResourceHandler resourceHandler = new ResourceHandler(resourceManager);
 
-        String ip = (configuration.isSsl() ? "wss://" : "ws://") +
-                configuration.getWebSocketHostName() +
-                ":" + configuration.getWebSocketPort();
+        Undertow.Builder builder = Undertow.builder();
+        if (configuration.isSsl()) builder.addHttpsListener(port, "0.0.0.0", sslContext);
+        else builder.addHttpListener(port, "0.0.0.0");
+        webServer = builder
+                .setHandler(resourceHandler)
+                .setServerOption(Options.REUSE_ADDRESSES, true)
+                .build();
 
-        debug("WebSocket IP: " + ip);
+        webServer.start();
 
-        FileUtils.replaceInFile(new File(webserver, "index.html"), "%WS_IP%", ip);
-
-        selfWebServer.createContext("/", exchange -> {
-            byte[] responseBytes = Files.readAllBytes(new File(webserver, "index.html").toPath());
-
-            exchange.sendResponseHeaders(200, responseBytes.length);
-            OutputStream os = exchange.getResponseBody();
-
-            os.write(responseBytes);
-            os.close();
-        });
-        selfWebServer.start();
+        debug("SelfHostWebServer started with port " + port);
     }
 
     private void initSSL() {

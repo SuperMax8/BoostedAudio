@@ -91,7 +91,7 @@ public class AudioWebSocketServer extends WebSocketServer {
     @Override
     public void onError(WebSocket webSocket, Exception e) {
         BoostedAudio.debug("ERRRRREEEEUR WEBSOCKET " + webSocket.getRemoteSocketAddress());
-        e.printStackTrace();
+        if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
     }
 
     @Override

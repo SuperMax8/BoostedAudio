@@ -315,7 +315,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
     // HTML elements
     const users = document.getElementById('users');
-    const microphoneMaster = document.getElementById('master');
+    const master = document.getElementById('master');
     const microphoneNoise = document.getElementById('microphoneNoise');
     const microphoneSelect = document.getElementById('microphoneSelect');
     const paramButton = document.getElementById('paramButton');
@@ -335,7 +335,6 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     const user = document.getElementById("user")
     userTemplate = user.outerHTML
     user.remove()
-
 
     // CONNECT BUTTON
     connectionDiv.addEventListener("click", () => {
@@ -377,23 +376,29 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     // Search bar
     const search = document.getElementById("search");
     const userCount = document.getElementById("userCount");
-    setInterval(() => {
-        userCount.textContent = peerConnections.size
-        const userElement = users.getElementsByClassName("user")
-        if (search.value.length === 0) return
-        for (let i = 0; i < userElement.length; i++) {
-            const usr = userElement[i];
-            const nameElement = usr.querySelector(".username");
-            if (nameElement) {
-                if (nameElement.toLowerCase().textContent.includes(search.value.toLowerCase())) {
-                    usr.classList.remove('hidden');
-                } else {
-                    usr.classList.add('hidden');
+    if (!proximityChat) {
+        users.classList.add("hidden")
+        search.classList.add("hidden")
+        userCount.classList.add("hidden")
+        microphoneSelect.classList.add("hidden")
+    } else {
+        setInterval(() => {
+            userCount.textContent = peerConnections.size
+            const userElement = users.getElementsByClassName("user")
+            if (search.value.length === 0) return
+            for (let i = 0; i < userElement.length; i++) {
+                const usr = userElement[i];
+                const nameElement = usr.querySelector(".username");
+                if (nameElement) {
+                    if (nameElement.toLowerCase().textContent.includes(search.value.toLowerCase())) {
+                        usr.classList.remove('hidden');
+                    } else {
+                        usr.classList.add('hidden');
+                    }
                 }
             }
-        }
-    }, 100);
-
+        }, 100);
+    }
 
     let onopen;
 
@@ -417,8 +422,6 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     onopen = async () => {
         isOpen = true;
         console.log("WebSocket Open")
-
-        setupAudioSystem()
 
         if (!params.has("token") || !params.has("playerId")) {
             console.log("Without token or playerId this will not connected to the websocket")
@@ -444,6 +447,10 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         }, 3000)
     }
     ws.onopen = onopen;
+
+    function initWithServerInfo() {
+        setupAudioSystem()
+    }
 
     async function handlePacket(type, packet) {
         /*    console.log("----------RECEIVING PACKET----------")
@@ -572,6 +579,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 distanceModel = serverInfo.distanceModel;
                 console.log("ServerInfo set")
                 serverInfoSet = true;
+                initWithServerInfo()
                 break;
             default:
                 break;
@@ -789,13 +797,15 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     }
 
     async function setupAudioSystem() {
-        micStream = await navigator.mediaDevices.getUserMedia({audio: true, noiseSuppression: true});
-        connectionDiv.classList.add("hidden");
+        if (proximityChat) {
+            micStream = await navigator.mediaDevices.getUserMedia({audio: true, noiseSuppression: true});
+            connectionDiv.classList.add("hidden");
+        }
 
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        microphoneMaster.value = 100;
-        microphoneMaster.addEventListener('input', function () {
+        master.value = 100;
+        master.addEventListener('input', function () {
             masterVolume = parseFloat(this.value) / 100;
             peerConnections.forEach((peerObj, id) => {
                 peerObj.gain.gain.value = peerObj.gainValue * masterVolume;
