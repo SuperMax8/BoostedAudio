@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.ingame;
 
 import fr.supermax_8.boostedaudio.BoostedAudio;
+import fr.supermax_8.boostedaudio.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.web.ConnectionManager;
 import fr.supermax_8.boostedaudio.web.User;
 import fr.supermax_8.boostedaudio.web.packets.UpdateVocalPositionsPacket;
@@ -51,14 +52,14 @@ public class VocalLinker extends BukkitRunnable {
                 manager.setRemotePeers(user, peers);
 
                 // Send update position packet, for spatialization
-                HashMap<UUID, UpdateVocalPositionsPacket.Location> peersLocs = new HashMap<>();
-                for (Player p : players) peersLocs.put(p.getUniqueId(), new UpdateVocalPositionsPacket.Location(p.getLocation()));
+                HashMap<UUID, SerializableLocation> peersLocs = new HashMap<>();
+                for (Player p : players) peersLocs.put(p.getUniqueId(), new SerializableLocation(p.getLocation()));
 
                 UpdateVocalPositionsPacket updatePacket = new UpdateVocalPositionsPacket(
-                        new UpdateVocalPositionsPacket.Location(player.getLocation()),
+                        new SerializableLocation(player.getLocation()),
                         peersLocs
                 );
-                user.send(updatePacket);
+                user.sendPacket(updatePacket);
             });
         });
     }

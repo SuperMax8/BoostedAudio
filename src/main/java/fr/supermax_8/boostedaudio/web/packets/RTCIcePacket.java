@@ -27,7 +27,7 @@ public class RTCIcePacket implements Packet {
     public void onReceive(User user, AudioWebSocketServer server) {
         if (user.getRemotePeers().contains(to)) {
             User remoteUser = server.manager.getUsers().get(to);
-            if (remoteUser != null) remoteUser.send(this);
+            if (remoteUser != null) remoteUser.sendPacket(this);
         } else {
             user.getSession().close();
             BoostedAudio.debug("KickICE");

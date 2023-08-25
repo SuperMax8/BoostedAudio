@@ -9,3 +9,6 @@ softdepend:
   - WorldGuard
 commands:
   audio:
+  boostedaudio:
+    aliases:
+      - ba

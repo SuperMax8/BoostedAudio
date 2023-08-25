@@ -78,6 +78,7 @@ public class AudioWebSocketServer extends WebSocketServer {
             packetList = gson.fromJson(message, PacketList.class);
         } catch (JsonSyntaxException e) {
             client.close();
+            /*BoostedAudio.debug(message);*/
             return;
         }
 
@@ -91,6 +92,7 @@ public class AudioWebSocketServer extends WebSocketServer {
     @Override
     public void onError(WebSocket webSocket, Exception e) {
         BoostedAudio.debug("ERRRRREEEEUR WEBSOCKET " + webSocket.getRemoteSocketAddress());
+        BoostedAudio.debug(e.toString());
         if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
     }
 
@@ -98,6 +100,7 @@ public class AudioWebSocketServer extends WebSocketServer {
     public void onStart() {
         BoostedAudio.debug("WebSocketServer Open");
         isOpen = true;
+        setConnectionLostTimeout(10);
     }
 
     private void testToTrust(WebSocket session, PacketList message) {

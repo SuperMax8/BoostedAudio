@@ -3,7 +3,9 @@ package fr.supermax_8.boostedaudio;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.commands.AudioCommand;
+import fr.supermax_8.boostedaudio.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.ingame.VocalLinker;
+import fr.supermax_8.boostedaudio.utils.AroundManager;
 import fr.supermax_8.boostedaudio.utils.FileUtils;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.PacketList;
@@ -25,8 +27,6 @@ import java.security.KeyStore;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class BoostedAudio extends JavaPlugin {
 
@@ -43,10 +43,12 @@ public class BoostedAudio extends JavaPlugin {
     private Undertow webServer;
     private SSLContext sslContext;
     private BoostedAudioConfiguration configuration;
+    private AroundManager aroundManager;
 
     @Override
     public void onEnable() {
         instance = this;
+        aroundManager = new AroundManager();
 
         try {
             NumberFormat f = NumberFormat.getInstance();
@@ -57,6 +59,7 @@ public class BoostedAudio extends JavaPlugin {
 
         configuration = new BoostedAudioConfiguration();
         getCommand("audio").setExecutor(new AudioCommand());
+        getCommand("boostedaudio").setExecutor(new BoostedAudioCommand());
 
         CompletableFuture.runAsync(this::startServers);
 
@@ -70,12 +73,14 @@ public class BoostedAudio extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        try {
-            webSocketServer.stop();
-            if (webServer != null) webServer.stop();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                webSocketServer.stop();
+                if (webServer != null) webServer.stop();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public static void info(String message) {
@@ -119,7 +124,7 @@ public class BoostedAudio extends JavaPlugin {
 
         if (configuration.isAutoHost())
             try {
-                startSelfHostWebServer();
+                Bukkit.getScheduler().runTaskAsynchronously(this, this::startSelfHostWebServer);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -137,9 +142,6 @@ public class BoostedAudio extends JavaPlugin {
     }
 
     private void startSelfHostWebServer() {
-        Logger undertowLogger = Logger.getLogger("io.undertow");
-        undertowLogger.setLevel(Level.OFF); // Utiliser ERROR pour désactiver complètement les logs
-
         int port = configuration.getAutoHostPort();
 
         // Spécifiez le répertoire où se trouvent les fichiers à servir

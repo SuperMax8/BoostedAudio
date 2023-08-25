@@ -29,7 +29,7 @@ public class TrustPacket implements Packet {
             server.manager.getSessionUsers().put(user.getSession(), newUser);
             BoostedAudio.debug("New trusted: " + playerId);
             BoostedAudioConfiguration configuration = BoostedAudio.getInstance().getConfiguration();
-            newUser.send(new TrustPacket(null, new ServerInfo(
+            newUser.sendPacket(new TrustPacket(null, new ServerInfo(
                     configuration.getMaxVoiceDistance(), configuration.getRolloffFactor(), configuration.getRefDistance(), configuration.getDistanceModel())
             ));
         } else user.getSession().close();

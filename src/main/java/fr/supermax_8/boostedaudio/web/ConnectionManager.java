@@ -71,14 +71,14 @@ public class ConnectionManager {
 
         /*String packet = Main.getGson().toJson(new PacketList(peerPacket));
         BoostedAudio.debug("Sending creating offer packet: " + packet);*/
-        player2.send(peerPacket);
+        player2.sendPacket(peerPacket);
     }
 
     public void unlinkPeers(User player1, User player2) {
         player1.getRemotePeers().remove(player2.getPlayerId());
         player2.getRemotePeers().remove(player1.getPlayerId());
-        player1.send(new PacketList(new RemovePeerPacket(player2.getPlayerId())));
-        player2.send(new PacketList(new RemovePeerPacket(player1.getPlayerId())));
+        player1.sendPacket(new PacketList(new RemovePeerPacket(player2.getPlayerId())));
+        player2.sendPacket(new PacketList(new RemovePeerPacket(player1.getPlayerId())));
     }
 
 }

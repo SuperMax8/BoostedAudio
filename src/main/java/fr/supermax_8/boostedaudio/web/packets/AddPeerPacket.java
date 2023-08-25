@@ -28,7 +28,7 @@ public class AddPeerPacket implements Packet {
         BoostedAudio.debug("FROM " + from);
         BoostedAudio.debug("PEERS" + user.getRemotePeers());*/
         if (user.getRemotePeers().contains(to))
-            server.manager.getUsers().get(to).send(this);
+            server.manager.getUsers().get(to).sendPacket(this);
         else {
             user.getSession().close();
             /*BoostedAudio.debug("KickPEER");*/

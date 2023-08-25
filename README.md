@@ -19,9 +19,7 @@ Dev RoadMap:
 - [x] Fix du selecteur micro
 - [x] Ajouter un système client serveur pour activer ou desactiver la div users
   et le systeme vocal, fichier config
-- [ ] Systeme de musique, packet audio
-- [ ] Audio/speaker spacialisé
-- [ ] Decalage 1 tick avec interpolation pour audio spacialisé
+- [x] Systeme de musique, packet audio
+- [x] Audio/speaker spacialisé
 - [ ] Gestion sauvegarde memoire via cookie
-- [ ] Amelioration audio via noise ou/et krisp
 - [ ] Système de cosmetique icon joueur ptdrrrrr
