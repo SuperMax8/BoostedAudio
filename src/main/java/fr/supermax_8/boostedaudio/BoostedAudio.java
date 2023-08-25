@@ -50,6 +50,8 @@ public class BoostedAudio extends JavaPlugin {
         instance = this;
         aroundManager = new AroundManager();
 
+       /* if (webServer != null) webServer.stop();*/
+
         try {
             NumberFormat f = NumberFormat.getInstance();
             bukkitVersion = f.parse(Bukkit.getBukkitVersion()).doubleValue();
@@ -65,7 +67,7 @@ public class BoostedAudio extends JavaPlugin {
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, s -> {
             if (webSocketServer != null && webSocketServer.isOpen()) {
-                new VocalLinker().runTaskTimerAsynchronously(this, 0, 0);
+                new VocalLinker().runTaskTimerAsynchronously(this, 0, 20);
                 s.cancel();
             }
         }, 0, 0);
@@ -74,12 +76,15 @@ public class BoostedAudio extends JavaPlugin {
     @Override
     public void onDisable() {
         CompletableFuture.runAsync(() -> {
+            long ts = System.currentTimeMillis();
             try {
                 webSocketServer.stop();
-                if (webServer != null) webServer.stop();
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            if (webServer != null) webServer.stop();
+            long ts2 = System.currentTimeMillis();
+            debug("Servers stopped in " + (ts2 - ts) + " ms");
         });
     }
 

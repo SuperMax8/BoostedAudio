@@ -3,12 +3,14 @@ package fr.supermax_8.boostedaudio.web;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import fr.supermax_8.boostedaudio.BoostedAudio;
+import fr.supermax_8.boostedaudio.ingame.VocalLinker;
 import fr.supermax_8.boostedaudio.web.packets.TrustPacket;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
+import java.util.Optional;
 import java.util.UUID;
 
 public class AudioWebSocketServer extends WebSocketServer {
@@ -42,7 +44,7 @@ public class AudioWebSocketServer extends WebSocketServer {
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
         try {
-            manager.sessionUsers.put(webSocket, new User(null));
+            manager.sessionUsers.put(webSocket, Optional.empty());
             BoostedAudio.debug("New connection WebSocket : " + webSocket.getRemoteSocketAddress().getAddress() + " / " + manager.getSessionUsers().size());
         } catch (Exception e) {
             e.printStackTrace();
@@ -55,16 +57,16 @@ public class AudioWebSocketServer extends WebSocketServer {
             BoostedAudio.debug("WebSocket connection closed : " + webSocket.getRemoteSocketAddress().getAddress());
             BoostedAudio.debug("REASON " + s + " STATUSCODE: " + i);
 
-            User user = manager.getSessionUsers().remove(webSocket);
+            Optional<User> user = manager.getSessionUsers().remove(webSocket);
             BoostedAudio.debug("SessionUsersSize " + manager.getSessionUsers().size());
-            if (user == null) return;
+            if (!user.isPresent()) return;
 
-            UUID playerId = user.getPlayerId();
+            UUID playerId = user.get().getPlayerId();
             User realUser = manager.getUsers().remove(playerId);
 
             for (UUID id : realUser.getRemotePeers()) {
                 User usr = manager.getUsers().get(id);
-                manager.unlinkPeers(realUser, usr);
+                new VocalLinker.PeerConnection(realUser.getPlayerId(), usr.getPlayerId()).unLink();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,11 +82,15 @@ public class AudioWebSocketServer extends WebSocketServer {
             client.close();
             /*BoostedAudio.debug(message);*/
             return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            BoostedAudio.debug(message);
+            return;
         }
 
-        User user = manager.getSessionUsers().get(client);
-        if (user != null && user.getSession() != null)
-            for (Packet packet : packetList.getPackets()) packet.onReceive(user, this);
+        Optional<User> user = manager.getSessionUsers().get(client);
+        if (user.isPresent())
+            for (Packet packet : packetList.getPackets()) packet.onReceive(user.get(), this);
         else
             testToTrust(client, packetList);
     }
@@ -108,7 +114,7 @@ public class AudioWebSocketServer extends WebSocketServer {
         if (message.getPackets().isEmpty() || !((packet = message.getPackets().get(0)) instanceof TrustPacket)) {
             BoostedAudio.debug("Kick Untrust: " + session);
             session.close();
-        } else packet.onReceive(new User(session), this);
+        } else packet.onReceive(new User(session, null, null), this);
     }
 
 

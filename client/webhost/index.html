@@ -28,7 +28,7 @@
 </head>
 <body class="flex h-screen w-screen bg-[url(https://i.imgur.com/6MelMqC.jpg)] bg-no-repeat bg-cover">
 
-<div class="z-10 relative drop-shadow-lg">
+<div class="z-10 relative drop-shadow-lg hidden">
     <div id="toogleDiv" class="hover:scale-150 duration-100 absolute top-1/2 -left-6">
         <div id="toggleButton" class="h-10 w-14
         rounded-3xl bg-main text-white cursor-pointer transition-transform duration-300 ease-in-out">
@@ -374,24 +374,6 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         settingsMenu.classList.add('hidden');
     });
 
-    // Mute Button
-    mutedButton.classList.add('hidden');
-    muteButton.addEventListener('click', e => {
-        muteButton.classList.add('hidden');
-        mutedButton.classList.remove('hidden');
-        micStream.getTracks().forEach(t => {
-            t.enabled = false
-        })
-    });
-
-    mutedButton.addEventListener('click', e => {
-        mutedButton.classList.add('hidden');
-        muteButton.classList.remove('hidden');
-        micStream.getTracks().forEach(t => {
-            t.enabled = true
-        })
-    });
-
     // Search bar
     const search = document.getElementById("search");
     const userCount = document.getElementById("userCount");
@@ -522,7 +504,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                         ]
                         /*console.log("Offer: " + JSON.stringify(offerPacket))*/
 
-                        /*console.log("Creating offer")*/
+                        console.log("Creating offer")
                         ws.send(JSON.stringify(offerPacket))
                         break
                     // Packet action from other user, check by server
@@ -550,14 +532,14 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                         ]
 
                         ws.send(JSON.stringify(answerPacket))
-                        /*console.log("Receive OFFER, Sending answer")*/
+                        console.log("Receive OFFER, Sending answer")
                         break
                     // Packet action from other user, check by server
                     // Receive answer
                     case "answer":
                         pc = peerConnections.get(from).pc
                         await pc.setRemoteDescription(new RTCSessionDescription(packet.rtcDesc))
-                        /*console.log("Receive answer")*/
+                        console.log("Receive answer")
                         break
                 }
                 break
@@ -578,7 +560,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                         console.error("Erreur with ICE candidate set : ", error);
                     });
 
-                /*console.log("ICE Candidate set")*/
+                console.log("ICE Candidate set")
                 break
             case "RemovePeerPacket":
                 const playerToRemoveId = packet.playerToRemove;
@@ -985,6 +967,25 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     function setupWithConsent() {
         consent = true;
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Mute Button
+        mutedButton.classList.add('hidden');
+        muteButton.addEventListener('click', e => {
+            muteButton.classList.add('hidden');
+            mutedButton.classList.remove('hidden');
+            micStream.getTracks().forEach(t => {
+                t.enabled = false
+            })
+        });
+
+        mutedButton.addEventListener('click', e => {
+            mutedButton.classList.add('hidden');
+            muteButton.classList.remove('hidden');
+            micStream.getTracks().forEach(t => {
+                t.enabled = true
+            })
+        });
+
     }
 
     async function handlePackets(packetList) {

@@ -7,6 +7,7 @@ import fr.supermax_8.boostedaudio.web.Packet;
 import fr.supermax_8.boostedaudio.web.User;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TrustPacket implements Packet {
@@ -26,7 +27,7 @@ public class TrustPacket implements Packet {
         if ((playerId = getKeyByValue(server.manager.getPlayerTokens(), token)) != null) {
             User newUser = new User(user.getSession(), token, playerId);
             server.manager.getUsers().put(playerId, newUser);
-            server.manager.getSessionUsers().put(user.getSession(), newUser);
+            server.manager.getSessionUsers().put(user.getSession(), Optional.of(newUser));
             BoostedAudio.debug("New trusted: " + playerId);
             BoostedAudioConfiguration configuration = BoostedAudio.getInstance().getConfiguration();
             newUser.sendPacket(new TrustPacket(null, new ServerInfo(

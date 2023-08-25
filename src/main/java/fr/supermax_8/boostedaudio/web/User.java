@@ -2,9 +2,9 @@ package fr.supermax_8.boostedaudio.web;
 
 import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.utils.SerializableLocation;
-import fr.supermax_8.boostedaudio.web.packets.audio.AddAudioPacket;
-import fr.supermax_8.boostedaudio.web.packets.audio.PausePlayAudioPacket;
-import fr.supermax_8.boostedaudio.web.packets.audio.RemoveAudioPacket;
+import fr.supermax_8.boostedaudio.web.packets.AddAudioPacket;
+import fr.supermax_8.boostedaudio.web.packets.PausePlayAudioPacket;
+import fr.supermax_8.boostedaudio.web.packets.RemoveAudioPacket;
 import org.java_websocket.WebSocket;
 
 import java.util.*;
@@ -17,23 +17,11 @@ public class User {
     private final String connectionToken;
     private final UUID playerId;
 
-    /**
-     * Use only this constructor if you only want to use the hashcode method of this class
-     *
-     * @param session The sessionq
-     */
-    public User(WebSocket session) {
-        this.session = session;
-        connectionToken = null;
-        playerId = null;
-    }
-
     public User(WebSocket session, String connectionToken, UUID playerId) {
         this.session = session;
         this.connectionToken = connectionToken;
         this.playerId = playerId;
     }
-
 
     public Set<UUID> getRemotePeers() {
         return remotePeers;
@@ -55,12 +43,6 @@ public class User {
         return playingAudio;
     }
 
-    @Override
-    public int hashCode() {
-        return session.hashCode();
-    }
-
-
     public Audio playAudio(String link, SerializableLocation location, int fade) {
         return playAudio(link, location, fade, fade, false);
     }
@@ -75,8 +57,8 @@ public class User {
 
     public Audio playAudio(String link, SerializableLocation location, int fadeIn, int fadeOut, boolean loop) {
         UUID id = UUID.randomUUID();
-        Audio audio = new Audio(link, location, id, fadeIn, fadeOut);
-        AddAudioPacket packet = new AddAudioPacket(id, link, fadeIn, location, loop);
+        Audio audio = new Audio(link, location, id, fadeIn, fadeOut, loop);
+        AddAudioPacket packet = new AddAudioPacket(id, link, fadeIn, location);
         playingAudio.put(id, audio);
         sendPacket(packet);
         return audio;

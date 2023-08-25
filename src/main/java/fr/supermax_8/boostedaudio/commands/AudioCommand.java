@@ -24,7 +24,6 @@ public class AudioCommand implements CommandExecutor {
 
     private static final int TOKEN_LENGTH = 8;
 
-
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
@@ -32,6 +31,19 @@ public class AudioCommand implements CommandExecutor {
             return false;
         }
         Player p = (Player) sender;
+        sendConnectMessage(p);
+        return false;
+    }
+
+    public static String generateToken() {
+        SecureRandom random = new SecureRandom();
+        byte[] tokenBytes = new byte[TOKEN_LENGTH];
+        random.nextBytes(tokenBytes);
+
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+    }
+
+    public static void sendConnectMessage(Player p) {
         UUID playerId = p.getUniqueId();
 
         ConnectionManager manager = BoostedAudio.getInstance().getWebSocketServer().manager;
@@ -52,22 +64,6 @@ public class AudioCommand implements CommandExecutor {
         text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(configuration.getConnectionHoverMessage())).toString()).create()));
 
         p.spigot().sendMessage(text);
-        /*ConnectionManager manager = BoostedAudio.getInstance().getWebSocketServer().manager;
-        List<UUID> list = manage r.getUsers().values().stream().map(User::getPlayerId).collect(Collectors.toList());
-        manager.getUsers().forEach((id, user) -> {
-            List<UUID> exclude = new LinkedList<>(list);
-            exclude.remove(id);
-            manager.setRemotePeers(id, exclude);
-        });*/
-        return false;
-    }
-
-    public static String generateToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] tokenBytes = new byte[TOKEN_LENGTH];
-        random.nextBytes(tokenBytes);
-
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
     }
 
 }

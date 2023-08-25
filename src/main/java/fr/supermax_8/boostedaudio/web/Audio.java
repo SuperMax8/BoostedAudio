@@ -16,13 +16,15 @@ public class Audio {
 
     private final int fadeIn;
     private final int fadeOut;
+    private final boolean loop;
 
-    public Audio(String link, SerializableLocation location, UUID id, int fadeIn, int fadeOut) {
+    public Audio(String link, SerializableLocation location, UUID id, int fadeIn, int fadeOut, boolean loop) {
         this.link = link;
         this.location = location;
         this.id = id;
         this.fadeIn = fadeIn;
         this.fadeOut = fadeOut;
+        this.loop = loop;
     }
 
     public int getFadeIn() {
@@ -45,4 +47,8 @@ public class Audio {
         return id;
     }
 
+    public boolean isLoop() {
+        return loop;
+    }
+    
 }

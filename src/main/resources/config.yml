@@ -34,6 +34,15 @@ voicechat:
   # This property controls how quickly the sound attenuates as distance increases
   rolloffFactor: 1
 
+# Send the connection message when the player connects
+sendOnConnect: true
+# Delay of the connection message in tick when the player connects
+sendOnConnectDelay: 30
+
+# Don't use if you are not sure
+# If this is true that means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
+# this property allows you to fully customize the client by modifying the code of the client
+customClient: false
 
 # Messages
 connectionMessage: "§6Join the audio client by clicking here!"
