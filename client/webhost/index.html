@@ -343,12 +343,12 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     userTemplate = user.outerHTML
     user.remove()
 
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         // Vérifiez si la touche enfoncée est le bouton "Play" multimédia (code 179)
         if (event.keyCode === 179) {
             // Empêchez l'action par défaut de la touche "Play"
             event.preventDefault();
-
+            console.log("CancelStopMedia")
             // Vous pouvez également mettre en pause ou arrêter le lecteur audio si vous le souhaitez
             // audioPlayer.pause(); // Pour mettre en pause le lecteur audio
             // audioPlayer.currentTime = 0; // Pour remettre la lecture au début du fichier audio
@@ -405,53 +405,58 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         }, 100);
     }
 
-    let onopen;
 
-    ws = new WebSocket(wsIP);
+    window.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => {
+            console.log("Starting WebSocket...")
+            let onOpen = async () => {
+                isOpen = true;
+                console.log("WebSocket Open")
 
-    const f = () => {
-        const intervalId = setInterval(() => {
-            if (isOpen === true) {
-                clearInterval(intervalId)
-                console.log("Connection etablished")
-                return;
+                if (!params.has("token") || !params.has("playerId")) {
+                    console.log("Without token or playerId this will not connected to the websocket")
+                    return
+                }
+
+                ws.onmessage = message => {
+                    handlePackets(message.data)
+                }
+                ws.onclose = () => {
+                    console.log("WebSocket closed :!")
+                }
+
+                playerId = params.get("playerId")
+
+                sendTrustPacket()
+
+                setInterval(() => {
+                    console.log("States:")
+                    peerConnections.forEach((pc, k) => {
+                        console.log("- State: " + pc.pc.connectionState)
+                    })
+                }, 3000)
             }
-            console.log("Reset WebSocket")
-            ws.close()
             ws = new WebSocket(wsIP);
-            ws.onopen = onopen;
-        }, 3500)
-    }
-    setTimeout(f, 2000)
-
-    onopen = async () => {
-        isOpen = true;
-        console.log("WebSocket Open")
-
-        if (!params.has("token") || !params.has("playerId")) {
-            console.log("Without token or playerId this will not connected to the websocket")
-            return
-        }
-
-        playerId = params.get("playerId")
-
-        sendTrustPacket()
-
-        ws.onmessage = message => {
-            handlePackets(message.data)
-        }
-        ws.onclose = () => {
-            console.log("WebSocket closed :!")
-        }
-
-        setInterval(() => {
-            console.log("States:")
-            peerConnections.forEach((pc, k) => {
-                console.log("- State: " + pc.pc.connectionState)
-            })
-        }, 3000)
-    }
-    ws.onopen = onopen;
+            const f = () => {
+                const intervalId = setInterval(() => {
+                    if (isOpen) {
+                        clearInterval(intervalId)
+                        console.log("Connection etablished")
+                        return;
+                    }
+                    console.log("Reset WebSocket")
+                    try {
+                        ws.close()
+                    } catch (e) {
+                        console.log("Error closing ws, but error skip")
+                    }
+                    ws = new WebSocket(wsIP);
+                    ws.onopen = onOpen;
+                }, 3500)
+            }
+            f();
+        }, 1000)
+    })
 
     function initWithServerInfo() {
         setupAudioSystem()
@@ -555,7 +560,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
                 const candidate = new RTCIceCandidate(iceCandidate);
 
-                pc.addIceCandidate(candidate)
+                await pc.addIceCandidate(candidate)
                     .catch((error) => {
                         console.error("Erreur with ICE candidate set : ", error);
                     });
@@ -584,7 +589,11 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     const loc = audioObj.location;
                     if (loc) {
                         spatializeAudio(audioObj.panner, loc)
-                        console.log("Spatialize...")
+                        if (distance(loc, clientLoc) >= audioObj.maxVoiceDistance) {
+                            audioObj.gainNode.gain.value = 0;
+                        } else {
+                            audioObj.gainNode.gain.value = 1;
+                        }
                     }
                 })
                 break
@@ -593,13 +602,15 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 let panner;
                 let audioSource;
                 const link = encodeURIComponent(packet.link)
-                console.log(packet.location)
-                if (packet.location) {
+                const spatialInfo = packet.spatialInfo;
+                let maxVoiceDistance = 0;
+                let gainNode;
+                if (spatialInfo) {
                     panner = new PannerNode(audioContext, {
                         panningModel: "HRTF",
-                        distanceModel: distanceModel,
-                        refDistance: Math.max(refDistance, 0.1),
-                        rolloffFactor: rolloffFactor,
+                        distanceModel: spatialInfo.distanceModel,
+                        refDistance: Math.max(spatialInfo.refDistance, 0.1),
+                        rolloffFactor: spatialInfo.rolloffFactor,
                         coneInnerAngle: 40,
                         coneOuterAngle: 30,
                         coneOuterGain: 0.4,
@@ -610,20 +621,23 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     audioHtml.crossOrigin = "anonymous"
                     audioSource = audioContext.createMediaElementSource(audioHtml);
                     audio = audioSource.mediaElement;
+                    maxVoiceDistance = spatialInfo.maxVoiceDistance;
+                    gainNode = audioContext.createGain();
 
                     audioSource.connect(panner);
-                    panner.connect(audioContext.destination);
-                    console.log("Spatialize !")
+                    panner.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
                 } else {
                     audio = new Audio(link)
                 }
                 /*if (packet.loop) audio.loop = packet.loop;*/
                 await audio.play()
-                fadeIn(audio, packet.fade)
+                fadeIn(audio, packet.fadeIn)
 
                 audio.addEventListener('ended', function () {
-                    console.log('Audio has finished playing');
+                    // console.log('Audio has finished playing');
                     audioMap.delete(id)
+                    if (panner) panner.disconnect();
                     const endAudioPacket =
                         [
                             {
@@ -641,7 +655,9 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     audio: audio,
                     audioSource: audioSource,
                     panner: panner,
-                    location: packet.location
+                    location: spatialInfo.location,
+                    gainNode: gainNode,
+                    maxVoiceDistance: maxVoiceDistance
                 }
                 audioMap.set(id, audioObj)
                 break
@@ -655,10 +671,12 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             case "RemoveAudioPacket":
                 id = packet.uuid;
                 audioObj = audioMap.get(id);
-                fadeOut(audioObj.audio, packet.fade, () => {
-                    audioObj.audio.stop();
-                    audioMap.delete(id)
-                })
+                if (audioObj) {
+                    fadeOut(audioObj.audio, packet.fade, () => {
+                        audioMap.delete(id)
+                    })
+                    if (audioObj.panner) audioObj.panner.disconnect();
+                }
                 break
             case "TrustPacket":
                 const serverInfo = packet.serverInfo;
@@ -673,6 +691,22 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             default:
                 break;
         }
+    }
+
+    function distance(location1, location2) {
+        const x1 = location1.x;
+        const y1 = location1.y;
+        const z1 = location1.z;
+
+        const x2 = location2.x;
+        const y2 = location2.y;
+        const z2 = location2.z;
+
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const dz = z2 - z1;
+
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     function fadeIn(audio, duration) {
@@ -965,6 +999,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     }
 
     function setupWithConsent() {
+        if (consent) return
         consent = true;
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
 

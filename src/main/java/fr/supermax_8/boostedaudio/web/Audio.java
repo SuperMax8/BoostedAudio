@@ -10,7 +10,7 @@ public class Audio {
     private final String link;
 
     @Nullable
-    private final SerializableLocation location;
+    private final AudioSpatialInfo spatialInfo;
 
     private final UUID id;
 
@@ -18,9 +18,9 @@ public class Audio {
     private final int fadeOut;
     private final boolean loop;
 
-    public Audio(String link, SerializableLocation location, UUID id, int fadeIn, int fadeOut, boolean loop) {
+    public Audio(String link, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop) {
         this.link = link;
-        this.location = location;
+        this.spatialInfo = spatialInfo;
         this.id = id;
         this.fadeIn = fadeIn;
         this.fadeOut = fadeOut;
@@ -39,8 +39,8 @@ public class Audio {
         return link;
     }
 
-    public SerializableLocation getLocation() {
-        return location;
+    public AudioSpatialInfo getSpatialInfo() {
+        return spatialInfo;
     }
 
     public UUID getId() {
@@ -50,5 +50,34 @@ public class Audio {
     public boolean isLoop() {
         return loop;
     }
-    
+
+
+    public static class AudioSpatialInfo {
+
+        private final SerializableLocation location;
+
+        private final double maxVoiceDistance;
+
+        private final String distanceModel;
+
+        private final double refDistance;
+
+        private final double rolloffFactor;
+
+        public AudioSpatialInfo(SerializableLocation location, double maxVoiceDistance) {
+            this(location, maxVoiceDistance, "exponential", maxVoiceDistance / 3, maxVoiceDistance / 4);
+        }
+
+        public AudioSpatialInfo(SerializableLocation location, double maxVoiceDistance, String distanceModel, double refDistance, double rolloffFactor) {
+            this.location = location;
+            this.maxVoiceDistance = maxVoiceDistance;
+            this.distanceModel = distanceModel;
+            this.refDistance = refDistance;
+            this.rolloffFactor = rolloffFactor;
+        }
+
+
+    }
+
+
 }

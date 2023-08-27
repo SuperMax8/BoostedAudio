@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.commands.AudioCommand;
 import fr.supermax_8.boostedaudio.commands.BoostedAudioCommand;
-import fr.supermax_8.boostedaudio.ingame.VocalLinker;
+import fr.supermax_8.boostedaudio.ingame.AudioRunnable;
 import fr.supermax_8.boostedaudio.utils.AroundManager;
 import fr.supermax_8.boostedaudio.utils.FileUtils;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
@@ -67,7 +67,7 @@ public class BoostedAudio extends JavaPlugin {
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, s -> {
             if (webSocketServer != null && webSocketServer.isOpen()) {
-                new VocalLinker().runTaskTimerAsynchronously(this, 0, 20);
+                new AudioRunnable().runTaskTimerAsynchronously(this, 0, 0);
                 s.cancel();
             }
         }, 0, 0);
@@ -141,6 +141,7 @@ public class BoostedAudio extends JavaPlugin {
             webSocketServer.setWebSocketFactory(new DefaultSSLWebSocketServerFactory(sslContext));
         }
         webSocketServer.setReuseAddr(true);
+        webSocketServer.setTcpNoDelay(true);
         CompletableFuture.runAsync(() -> {
             webSocketServer.run();
         });

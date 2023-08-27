@@ -24,7 +24,13 @@ public class BoostedAudioCommand implements CommandExecutor {
             return false;
         }
         BoostedAudio.getInstance().getWebSocketServer().manager.getUsers().values().forEach(u -> {
-            audio = u.playAudio(args[0], new SerializableLocation(p.getLocation()), 300, 300, true);
+            audio = u.playAudio(args[0], new Audio.AudioSpatialInfo(
+                    new SerializableLocation(p.getLocation()),
+                    Double.parseDouble(args[1]),
+                    args[2],
+                    Double.parseDouble(args[3]),
+                    Double.parseDouble(args[4])
+            ), 300, 300, false);
         });
         sender.sendMessage("Audio send");
         return false;

@@ -1,8 +1,0 @@
-<!-- logback.xml -->
-<configuration>
-    <!-- ... autres configurations ... -->
-
-    <logger name="io.undertow" level="OFF" />
-
-    <!-- ... autres configurations ... -->
-</configuration>

@@ -1,7 +1,6 @@
 package fr.supermax_8.boostedaudio.web;
 
 import fr.supermax_8.boostedaudio.BoostedAudio;
-import fr.supermax_8.boostedaudio.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.web.packets.AddAudioPacket;
 import fr.supermax_8.boostedaudio.web.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.web.packets.RemoveAudioPacket;
@@ -43,8 +42,8 @@ public class User {
         return playingAudio;
     }
 
-    public Audio playAudio(String link, SerializableLocation location, int fade) {
-        return playAudio(link, location, fade, fade, false);
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fade) {
+        return playAudio(link, spatialInfo, fade, fade, false);
     }
 
     public Audio playAudio(String link, int fade) {
@@ -55,13 +54,17 @@ public class User {
         return playAudio(link, null, fadeIn, fadeOut, false);
     }
 
-    public Audio playAudio(String link, SerializableLocation location, int fadeIn, int fadeOut, boolean loop) {
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop) {
         UUID id = UUID.randomUUID();
-        Audio audio = new Audio(link, location, id, fadeIn, fadeOut, loop);
-        AddAudioPacket packet = new AddAudioPacket(id, link, fadeIn, location);
-        playingAudio.put(id, audio);
-        sendPacket(packet);
+        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop);
+        playAudio(audio);
         return audio;
+    }
+
+    public void playAudio(Audio audio) {
+        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
+        playingAudio.put(audio.getId(), audio);
+        sendPacket(packet);
     }
 
     public Audio pauseAudio(String link) {

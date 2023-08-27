@@ -17,71 +17,64 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
-public class VocalLinker extends BukkitRunnable {
+public class AudioRunnable extends BukkitRunnable {
 
     private static final ConnectionManager manager = BoostedAudio.getInstance().getWebSocketServer().manager;
     private static final double maxDistance = BoostedAudio.getInstance().getConfiguration().getMaxVoiceDistance();
-
     private static final Map<UUID, User> users = manager.getUsers();
+
+    private static RegionManager regionManager = RegionManager.create();
 
     @Override
     public void run() {
         try {
+            HashMap<UUID, User> connectedUsers = getConnectedUserAndClean();
+            Map<UUID, List<UUID>> peersMap = calculateUsersPeers(connectedUsers);
             HashSet<PeerConnection> toLink = new HashSet<>();
             HashSet<PeerConnection> toUnLink = new HashSet<>();
 
-            HashSet<User> connectedUsers = getConnectedUserAndClean();
-            HashSet<UUID> connectedUsersIds = new HashSet<>(connectedUsers.parallelStream().map(User::getPlayerId).collect(Collectors.toSet()));
-            Map<UUID, List<UUID>> peersMap = calculateUsersPeers(connectedUsers, connectedUsersIds);
-
-            for (User user : connectedUsers) {
-                List<UUID> peersOfUser = peersMap.get(user.getPlayerId());
-
-                // Player to add
-                for (UUID peer : peersOfUser)
-                    if (!user.getRemotePeers().contains(peer))
-                        toLink.add(new PeerConnection(user.getPlayerId(), users.get(peer).getPlayerId()));
-
-                // Player to remove
-                for (UUID peer : user.getRemotePeers())
-                    if (!peersOfUser.contains(peer))
-                        toUnLink.add(new PeerConnection(user.getPlayerId(), users.get(peer).getPlayerId()));
-            }
+            fillLinkUnlink(toLink, toUnLink, connectedUsers, peersMap);
 
             toLink.forEach(PeerConnection::link);
             toUnLink.forEach(PeerConnection::unLink);
 
             sendUpdatePositions(connectedUsers, peersMap);
 
-
-            debugSaMere(
-                    "Debug:",
-                    "Connected users: " + connectedUsers.size(),
-                    "Connected users ids: " + connectedUsersIds.size(),
-                    "Peers map: " + peersMap.size(),
-                    "To link: " + toLink.size(),
-                    "To unlink: " + toUnLink.size()
-            );
-            debugSaMere("ConnectedMap:");
-            connectedUsers.forEach(user -> debugSaMere(Bukkit.getPlayer(user.getPlayerId()).getName() + " : " + user.getRemotePeers().size()));
-            debugSaMere("PeersMap:");
-            peersMap.forEach((id, peers) -> debugSaMere(Bukkit.getPlayer(id).getName() + " : " + peers));
-
-
+            if (regionManager != null) regionManager.tick(connectedUsers);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void debugSaMere(String... messages) {
-        for (String message : messages) System.out.println(message);
+    private void vocalLinker() {
+
     }
 
-    private void sendUpdatePositions(Set<User> connectedUsers, Map<UUID, List<UUID>> peersMap) {
-        for (User user : connectedUsers) {
+    private void fillLinkUnlink(Set<PeerConnection> toLink, Set<PeerConnection> toUnLink, Map<UUID, User> connectedUsers, Map<UUID, List<UUID>> peersMap) {
+        for (User user : connectedUsers.values()) {
+            List<UUID> currentPeersOfUser = peersMap.get(user.getPlayerId());
+            Set<UUID> oldPeersOfUser = user.getRemotePeers();
+
+            // Player to add
+            for (UUID peer : currentPeersOfUser) {
+                if (!oldPeersOfUser.contains(peer))
+                    toLink.add(new PeerConnection(user.getPlayerId(), connectedUsers.get(peer).getPlayerId()));
+            }
+
+            // Player to remove
+            for (UUID peer : user.getRemotePeers()) {
+                if (!currentPeersOfUser.contains(peer)) {
+                    toUnLink.add(new PeerConnection(user.getPlayerId(), connectedUsers.get(peer).getPlayerId()));
+                }
+            }
+        }
+    }
+
+    private void sendUpdatePositions(Map<UUID, User> connectedUsers, Map<UUID, List<UUID>> peersMap) {
+        for (User user : connectedUsers.values()) {
             List<UUID> peers = peersMap.get(user.getPlayerId());
+
             HashMap<UUID, SerializableLocation> peersLocs = new HashMap<>();
             Location playerLoc = Bukkit.getPlayer(user.getPlayerId()).getLocation();
             for (UUID id : peers) peersLocs.put(id, new SerializableLocation(Bukkit.getPlayer(id).getLocation()));
@@ -95,30 +88,30 @@ public class VocalLinker extends BukkitRunnable {
     }
 
 
-    private HashSet<User> getConnectedUserAndClean() {
-        HashSet<User> userList = new HashSet<>();
+    private HashMap<UUID, User> getConnectedUserAndClean() {
+        HashMap<UUID, User> userList = new HashMap<>();
         for (User user : users.values()) {
             Player player = Bukkit.getPlayer(user.getPlayerId());
             if (player == null) {
                 user.getSession().close();
                 continue;
             }
-            userList.add(user);
+            userList.put(user.getPlayerId(), user);
         }
         return userList;
     }
 
-    private Map<UUID, List<UUID>> calculateUsersPeers(Set<User> connectedUser, Set<UUID> connectedIds) throws ExecutionException, InterruptedException {
+    private Map<UUID, List<UUID>> calculateUsersPeers(HashMap<UUID, User> connectedUser) throws ExecutionException, InterruptedException {
         return Bukkit.getScheduler().callSyncMethod(BoostedAudio.getInstance(), () -> {
             // UUID OF A USER, LIST OF PEERS OF THE USER
             HashMap<UUID, List<UUID>> peerMap = new HashMap<>();
-            for (User user : connectedUser) {
+            for (User user : connectedUser.values()) {
                 Player player = Bukkit.getPlayer(user.getPlayerId());
                 LinkedList<UUID> peers = new LinkedList<>();
                 for (Entity entity : player.getNearbyEntities(maxDistance, maxDistance, maxDistance)) {
                     if (entity.getType() != EntityType.PLAYER) continue;
                     UUID id = entity.getUniqueId();
-                    if (connectedIds.contains(id)) peers.add(id);
+                    if (connectedUser.containsKey(id)) peers.add(id);
                 }
                 peerMap.put(user.getPlayerId(), peers);
             }
@@ -152,10 +145,14 @@ public class VocalLinker extends BukkitRunnable {
             User usr1 = users.get(id1);
             User usr2 = users.get(id2);
 
-            usr1.getRemotePeers().remove(id2);
-            usr2.getRemotePeers().remove(id1);
-            usr1.sendPacket(new PacketList(new RemovePeerPacket(id2)));
-            usr2.sendPacket(new PacketList(new RemovePeerPacket(id1)));
+            if (usr1 != null) {
+                usr1.getRemotePeers().remove(id2);
+                usr1.sendPacket(new PacketList(new RemovePeerPacket(id2)));
+            }
+            if (usr2 != null) {
+                usr2.getRemotePeers().remove(id1);
+                usr2.sendPacket(new PacketList(new RemovePeerPacket(id1)));
+            }
         }
 
         @Override
@@ -163,12 +160,19 @@ public class VocalLinker extends BukkitRunnable {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             PeerConnection that = (PeerConnection) o;
-            return Objects.equals(id1, that.id1) && Objects.equals(id2, that.id2);
+            return
+                    (id1.equals(that.id1) && id2.equals(that.id2))
+                            ||
+                            (id1.equals(that.id2) && id2.equals(that.id1));
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id1, id2);
+            String str1 = id1.toString();
+            String str2 = id2.toString();
+            String concatenated = str1.compareTo(str2) < 0 ? str1 + str2 : str2 + str1;
+
+            return concatenated.hashCode();
         }
 
     }
