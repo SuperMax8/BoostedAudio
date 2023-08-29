@@ -1,6 +1,6 @@
 name: BoostedAudio
 version: '${project.version}'
-main: fr.supermax_8.boostedaudio.BoostedAudio
+main: fr.supermax_8.boostedaudio.BoostedAudioLoader
 api-version: 1.16
 authors: [ SuperMax_8 ]
 description: Realtime music and proximity voice chat
@@ -9,6 +9,8 @@ softdepend:
   - WorldGuard
 commands:
   audio:
+    aliases:
+      - music
   boostedaudio:
     aliases:
       - ba

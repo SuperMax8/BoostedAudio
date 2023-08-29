@@ -19,6 +19,9 @@ public class BoostedAudioConfiguration {
     private String distanceModel;
     private float refDistance;
     private float rolloffFactor;
+    private boolean sendOnConnect;
+    private int sendOnConnectDelay;
+    private boolean customClient;
     private String connectionMessage;
     private String connectionHoverMessage;
 
@@ -27,8 +30,8 @@ public class BoostedAudioConfiguration {
     }
 
     private void load() {
-        BoostedAudio.getInstance().saveDefaultConfig();
-        FileConfiguration config = BoostedAudio.getInstance().getConfig();
+        BoostedAudioLoader.getInstance().saveDefaultConfig();
+        FileConfiguration config = BoostedAudioLoader.getInstance().getConfig();
 
         debugMode = config.getBoolean("debugMode");
 
@@ -54,9 +57,14 @@ public class BoostedAudioConfiguration {
             voiceChatEnabled = voiceChatSection.getBoolean("voicechat", true);
             maxVoiceDistance = (float) voiceChatSection.getDouble("maxVoiceDistance", 30);
             distanceModel = voiceChatSection.getString("distanceModel", "exponential");
-            refDistance = (float) voiceChatSection.getDouble("refDistance", 3);
-            rolloffFactor = (float) voiceChatSection.getDouble("rolloffFactor", 2);
+            refDistance = (float) voiceChatSection.getDouble("refDistance", 4);
+            rolloffFactor = (float) voiceChatSection.getDouble("rolloffFactor", 1);
         }
+
+        sendOnConnect = config.getBoolean("sendOnConnect", true);
+        sendOnConnectDelay = config.getInt("sendOnConnectDelay", 30);
+
+        customClient = config.getBoolean("customClient", false);
 
         connectionMessage = config.getString("connectionMessage", "§6Join the audio client by clicking here!");
         connectionHoverMessage = config.getString("connectionHoverMessage", "Click here");
@@ -116,6 +124,18 @@ public class BoostedAudioConfiguration {
 
     public float getRolloffFactor() {
         return rolloffFactor;
+    }
+
+    public boolean isSendOnConnect() {
+        return sendOnConnect;
+    }
+
+    public int getSendOnConnectDelay() {
+        return sendOnConnectDelay;
+    }
+
+    public boolean isCustomClient() {
+        return customClient;
     }
 
     public String getConnectionMessage() {

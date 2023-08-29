@@ -9,6 +9,7 @@ import fr.supermax_8.boostedaudio.web.User;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TrustPacket implements Packet {
 
@@ -33,6 +34,7 @@ public class TrustPacket implements Packet {
             newUser.sendPacket(new TrustPacket(null, new ServerInfo(
                     configuration.getMaxVoiceDistance(), configuration.getRolloffFactor(), configuration.getRefDistance(), configuration.getDistanceModel())
             ));
+            BoostedAudio.getInstance().getAudioManager().getRegionManager().getInfoMap().get(playerId).setLastRegions(new CopyOnWriteArrayList<>());
         } else user.getSession().close();
     }
 

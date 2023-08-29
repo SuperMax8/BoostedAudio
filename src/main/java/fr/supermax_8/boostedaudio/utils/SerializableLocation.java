@@ -1,7 +1,9 @@
 package fr.supermax_8.boostedaudio.utils;
 
-public class SerializableLocation {
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 
+public class SerializableLocation {
 
     private final double x;
     private final double y;
@@ -28,5 +30,36 @@ public class SerializableLocation {
         yaw = convertedYaw;
         world = location.getWorld().getName();
     }
+
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public double getZ() {
+        return z;
+    }
+
+    public float getYaw() {
+        return yaw;
+    }
+
+    public String getWorld() {
+        return world;
+    }
+
+    public Location toBukkitLocation() {
+        return new Location(Bukkit.getWorld(world), x, y, z, yaw, 0);
+    }
+
+    @Override
+    public String toString() {
+        return "x: " + x + ", y: " + y + ", z: " + z;
+    }
+
 
 }

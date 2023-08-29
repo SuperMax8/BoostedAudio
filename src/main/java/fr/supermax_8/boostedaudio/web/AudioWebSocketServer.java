@@ -3,7 +3,7 @@ package fr.supermax_8.boostedaudio.web;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import fr.supermax_8.boostedaudio.BoostedAudio;
-import fr.supermax_8.boostedaudio.ingame.AudioRunnable;
+import fr.supermax_8.boostedaudio.ingame.AudioManager;
 import fr.supermax_8.boostedaudio.web.packets.TrustPacket;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -66,7 +66,7 @@ public class AudioWebSocketServer extends WebSocketServer {
 
             for (UUID id : realUser.getRemotePeers()) {
                 User usr = manager.getUsers().get(id);
-                new AudioRunnable.PeerConnection(realUser.getPlayerId(), usr.getPlayerId()).unLink();
+                new AudioManager.PeerConnection(realUser.getPlayerId(), usr.getPlayerId()).unLink();
             }
         } catch (Exception e) {
             e.printStackTrace();

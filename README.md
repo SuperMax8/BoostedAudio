@@ -21,5 +21,15 @@ Dev RoadMap:
   et le systeme vocal, fichier config
 - [x] Systeme de musique, packet audio
 - [x] Audio/speaker spacialisé
+- [x] Outils in game
+- [x] Rework de la connection websocket
+- [ ] Test de toutes les features avant sortie
+
+  
+MAJ RoadMap
+---
 - [ ] Gestion sauvegarde memoire via cookie
 - [ ] Système de cosmetique icon joueur ptdrrrrr
+- [ ] Mute and ban system
+- [ ] Systeme de pose rapide de speaker, avec système de tag
+- [ ] Auto Download de musique, youtube, soundcloud et lien en direct

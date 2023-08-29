@@ -1,6 +1,6 @@
 package fr.supermax_8.boostedaudio.utils;
 
-import fr.supermax_8.boostedaudio.BoostedAudio;
+import fr.supermax_8.boostedaudio.BoostedAudioLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -10,16 +10,17 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class AroundManager extends BukkitRunnable {
 
-    private ConcurrentHashMap<ChunkCoord, ConcurrentHashMap<Location, Around>> arounds = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ChunkCoord, ConcurrentHashMap<Location, Around>> arounds = new ConcurrentHashMap<>();
 
     private ConcurrentHashMap<UUID, ConcurrentHashMap<Location, Around>> whosAround = new ConcurrentHashMap<>();
     private double biggestRadius = 0;
 
     public AroundManager() {
-        runTaskTimerAsynchronously(BoostedAudio.getInstance(), 0, 0);
+        runTaskTimerAsynchronously(BoostedAudioLoader.getInstance(), 0, 0);
     }
 
     @Override
@@ -48,6 +49,7 @@ public class AroundManager extends BukkitRunnable {
                                 if (onLeave != null) onLeave.accept(p);
                             }
                         } else {
+                            if (!around.detection.test(p)) continue;
                             newPlayerArounds.put(location, around);
                             if (oldPlayerArounds == null || !oldPlayerArounds.containsKey(location)) {
                                 Consumer<Player> onEnter = around.onEnter;
@@ -62,7 +64,7 @@ public class AroundManager extends BukkitRunnable {
         this.whosAround = whosAround;
     }
 
-    public void addAround(Location location, double radius, Consumer<Player> onEnter, Consumer<Player> onLeave) {
+    public void addAround(Location location, double radius, Consumer<Player> onEnter, Consumer<Player> onLeave, Predicate<Player> detection) {
         if (radius > biggestRadius) biggestRadius = radius;
         ChunkCoord chunkCoord = new ChunkCoord(location.getChunk());
         ConcurrentHashMap<Location, Around> locations = arounds.get(chunkCoord);
@@ -70,7 +72,14 @@ public class AroundManager extends BukkitRunnable {
             locations = new ConcurrentHashMap<>();
             arounds.put(chunkCoord, locations);
         }
-        locations.put(location, new Around(onEnter, onLeave, radius));
+        locations.put(location, new Around(onEnter, onLeave, radius, detection));
+    }
+
+    public void removeAround(Location location) {
+        ChunkCoord chunkCoord = new ChunkCoord(location.getChunk());
+        ConcurrentHashMap<Location, Around> locations = arounds.get(chunkCoord);
+        if (locations == null) return;
+        locations.remove(location);
     }
 
     public ConcurrentHashMap<ChunkCoord, ConcurrentHashMap<Location, Around>> getArounds() {
@@ -81,19 +90,20 @@ public class AroundManager extends BukkitRunnable {
         return whosAround;
     }
 
-    private static class Around {
-
+    public static class Around {
 
         private final Consumer<Player> onEnter;
 
         private final Consumer<Player> onLeave;
+        private final Predicate<Player> detection;
 
         private final double radius;
 
-        public Around(Consumer<Player> onEnter, Consumer<Player> onLeave, double radius) {
+        public Around(Consumer<Player> onEnter, Consumer<Player> onLeave, double radius, Predicate<Player> detection) {
             this.onEnter = onEnter;
             this.onLeave = onLeave;
             this.radius = radius;
+            this.detection = detection;
         }
 
         public Consumer<Player> getOnEnter() {
@@ -107,6 +117,11 @@ public class AroundManager extends BukkitRunnable {
         public double getRadius() {
             return radius;
         }
+
+        public Predicate<Player> getDetection() {
+            return detection;
+        }
+
     }
 
 }
