@@ -141,6 +141,7 @@ public class BoostedAudio {
         if (configuration.isSsl()) initSSL();
 
         File webserver = new File(loader.getDataFolder(), "webhost");
+        File index = new File(webserver, "index.html");
         if (!configuration.isCustomClient()) {
             loader.saveResource("webhost/index.html", true);
 
@@ -149,11 +150,14 @@ public class BoostedAudio {
                     ":" + configuration.getWebSocketPort();
 
             debug("WebSocket IP: " + ip);
-            File index = new File(webserver, "index.html");
             FileUtils.replaceInFile(index, "%WS_IP%", ip);
             FileUtils.replaceInFile(index, "let proximityChat = true;", "let proximityChat = " + configuration.isVoiceChatEnabled());
-
         }
+
+        if (index.exists()) configuration.getClientConfig().forEach(s -> {
+            String[] placeholderEntry = s.split("=", 2);
+            FileUtils.replaceInFile(index, placeholderEntry[0], placeholderEntry[1]);
+        });
 
         if (configuration.isAutoHost())
             try {

@@ -1,7 +1,9 @@
 package fr.supermax_8.boostedaudio;
 
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+
+import java.util.List;
 
 public class BoostedAudioConfiguration {
 
@@ -24,6 +26,7 @@ public class BoostedAudioConfiguration {
     private boolean customClient;
     private String connectionMessage;
     private String connectionHoverMessage;
+    private List<String> clientConfig;
 
     public BoostedAudioConfiguration() {
         load();
@@ -68,6 +71,12 @@ public class BoostedAudioConfiguration {
 
         connectionMessage = config.getString("connectionMessage", "§6Join the audio client by clicking here!");
         connectionHoverMessage = config.getString("connectionHoverMessage", "Click here");
+
+        clientConfig = config.getStringList("clientConfig");
+    }
+
+    public List<String> getClientConfig() {
+        return clientConfig;
     }
 
     public boolean isDebugMode() {

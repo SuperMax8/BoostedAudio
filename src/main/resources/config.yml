@@ -48,3 +48,33 @@ customClient: false
 # Messages
 connectionMessage: "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"
+
+
+clientConfig:
+  # Custom Colors
+  - "{mainColor}=#262c3c"
+  - "{primaryColor}=#202433"
+  - "{secondaryColor}=#205295"
+  - "{accentColor}=#4797de"
+
+  # Images
+  - "{bg-img}=https://i.imgur.com/6MelMqC.jpg"
+  # Messages
+  - "{title}=BoostedAudio" # You can put html image here to set a logo
+  - "{ambient-volume}=Ambient Volume"
+  - "{voice-volume}=Voice Volume"
+  - "{click-to-connect}=Click on the page to connect"
+  - "{sidebar-content}=Sidebar Content"
+  - "{userList}=User List"
+  - "{search-placeholder}=Search..."
+  - "{user-count-label}=Players you can hear:"
+
+  # Texts for Settings
+  - "{settings-title}=Settings"
+  - "{settings-label}=Parameters of the audio client"
+  - "{settings-microphone-device-label}=Microphone Device"
+  - "{settings-close-button-label}=Close Settings"
+
+  # Texts for Audio Control Buttons and Labels
+  - "{ambient-volume-label}=Ambient Volume"
+  - "{voice-volume-label}=Voice Volume"
