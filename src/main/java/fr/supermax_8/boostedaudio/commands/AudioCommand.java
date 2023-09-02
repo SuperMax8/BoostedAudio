@@ -50,7 +50,10 @@ public class AudioCommand implements CommandExecutor {
         Map<UUID, String> tokenMap = manager.getPlayerTokens();
         if (tokenMap.containsKey(playerId)) {
             User user = manager.getUsers().get(playerId);
-            if (user != null) user.getSession().close();
+            if (user != null) {
+                user.getSession().close();
+                BoostedAudio.debug("sendConnectMessage close() session");
+            }
         }
         String token = generateToken();
         tokenMap.put(playerId, token);

@@ -17,11 +17,16 @@ public class RegionManager {
 
     private final ConcurrentHashMap<String, Audio> audioRegions = new ConcurrentHashMap<>();
 
+    private String data = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+
     private RegionManager() {
 
     }
 
+    public static long lastTick = 0;
+
     public void tick(Map<UUID, User> connectedUsers) {
+        lastTick = Bukkit.getServer().getWorlds().get(0).getTime();
         for (User user : connectedUsers.values()) {
             List<IWrappedRegion> lastRegions = infoMap.get(user.getPlayerId()).getLastRegions();
             if (lastRegions == null) continue;

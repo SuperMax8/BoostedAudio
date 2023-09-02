@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.web.packets;
 
+import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.Packet;
@@ -21,6 +22,7 @@ public class UpdateVocalPositionsPacket implements Packet {
     @Override
     public void onReceive(User session, AudioWebSocketServer server) {
         session.getSession().close();
+        BoostedAudio.debug("UpdateVocalPositionsPacket close() session");
     }
 
 }

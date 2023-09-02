@@ -80,7 +80,8 @@ public class AudioWebSocketServer extends WebSocketServer {
             packetList = gson.fromJson(message, PacketList.class);
         } catch (JsonSyntaxException e) {
             client.close();
-            /*BoostedAudio.debug(message);*/
+            BoostedAudio.debug("ERREUR RECEIVED MESSAGE");
+            BoostedAudio.debug(message);
             return;
         } catch (Exception e) {
             e.printStackTrace();

@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 public class PlayerListener implements Listener {
 
     private final BoostedAudioConfiguration config = BoostedAudio.getInstance().getConfiguration();
+    private String data = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
 
     @EventHandler
     public void join(PlayerJoinEvent e) {
@@ -38,7 +39,10 @@ public class PlayerListener implements Listener {
     public void quit(PlayerQuitEvent e) {
         User user = BoostedAudio.getInstance().getWebSocketServer().manager.getUsers().get(e.getPlayer().getUniqueId());
         if (user != null)
-            CompletableFuture.runAsync(() -> user.getSession().close());
+            CompletableFuture.runAsync(() -> {
+                BoostedAudio.debug("quit close() session");
+                user.getSession().close();
+            });
 
         RegionManager regionManager = BoostedAudio.getInstance().getAudioManager().getRegionManager();
         if (regionManager == null) return;

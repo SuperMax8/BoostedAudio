@@ -569,7 +569,6 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 }
 
                 console.log("Playing " + id, " url", link)
-                /*if (packet.loop) audio.loop = packet.loop;*/
                 audio.play()
                 const oldAudio = audioMap.get(id);
                 if (oldAudio) {
@@ -577,7 +576,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 }
 
                 audio.addEventListener('ended', function () {
-                    // console.log('Audio has finished playing');
+                    console.log("Audio finished playing ", audioMap.get(id));
                     audioMap.delete(id)
                     if (gainNode) gainNode.disconnect();
                     const endAudioPacket =
@@ -662,7 +661,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
     async function fadeIn(audio, duration, audioObj) {
         function fade() {
-            console.log("Starting FadeIn " + duration)
+            console.log("Starting FadeIn " + duration, audioObj);
             const interval = 50;
             const step = interval / duration;
             audio.volume = 0;
@@ -672,7 +671,8 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     audio.volume = Math.min(ambientVolume, audio.volume + step);
                 } else {
                     clearInterval(fadeInterval);
-                    audioObj.inFade = false;
+                    console.log("End FadeIn ", audioObj)
+                    audioObj.fadeInterval = null;
                 }
             }, interval);
             audioObj.fadeInterval = fadeInterval;
@@ -680,6 +680,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
         if (audioObj.fadeInterval) {
             clearInterval(audioObj.fadeInterval)
+            console.log("Cancel Fade ", audioObj.fadeInterval)
         }
         fade()
     }
@@ -689,7 +690,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             const interval = 50;
             const step = interval / duration;
 
-            console.log("Starting FadeOut " + duration)
+            console.log("Starting FadeOut " + duration, audioObj)
 
             const fadeInterval = setInterval(function () {
                 if (audio.volume > 0) {
@@ -697,7 +698,8 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 } else {
                     audio.pause();
                     clearInterval(fadeInterval);
-                    audioObj.inFade = false;
+                    console.log("End FadeOut ", audioObj)
+                    audioObj.fadeInterval = null;
                     if (afterFade) afterFade()
                 }
             }, interval);
@@ -706,6 +708,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
         if (audioObj.fadeInterval) {
             clearInterval(audioObj.fadeInterval)
+            console.log("Cancel Fade ", audioObj.fadeInterval)
         }
         fade()
     }
@@ -839,9 +842,14 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
     function showUser(peerObj) {
         return new Promise(async (resolve, reject) => {
-            const url = 'https://corsproxy.io/?' + encodeURIComponent('https://minecraft-api.com/api/pseudo/' + peerObj.playerId + '/json');
-            const response = await fetch(url);
-            const userName = JSON.parse(await response.text()).pseudo;
+            let userName = peerObj.playerId;
+            try {
+                const url = 'https://corsproxy.io/?' + encodeURIComponent('https://minecraft-api.com/api/pseudo/' + peerObj.playerId + '/json');
+                const response = await fetch(url);
+                userName = JSON.parse(await response.text()).pseudo;
+            } catch (ee) {
+                console.log(ee)
+            }
 
             const element = htmlStringToElement(userTemplate)
             const nameElement = element.getElementsByClassName("username").item(0)

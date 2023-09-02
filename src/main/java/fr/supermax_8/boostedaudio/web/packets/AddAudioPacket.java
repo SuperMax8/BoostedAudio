@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.web.packets;
 
+import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.web.Audio;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.Packet;
@@ -34,6 +35,7 @@ public class AddAudioPacket implements Packet {
     @Override
     public void onReceive(User session, AudioWebSocketServer server) {
         session.getSession().close();
+        BoostedAudio.debug("AddAudioPacket close() session");
     }
 
 

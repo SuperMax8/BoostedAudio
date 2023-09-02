@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.web.packets;
 
+import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.Packet;
 import fr.supermax_8.boostedaudio.web.User;
@@ -31,7 +32,7 @@ public class AddPeerPacket implements Packet {
             server.manager.getUsers().get(to).sendPacket(this);
         else {
             user.getSession().close();
-            /*BoostedAudio.debug("KickPEER");*/
+            BoostedAudio.debug("KickPEER");
         }
     }
 

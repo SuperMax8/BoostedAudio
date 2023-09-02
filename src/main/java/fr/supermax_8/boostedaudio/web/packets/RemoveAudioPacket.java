@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.web.packets;
 
+import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.web.Audio;
 import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.Packet;
@@ -28,10 +29,11 @@ public class RemoveAudioPacket implements Packet {
         Audio audio = audioMap.get(uuid);
         if (audio == null) {
             session.getSession().close();
+            BoostedAudio.debug("RemoveAudioPacket close() session");
             return;
         }
         if (audio.isLoop()) {
-            AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), 0, 0, audio.getSpatialInfo());
+            AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
             session.sendPacket(packet);
         } else audioMap.remove(audio.getId());
     }

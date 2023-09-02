@@ -2,9 +2,7 @@ package fr.supermax_8.boostedaudio.web.packets;
 
 import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.BoostedAudioConfiguration;
-import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
-import fr.supermax_8.boostedaudio.web.Packet;
-import fr.supermax_8.boostedaudio.web.User;
+import fr.supermax_8.boostedaudio.web.*;
 
 import java.util.Map;
 import java.util.Optional;
@@ -24,18 +22,29 @@ public class TrustPacket implements Packet {
     @Override
     public void onReceive(User user, AudioWebSocketServer server) {
         UUID playerId;
-
-        if ((playerId = getKeyByValue(server.manager.getPlayerTokens(), token)) != null) {
+        ConnectionManager manager = server.manager;
+        if ((playerId = getKeyByValue(manager.getPlayerTokens(), token)) != null) {
             User newUser = new User(user.getSession(), token, playerId);
-            server.manager.getUsers().put(playerId, newUser);
-            server.manager.getSessionUsers().put(user.getSession(), Optional.of(newUser));
+            if (!BoostedAudio.getInstance().isPremium()) {
+                if (manager.getUsers().size() >= FreeVersionLimit.getMaxUserConnected()) {
+                    BoostedAudio.info("You have reached the maximum number of connected users for the free version, for no limit, please consider buying the plugin");
+                    user.getSession().close();
+                    return;
+                }
+            }
+
+            manager.getUsers().put(playerId, newUser);
+            manager.getSessionUsers().put(user.getSession(), Optional.of(newUser));
             BoostedAudio.debug("New trusted: " + playerId);
             BoostedAudioConfiguration configuration = BoostedAudio.getInstance().getConfiguration();
             newUser.sendPacket(new TrustPacket(null, new ServerInfo(
                     configuration.getMaxVoiceDistance(), configuration.getRolloffFactor(), configuration.getRefDistance(), configuration.getDistanceModel())
             ));
             BoostedAudio.getInstance().getAudioManager().getRegionManager().getInfoMap().get(playerId).setLastRegions(new CopyOnWriteArrayList<>());
-        } else user.getSession().close();
+        } else {
+            user.getSession().close();
+            BoostedAudio.debug("onReceive close() session");
+        }
     }
 
 

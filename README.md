@@ -9,6 +9,9 @@ Including:
 - Spatialized audio
 
 
+Creating/convert ssl:
+https://www.baeldung.com/convert-pem-to-jks
+
 Dev RoadMap:
 ----
 - [x] Boutton mute user, et boutton de mute micro

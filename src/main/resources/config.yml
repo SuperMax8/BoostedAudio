@@ -1,8 +1,12 @@
 # Show debug messages, websocket connections and others
 debugMode: false
 
+# Update notifications and others
+notification: true
+
 # Web client (change http by https if you are using ssl)
-client-link: http://localhost:8080
+client-link: https://localhost:8080
+clientWebSocketLink: ws://localhost:8081
 autoHost: true
 autoHostPort: 8080
 
@@ -49,7 +53,10 @@ customClient: false
 connectionMessage: "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"
 
-
+# Premium settings
+# Custom placeholder in the client html, if you custom the client you even can add new placeholder if you need it,
+# inside placeholder you can use html directly (if the placeholder target is not a tag parameter)
+# if you want more customization with like images or things
 clientConfig:
   # Custom Colors
   - "{mainColor}=#262c3c"
@@ -61,6 +68,7 @@ clientConfig:
   - "{bg-img}=https://i.imgur.com/6MelMqC.jpg"
   # Messages
   - "{title}=BoostedAudio" # You can put html image here to set a logo
+# - "{title}=<img src="your_logo.png">"
   - "{ambient-volume}=Ambient Volume"
   - "{voice-volume}=Voice Volume"
   - "{click-to-connect}=Click on the page to connect"

@@ -22,6 +22,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
 public class AudioManager extends BukkitRunnable {
@@ -112,7 +113,10 @@ public class AudioManager extends BukkitRunnable {
     @Override
     public void run() {
         try {
+            /*long ts1 = Bukkit.getServer().getWorlds().get(0).getTime();*/
             HashMap<UUID, User> connectedUsers = getConnectedUserAndClean();
+            if (regionManager != null) regionManager.tick(connectedUsers);
+
             Map<UUID, List<UUID>> peersMap = calculateUsersPeers(connectedUsers);
             HashSet<PeerConnection> toLink = new HashSet<>();
             HashSet<PeerConnection> toUnLink = new HashSet<>();
@@ -124,7 +128,15 @@ public class AudioManager extends BukkitRunnable {
 
             sendUpdatePositions(connectedUsers, peersMap);
 
-            if (regionManager != null) regionManager.tick(connectedUsers);
+/*            long ts2 = Bukkit.getServer().getWorlds().get(0).getTime();
+
+            if (ts1 != ts2) {
+                System.out.println("§cPROBLEMMMMMEEEEEE !!!!!!");
+                System.out.println(ts1);
+                System.out.println(ts2);
+            }*/
+        } catch (CancellationException e) {
+            // Do nothing
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -237,6 +249,7 @@ public class AudioManager extends BukkitRunnable {
             Player player = Bukkit.getPlayer(user.getPlayerId());
             if (player == null) {
                 user.getSession().close();
+                BoostedAudio.debug("getConnectedUserAndClean close() session");
                 continue;
             }
             userList.put(user.getPlayerId(), user);

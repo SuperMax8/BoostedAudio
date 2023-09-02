@@ -7,6 +7,8 @@ import java.util.List;
 
 public class BoostedAudioConfiguration {
 
+    private String data = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+
     private boolean debugMode;
     private String clientLink;
     private boolean autoHost;
@@ -27,6 +29,8 @@ public class BoostedAudioConfiguration {
     private String connectionMessage;
     private String connectionHoverMessage;
     private List<String> clientConfig;
+    private String clientWebSocketLink;
+    private boolean notification;
 
     public BoostedAudioConfiguration() {
         load();
@@ -36,9 +40,11 @@ public class BoostedAudioConfiguration {
         BoostedAudioLoader.getInstance().saveDefaultConfig();
         FileConfiguration config = BoostedAudioLoader.getInstance().getConfig();
 
+        notification = config.getBoolean("notification", true);
         debugMode = config.getBoolean("debugMode");
 
         clientLink = config.getString("client-link", "http://localhost:8080");
+        clientWebSocketLink = config.getString("clientWebSocketLink", "ws://localhost:8081");
         autoHost = config.getBoolean("autoHost", true);
         autoHostPort = config.getInt("autoHostPort", 8080);
 
@@ -113,6 +119,14 @@ public class BoostedAudioConfiguration {
 
     public String getWebSocketHostName() {
         return webSocketHostName;
+    }
+
+    public boolean isNotification() {
+        return notification;
+    }
+
+    public String getClientWebSocketLink() {
+        return clientWebSocketLink;
     }
 
     public boolean isVoiceChatEnabled() {
