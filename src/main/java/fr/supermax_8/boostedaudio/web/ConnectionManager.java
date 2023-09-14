@@ -1,7 +1,5 @@
 package fr.supermax_8.boostedaudio.web;
 
-import org.java_websocket.WebSocket;
-
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +19,7 @@ public class ConnectionManager {
      */
     protected final ConcurrentHashMap<UUID, User> users = new ConcurrentHashMap<>();
 
-    protected final ConcurrentHashMap<WebSocket, Optional<User>> sessionUsers = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<Session, Optional<User>> sessionUsers = new ConcurrentHashMap<>();
 
     public ConnectionManager() {
 
@@ -36,7 +34,7 @@ public class ConnectionManager {
         return users;
     }
 
-    public ConcurrentHashMap<WebSocket, Optional<User>> getSessionUsers() {
+    public ConcurrentHashMap<Session, Optional<User>> getSessionUsers() {
         return sessionUsers;
     }
 

@@ -2,6 +2,6 @@ package fr.supermax_8.boostedaudio.web;
 
 public interface Packet {
 
-    void onReceive(User session, AudioWebSocketServer server);
+    void onReceive(User session, AudioWebSocket server);
 
 }

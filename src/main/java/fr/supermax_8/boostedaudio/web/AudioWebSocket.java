@@ -5,22 +5,17 @@ import com.google.gson.JsonSyntaxException;
 import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.ingame.AudioManager;
 import fr.supermax_8.boostedaudio.web.packets.TrustPacket;
-import org.java_websocket.WebSocket;
-import org.java_websocket.handshake.ClientHandshake;
-import org.java_websocket.server.WebSocketServer;
 
-import java.net.InetSocketAddress;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
-public class AudioWebSocketServer extends WebSocketServer {
+public class AudioWebSocket {
 
-    public final ConnectionManager manager = new ConnectionManager();
-    private boolean isOpen = false;
+    public final ConnectionManager manager = BoostedAudio.getInstance().getConnectionManager();
     private static final Gson gson = BoostedAudio.getGson();
 
-    public AudioWebSocketServer(InetSocketAddress address) {
-        super(address);
+    public AudioWebSocket() {
     }
 
 
@@ -41,23 +36,21 @@ public class AudioWebSocketServer extends WebSocketServer {
         }
     }*/
 
-    @Override
-    public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
+    public void onOpen(Session session) {
         try {
-            manager.sessionUsers.put(webSocket, Optional.empty());
-            BoostedAudio.debug("New connection WebSocket : " + webSocket.getRemoteSocketAddress().getAddress() + " / " + manager.getSessionUsers().size());
+            manager.sessionUsers.put(session, Optional.empty());
+            BoostedAudio.debug("New connection WebSocket : " + session.getIp() + " / " + manager.getSessionUsers().size());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @Override
-    public void onClose(WebSocket webSocket, int i, String s, boolean b) {
+    public void onClose(Session session) {
         try {
-            BoostedAudio.debug("WebSocket connection closed : " + webSocket.getRemoteSocketAddress().getAddress());
-            BoostedAudio.debug("REASON " + s + " STATUSCODE: " + i);
+            BoostedAudio.debug("WebSocket connection closed : " + session.getIp());
+            //BoostedAudio.debug("REASON " + s + " STATUSCODE: " + i);
 
-            Optional<User> user = manager.getSessionUsers().remove(webSocket);
+            Optional<User> user = manager.getSessionUsers().remove(session);
             BoostedAudio.debug("SessionUsersSize " + manager.getSessionUsers().size());
             if (!user.isPresent()) return;
 
@@ -73,13 +66,12 @@ public class AudioWebSocketServer extends WebSocketServer {
         }
     }
 
-    @Override
-    public void onMessage(WebSocket client, String message) {
+    public void onMessage(String message, Session session) throws IOException {
         PacketList packetList;
         try {
             packetList = gson.fromJson(message, PacketList.class);
         } catch (JsonSyntaxException e) {
-            client.close();
+            session.close();
             BoostedAudio.debug("ERREUR RECEIVED MESSAGE");
             BoostedAudio.debug(message);
             return;
@@ -89,28 +81,14 @@ public class AudioWebSocketServer extends WebSocketServer {
             return;
         }
 
-        Optional<User> user = manager.getSessionUsers().get(client);
+        Optional<User> user = manager.getSessionUsers().get(session);
         if (user.isPresent())
             for (Packet packet : packetList.getPackets()) packet.onReceive(user.get(), this);
         else
-            testToTrust(client, packetList);
+            testToTrust(session, packetList);
     }
 
-    @Override
-    public void onError(WebSocket webSocket, Exception e) {
-        BoostedAudio.debug("ERRRRREEEEUR WEBSOCKET " + webSocket.getRemoteSocketAddress());
-        BoostedAudio.debug(e.toString());
-        if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
-    }
-
-    @Override
-    public void onStart() {
-        BoostedAudio.debug("WebSocketServer Open");
-        isOpen = true;
-        setConnectionLostTimeout(10);
-    }
-
-    private void testToTrust(WebSocket session, PacketList message) {
+    private void testToTrust(Session session, PacketList message) {
         Packet packet;
         if (message.getPackets().isEmpty() || !((packet = message.getPackets().get(0)) instanceof TrustPacket)) {
             BoostedAudio.debug("Kick Untrust: " + session);
@@ -118,8 +96,4 @@ public class AudioWebSocketServer extends WebSocketServer {
         } else packet.onReceive(new User(session, null, null), this);
     }
 
-
-    public boolean isOpen() {
-        return isOpen;
-    }
 }

@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.web.packets;
 
 import fr.supermax_8.boostedaudio.BoostedAudio;
-import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
+import fr.supermax_8.boostedaudio.web.AudioWebSocket;
 import fr.supermax_8.boostedaudio.web.Packet;
 import fr.supermax_8.boostedaudio.web.User;
 
@@ -23,7 +23,7 @@ public class AddPeerPacket implements Packet {
 
 
     @Override
-    public void onReceive(User user, AudioWebSocketServer server) {
+    public void onReceive(User user, AudioWebSocket server) {
 /*        BoostedAudio.debug("RECEIVED PEER MESSAGE FROM " + user.getPlayerId());
         BoostedAudio.debug("TO " + to);
         BoostedAudio.debug("FROM " + from);
@@ -31,7 +31,10 @@ public class AddPeerPacket implements Packet {
         if (user.getRemotePeers().contains(to))
             server.manager.getUsers().get(to).sendPacket(this);
         else {
-            user.getSession().close();
+            try {
+                user.getSession().close();
+            } catch (Exception ex) {
+            }
             BoostedAudio.debug("KickPEER");
         }
     }

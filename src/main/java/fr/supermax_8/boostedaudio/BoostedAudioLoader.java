@@ -20,10 +20,11 @@ public class BoostedAudioLoader extends JavaPlugin {
 
     private static final String[] libsLink = {
             "https://repo.codemc.io/repository/maven-public/org/codemc/worldguardwrapper/worldguardwrapper/1.2.1-SNAPSHOT/worldguardwrapper-1.2.1-20230624.184959-2.jar",
-            "https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.5.4/Java-WebSocket-1.5.4.jar",
             "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar",
-/*            "https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.76/bcprov-jdk18on-1.76.jar",
-            "https://repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.76/bcpkix-jdk18on-1.76.jar",*/
+            /*"https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.5.4/Java-WebSocket-1.5.4.jar",*/
+            // Websocket
+/*            "https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/6.0.0/jakarta.servlet-api-6.0.0.jar",
+            "https://repo1.maven.org/maven2/org/glassfish/tyrus/tyrus-server/2.1.3/tyrus-server-2.1.3.jar",*/
             // UnderTow
             "https://github.com/SuperMax8/UnderTowAIO/releases/download/2.3.8/UnderTowAIO-2.3.8.jar"
             /*"https://repo1.maven.org/maven2/org/jboss/xnio/xnio-api/3.8.8.Final/xnio-api-3.8.8.Final.jar",

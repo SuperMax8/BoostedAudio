@@ -4,7 +4,6 @@ import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.web.packets.AddAudioPacket;
 import fr.supermax_8.boostedaudio.web.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.web.packets.RemoveAudioPacket;
-import org.java_websocket.WebSocket;
 
 import java.util.*;
 
@@ -12,11 +11,11 @@ public class User {
 
     private final Set<UUID> remotePeers = new HashSet<>();
     private final Map<UUID, Audio> playingAudio = new HashMap<>();
-    private final WebSocket session;
+    private final Session session;
     private final String connectionToken;
     private final UUID playerId;
 
-    public User(WebSocket session, String connectionToken, UUID playerId) {
+    public User(Session session, String connectionToken, UUID playerId) {
         this.session = session;
         this.connectionToken = connectionToken;
         this.playerId = playerId;
@@ -26,7 +25,7 @@ public class User {
         return remotePeers;
     }
 
-    public WebSocket getSession() {
+    public Session getSession() {
         return session;
     }
 
@@ -114,7 +113,9 @@ public class User {
     }
 
     public void sendPacket(String packet) {
-        if (session.isOpen()) session.send(packet);
+        if (session.isOpen()) {
+            session.send(packet);
+        }
     }
 
 }
