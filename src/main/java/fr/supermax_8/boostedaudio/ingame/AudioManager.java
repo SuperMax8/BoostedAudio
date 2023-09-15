@@ -211,6 +211,8 @@ public class AudioManager extends BukkitRunnable {
             List<UUID> currentPeersOfUser = peersMap.get(user.getPlayerId());
             Set<UUID> oldPeersOfUser = user.getRemotePeers();
 
+            if (currentPeersOfUser == null || oldPeersOfUser == null) continue;
+
             // Player to add
             for (UUID peer : currentPeersOfUser) {
                 if (!oldPeersOfUser.contains(peer))
@@ -218,7 +220,7 @@ public class AudioManager extends BukkitRunnable {
             }
 
             // Player to remove
-            for (UUID peer : user.getRemotePeers()) {
+            for (UUID peer : oldPeersOfUser) {
                 if (!currentPeersOfUser.contains(peer)) {
                     toUnLink.add(new PeerConnection(user.getPlayerId(), connectedUsers.get(peer).getPlayerId()));
                 }

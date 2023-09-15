@@ -790,7 +790,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 ]
 
                 ws.send(JSON.stringify(packet));
-                console.log("Sending ICE candidate")
+                console.log("Sending ICE candidate ", playerId)
             }
         }
         peerConnections.set(from, connection)
@@ -844,10 +844,11 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         return new Promise(async (resolve, reject) => {
             let userName = peerObj.playerId;
             try {
-                const url = 'https://corsproxy.io/?' + encodeURIComponent('https://minecraft-api.com/api/pseudo/' + peerObj.playerId + '/json');
+                const url = 'https://corsproxy.io/?' + encodeURIComponent('https://sessionserver.mojang.com/session/minecraft/profile/' + peerObj.playerId + '?unsigned=false');
                 const response = await fetch(url);
-                userName = JSON.parse(await response.text()).pseudo;
+                userName = JSON.parse(await response.text()).name;
             } catch (ee) {
+                console.log("Error fetching user name, mojang api down ?")
                 console.log(ee)
             }
 
@@ -999,6 +1000,8 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 console.log("Without token or playerId this will not connected to the websocket")
                 return
             }
+
+            playerId = params.get("playerId");
 
             console.log("Starting WebSocket...")
             ws = new WebSocket(wsIP);

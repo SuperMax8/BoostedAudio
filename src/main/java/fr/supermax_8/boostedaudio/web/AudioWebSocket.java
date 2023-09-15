@@ -59,6 +59,7 @@ public class AudioWebSocket {
 
             for (UUID id : realUser.getRemotePeers()) {
                 User usr = manager.getUsers().get(id);
+                if (usr == null) continue;
                 new AudioManager.PeerConnection(realUser.getPlayerId(), usr.getPlayerId()).unLink();
             }
         } catch (Exception e) {
