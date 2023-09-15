@@ -5,8 +5,6 @@ import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.commands.AudioCommand;
 import fr.supermax_8.boostedaudio.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.ingame.AudioManager;
-import fr.supermax_8.boostedaudio.spring.Loader;
-import fr.supermax_8.boostedaudio.spring.SpringLoader;
 import fr.supermax_8.boostedaudio.utils.AroundManager;
 import fr.supermax_8.boostedaudio.utils.FileUtils;
 import fr.supermax_8.boostedaudio.utils.TemporaryListener;
@@ -68,11 +66,9 @@ public class BoostedAudio {
     private File audioDir;
 
     private LinkedList<Listener> listeners;
-    private Loader l;
 
     public void onEnable() {
         BoostedAudio.instance = this;
-        l = new Loader();
         loader = BoostedAudioLoader.getInstance();
         VERSION = loader.getDescription().getVersion();
         listeners = new LinkedList<>();
@@ -140,8 +136,6 @@ public class BoostedAudio {
     }
 
     private void stop() {
-        l.stop();
-        SpringLoader.stopSpringApplication();
         listeners.clear();
         if (aroundManager != null) aroundManager.cancel();
         if (audioManager != null) audioManager.cancel();
