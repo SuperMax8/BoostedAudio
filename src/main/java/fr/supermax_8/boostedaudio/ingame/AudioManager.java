@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
 
 public class AudioManager extends BukkitRunnable {
 
-    private static final ConnectionManager manager = BoostedAudio.getInstance().manager;
+    private static final ConnectionManager manager = BoostedAudio.getInstance().getWebSocketServer().manager;
     private static final double maxDistance = BoostedAudio.getInstance().getConfiguration().getMaxVoiceDistance();
     private static final Map<UUID, User> users = manager.getUsers();
 
@@ -250,10 +250,7 @@ public class AudioManager extends BukkitRunnable {
         for (User user : users.values()) {
             Player player = Bukkit.getPlayer(user.getPlayerId());
             if (player == null) {
-                try {
-                    user.getSession().close();
-                } catch (Exception e) {
-                }
+                user.getSession().close();
                 BoostedAudio.debug("getConnectedUserAndClean close() session");
                 continue;
             }

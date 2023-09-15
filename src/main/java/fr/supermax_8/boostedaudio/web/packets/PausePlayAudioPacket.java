@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.web.packets;
 
 import fr.supermax_8.boostedaudio.BoostedAudio;
-import fr.supermax_8.boostedaudio.web.AudioWebSocket;
+import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.Packet;
 import fr.supermax_8.boostedaudio.web.User;
 
@@ -22,11 +22,8 @@ public class PausePlayAudioPacket implements Packet {
     }
 
     @Override
-    public void onReceive(User session, AudioWebSocket server) {
-        try {
-            session.getSession().close();
-        } catch (Exception ex) {
-        }
+    public void onReceive(User session, AudioWebSocketServer server) {
+        session.getSession().close();
         BoostedAudio.debug("RemovePeerPacket close() session");
     }
 

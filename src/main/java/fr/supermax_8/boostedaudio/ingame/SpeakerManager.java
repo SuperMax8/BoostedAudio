@@ -21,16 +21,16 @@ public class SpeakerManager {
         speakers.put(location, audio);
         manager.addAround(location, audio.getSpatialInfo().getMaxVoiceDistance(),
                 p -> {
-                    User user = BoostedAudio.getInstance().manager.getUsers().get(p.getUniqueId());
+                    User user = BoostedAudio.getInstance().getWebSocketServer().manager.getUsers().get(p.getUniqueId());
                     if (user == null) return;
                     user.playAudio(audio);
                 },
                 p -> {
-                    User user = BoostedAudio.getInstance().manager.getUsers().get(p.getUniqueId());
+                    User user = BoostedAudio.getInstance().getWebSocketServer().manager.getUsers().get(p.getUniqueId());
                     if (user == null) return;
                     user.stopAudio(audio);
                 },
-                p -> BoostedAudio.getInstance().manager.getUsers().containsKey(p.getUniqueId())
+                p -> BoostedAudio.getInstance().getWebSocketServer().manager.getUsers().containsKey(p.getUniqueId())
         );
     }
 

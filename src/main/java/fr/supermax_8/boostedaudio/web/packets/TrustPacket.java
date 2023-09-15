@@ -20,7 +20,7 @@ public class TrustPacket implements Packet {
     }
 
     @Override
-    public void onReceive(User user, AudioWebSocket server) {
+    public void onReceive(User user, AudioWebSocketServer server) {
         UUID playerId;
         ConnectionManager manager = server.manager;
         if ((playerId = getKeyByValue(manager.getPlayerTokens(), token)) != null) {
@@ -28,10 +28,7 @@ public class TrustPacket implements Packet {
             if (!BoostedAudio.getInstance().isPremium()) {
                 if (manager.getUsers().size() >= FreeVersionLimit.getMaxUserConnected()) {
                     BoostedAudio.info("You have reached the maximum number of connected users for the free version, for no limit, please consider buying the plugin");
-                    try {
-                        user.getSession().close();
-                    } catch (Exception e) {
-                    }
+                    user.getSession().close();
                     return;
                 }
             }
@@ -45,10 +42,7 @@ public class TrustPacket implements Packet {
             ));
             BoostedAudio.getInstance().getAudioManager().getRegionManager().getInfoMap().get(playerId).setLastRegions(new CopyOnWriteArrayList<>());
         } else {
-            try {
-                user.getSession().close();
-            } catch (Exception e) {
-            }
+            user.getSession().close();
             BoostedAudio.debug("onReceive close() session");
         }
     }

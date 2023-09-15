@@ -46,15 +46,12 @@ public class AudioCommand implements CommandExecutor {
     public static void sendConnectMessage(Player p) {
         UUID playerId = p.getUniqueId();
 
-        ConnectionManager manager = BoostedAudio.getInstance().manager;
+        ConnectionManager manager = BoostedAudio.getInstance().getWebSocketServer().manager;
         Map<UUID, String> tokenMap = manager.getPlayerTokens();
         if (tokenMap.containsKey(playerId)) {
             User user = manager.getUsers().get(playerId);
             if (user != null) {
-                try {
-                    user.getSession().close();
-                } catch (Exception ex) {
-                }
+                user.getSession().close();
                 BoostedAudio.debug("sendConnectMessage close() session");
             }
         }

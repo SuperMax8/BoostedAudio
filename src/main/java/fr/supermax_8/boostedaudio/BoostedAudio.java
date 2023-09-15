@@ -5,11 +5,12 @@ import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.commands.AudioCommand;
 import fr.supermax_8.boostedaudio.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.ingame.AudioManager;
+import fr.supermax_8.boostedaudio.ingame.PlayerListener;
 import fr.supermax_8.boostedaudio.utils.AroundManager;
 import fr.supermax_8.boostedaudio.utils.FileUtils;
 import fr.supermax_8.boostedaudio.utils.TemporaryListener;
 import fr.supermax_8.boostedaudio.utils.UpdateChecker;
-import fr.supermax_8.boostedaudio.web.ConnectionManager;
+import fr.supermax_8.boostedaudio.web.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.web.PacketList;
 import fr.supermax_8.boostedaudio.web.packets.RTCIcePacket;
 import io.undertow.Undertow;
@@ -23,6 +24,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 import org.xnio.Options;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -32,6 +34,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.nio.file.Files;
@@ -55,11 +58,10 @@ public class BoostedAudio {
             .registerTypeAdapter(RTCIcePacket.class, new RTCIcePacket.Adapter())
             .create();
 
-//    private Server webSocketServer;
+    private AudioWebSocketServer webSocketServer;
     private Undertow webServer;
     private SSLContext sslContext;
     private BoostedAudioConfiguration configuration;
-    public ConnectionManager manager;
     private AroundManager aroundManager;
     private AudioManager audioManager;
     private File webserver;
@@ -89,14 +91,13 @@ public class BoostedAudio {
     public void reload() {
         info("Plugin load...");
         stop();
-        manager = new ConnectionManager();
         aroundManager = new AroundManager();
         configuration = new BoostedAudioConfiguration();
         CompletableFuture.runAsync(this::startServers);
         new BukkitRunnable() {
             @Override
             public void run() {
-                /*if (webSocketServer != null) {
+                if (webSocketServer != null && webSocketServer.isOpen()) {
                     cancel();
                     audioManager = new AudioManager();
                     audioManager.runTaskTimerAsynchronously(loader, 0, 0);
@@ -104,7 +105,7 @@ public class BoostedAudio {
                     loader.getServer().getPluginManager().registerEvents(playerListener, loader);
                     listeners.add(playerListener);
                     Bukkit.getOnlinePlayers().forEach(player -> playerListener.join(new PlayerJoinEvent(player, null)));
-                }*/
+                }
             }
         }.runTaskTimerAsynchronously(loader, 0, 0);
 
@@ -141,11 +142,11 @@ public class BoostedAudio {
         if (audioManager != null) audioManager.cancel();
         HandlerList.unregisterAll(BoostedAudioLoader.getInstance());
         try {
+            if (webSocketServer != null && webSocketServer.isOpen()) webSocketServer.stop();
             if (webServer != null) {
                 debug("Stopping undertow...");
                 webServer.stop();
             }
-       /*     if (webSocketServer != null) webSocketServer.stop();*/
         } catch (Exception e) {
             /*e.printStackTrace();*/
         }
@@ -175,9 +176,9 @@ public class BoostedAudio {
         return gson;
     }
 
-/*    public Server getWebSocketServer() {
+    public AudioWebSocketServer getWebSocketServer() {
         return webSocketServer;
-    }*/
+    }
 
     public BoostedAudioConfiguration getConfiguration() {
         return configuration;
@@ -197,10 +198,6 @@ public class BoostedAudio {
 
     public File getWebserver() {
         return webserver;
-    }
-
-    public ConnectionManager getConnectionManager() {
-        return manager;
     }
 
     private void startServers() {
@@ -253,51 +250,29 @@ public class BoostedAudio {
                     }
                 }
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        debug("D");
         String ip = configuration.getWebSocketHostName().replace("localhost", realIp);
-
-//        SslContextConfigurator sslConfig = SslContextConfigurator.getDefault();
-//        sslConfig.setKeyStoreFile(keystorePath);
-//        sslConfig.setKeyStorePassword(keystorePassword);
-
-        // Créer le serveur WebSocket sécurisé
-        debug("AAAAAHHHHH LE BATARD");
-        /*try {
-            webSocketServer = new Server(ip, configuration.getWebSocketPort(), "/", null, AudioWebSocket.class);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-
-        debug("b");
         InetSocketAddress inet = new InetSocketAddress(ip, configuration.getWebSocketPort());
         debug("unresolved" + inet.isUnresolved());
         debug("websocket " + inet);
+        webSocketServer = new AudioWebSocketServer(inet);
         if (sslContext != null) {
             debug("WebSocket will be open with ssl");
+            webSocketServer.setWebSocketFactory(new DefaultSSLWebSocketServerFactory(sslContext));
         }
-        debug("a");
-        GrizzlyServerContainer container = new GrizzlyServerContainer();
-        debug(container.toString());
+        webSocketServer.setReuseAddr(true);
+        webSocketServer.setTcpNoDelay(true);
         CompletableFuture.runAsync(() -> {
-            try {
-                webSocketServer.start();
-                debug("Serveur WebSocket sécurisé démarré sur le port");
-                Thread.sleep(Long.MAX_VALUE);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                webSocketServer.stop();
-            }
-        });*/
+            webSocketServer.run();
+        });
     }
 
     private String getPublicIp() {
         try {
-            String urlString = "https://checkip.amazonaws.com/";
+            String urlString = "http://checkip.amazonaws.com/";
             URL url = new URL(urlString);
             try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
                 return br.readLine();

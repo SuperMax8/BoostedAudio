@@ -37,14 +37,11 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void quit(PlayerQuitEvent e) {
-        User user = BoostedAudio.getInstance().manager.getUsers().get(e.getPlayer().getUniqueId());
+        User user = BoostedAudio.getInstance().getWebSocketServer().manager.getUsers().get(e.getPlayer().getUniqueId());
         if (user != null)
             CompletableFuture.runAsync(() -> {
                 BoostedAudio.debug("quit close() session");
-                try {
-                    user.getSession().close();
-                } catch (Exception ex) {
-                }
+                user.getSession().close();
             });
 
         RegionManager regionManager = BoostedAudio.getInstance().getAudioManager().getRegionManager();
