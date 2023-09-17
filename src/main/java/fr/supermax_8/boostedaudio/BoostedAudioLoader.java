@@ -71,7 +71,9 @@ public class BoostedAudioLoader extends JavaPlugin {
             return;
         }
 
+        System.out.println("If you have problems loading libs, you can download them directly and put it in plugins/BoostedAudio/libs");
         for (String link : libsLink) {
+            System.out.println(link);
             File lib = new File(libs, link.substring(link.lastIndexOf('/') + 1));
             Path libsPath = Paths.get(lib.getAbsolutePath());
 
