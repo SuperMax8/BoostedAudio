@@ -1,5 +1,7 @@
 package fr.supermax_8.boostedaudio.utils;
 
+import fr.supermax_8.boostedaudio.BoostedAudio;
+
 import java.io.*;
 
 public class FileUtils {
@@ -21,7 +23,7 @@ public class FileUtils {
             writer.write(modifiedContent);
             writer.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
         }
     }
 

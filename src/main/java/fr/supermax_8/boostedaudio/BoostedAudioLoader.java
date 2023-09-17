@@ -39,7 +39,7 @@ public class BoostedAudioLoader extends JavaPlugin {
         try {
             loadExternalLibs();
         } catch (IOException e) {
-            e.printStackTrace();
+            if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
         }
 
         boostedAudio = new BoostedAudio();

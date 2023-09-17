@@ -138,7 +138,7 @@ public class AudioManager extends BukkitRunnable {
         } catch (CancellationException e) {
             // Do nothing
         } catch (Exception e) {
-            e.printStackTrace();
+            if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
         }
     }
 
@@ -215,14 +215,19 @@ public class AudioManager extends BukkitRunnable {
 
             // Player to add
             for (UUID peer : currentPeersOfUser) {
-                if (!oldPeersOfUser.contains(peer))
-                    toLink.add(new PeerConnection(user.getPlayerId(), connectedUsers.get(peer).getPlayerId()));
+                if (!oldPeersOfUser.contains(peer)) {
+                    User peerUsr = connectedUsers.get(peer);
+                    if (peerUsr == null) continue;
+                    toLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId()));
+                }
             }
 
             // Player to remove
             for (UUID peer : oldPeersOfUser) {
                 if (!currentPeersOfUser.contains(peer)) {
-                    toUnLink.add(new PeerConnection(user.getPlayerId(), connectedUsers.get(peer).getPlayerId()));
+                    User peerUsr = connectedUsers.get(peer);
+                    if (peerUsr == null) continue;
+                    toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId()));
                 }
             }
         }

@@ -47,7 +47,7 @@ public class AudioWebSocketServer extends WebSocketServer {
             manager.sessionUsers.put(webSocket, Optional.empty());
             BoostedAudio.debug("New connection WebSocket : " + webSocket.getRemoteSocketAddress().getAddress() + " / " + manager.getSessionUsers().size());
         } catch (Exception e) {
-            e.printStackTrace();
+            if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
         }
     }
 
@@ -68,10 +68,11 @@ public class AudioWebSocketServer extends WebSocketServer {
 
             for (UUID id : realUser.getRemotePeers()) {
                 User usr = manager.getUsers().get(id);
+                if (usr == null) continue;
                 new AudioManager.PeerConnection(realUser.getPlayerId(), usr.getPlayerId()).unLink();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
         }
     }
 
@@ -86,7 +87,7 @@ public class AudioWebSocketServer extends WebSocketServer {
             BoostedAudio.debug(message);
             return;
         } catch (Exception e) {
-            e.printStackTrace();
+            if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
             BoostedAudio.debug(message);
             return;
         }

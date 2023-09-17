@@ -18,6 +18,8 @@ import io.undertow.UndertowOptions;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -29,10 +31,7 @@ import org.xnio.Options;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -43,6 +42,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Enumeration;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class BoostedAudio {
@@ -223,16 +223,26 @@ public class BoostedAudio {
             FileUtils.replaceInFile(index, "let proximityChat = true;", "let proximityChat = " + configuration.isVoiceChatEnabled());
         }
 
-        if (index.exists() && isPremium()) configuration.getClientConfig().forEach(s -> {
-            String[] placeholderEntry = s.split("=", 2);
-            FileUtils.replaceInFile(index, placeholderEntry[0], placeholderEntry[1]);
-        });
+        if (index.exists()) {
+            List<String> placeholders;
+            if (isPremium()) placeholders = configuration.getClientConfig();
+            else {
+                Reader reader = new InputStreamReader(BoostedAudioLoader.getInstance().getResource("config.yml"));
+                FileConfiguration fc = YamlConfiguration.loadConfiguration(reader);
+                placeholders = fc.getStringList("clientConfig");
+            }
+
+            placeholders.forEach(s -> {
+                String[] placeholderEntry = s.split("=", 2);
+                FileUtils.replaceInFile(index, placeholderEntry[0], placeholderEntry[1]);
+            });
+        }
 
         if (configuration.isAutoHost())
             try {
                 Bukkit.getScheduler().runTaskAsynchronously(loader, this::startSelfHostWebServer);
             } catch (Exception e) {
-                e.printStackTrace();
+                if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
             }
 
         debug("Starting WebSocket server...");
@@ -251,7 +261,7 @@ public class BoostedAudio {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
         }
 
         String ip = configuration.getWebSocketHostName().replace("localhost", realIp);
@@ -338,13 +348,13 @@ public class BoostedAudio {
             debug("SSL setuped");
         } catch (Exception e) {
             debug("ERROR");
-            e.printStackTrace();
+            if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
         }
         debug("SSL Init...");
     }
 
     public boolean isPremium() {
-        return true;
+        return false;
     }
 
 }

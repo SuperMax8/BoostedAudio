@@ -86,6 +86,7 @@ public class BoostedAudioConfiguration {
     }
 
     public boolean isDebugMode() {
+        if (debugMode) System.out.println("DebugMode: ");
         return debugMode;
     }
 
