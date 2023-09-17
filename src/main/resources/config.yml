@@ -1,4 +1,4 @@
-# Show debug messages, websocket connections and others
+# Show debug messages, websocket connections and others, useful if you want to come on the discord for support
 debugMode: false
 
 # Update notifications and others

@@ -238,7 +238,9 @@ public class AudioManager extends BukkitRunnable {
             List<UUID> peers = peersMap.get(user.getPlayerId());
 
             HashMap<UUID, SerializableLocation> peersLocs = new HashMap<>();
-            Location playerLoc = Bukkit.getPlayer(user.getPlayerId()).getLocation();
+            Player p = Bukkit.getPlayer(user.getPlayerId());
+            if (p == null) continue;
+            Location playerLoc = p.getLocation();
             for (UUID id : peers) peersLocs.put(id, new SerializableLocation(Bukkit.getPlayer(id).getLocation()));
 
             UpdateVocalPositionsPacket updatePacket = new UpdateVocalPositionsPacket(

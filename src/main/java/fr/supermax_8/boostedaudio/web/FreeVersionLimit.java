@@ -4,7 +4,7 @@ public class FreeVersionLimit {
 
 
     public static int getMaxUserConnected() {
-        return 8;
+        return 5;
     }
 
 }
