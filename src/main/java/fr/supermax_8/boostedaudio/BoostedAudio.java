@@ -61,6 +61,7 @@ public class BoostedAudio {
     private AudioWebSocketServer webSocketServer;
     private Undertow webServer;
     private SSLContext sslContext;
+    private SSLContext dummySslContext;
     private BoostedAudioConfiguration configuration;
     private AroundManager aroundManager;
     private AudioManager audioManager;
@@ -269,10 +270,7 @@ public class BoostedAudio {
         debug("unresolved" + inet.isUnresolved());
         debug("websocket " + inet);
         webSocketServer = new AudioWebSocketServer(inet);
-        if (sslContext != null) {
-            debug("WebSocket will be open with ssl");
-            webSocketServer.setWebSocketFactory(new DefaultSSLWebSocketServerFactory(sslContext));
-        }
+        webSocketServer.setWebSocketFactory(new DefaultSSLWebSocketServerFactory(sslContext));
         webSocketServer.setReuseAddr(true);
         webSocketServer.setTcpNoDelay(true);
         CompletableFuture.runAsync(() -> {
@@ -282,7 +280,7 @@ public class BoostedAudio {
 
     private String getPublicIp() {
         try {
-            String urlString = "http://checkip.amazonaws.com/";
+            String urlString = "https://checkip.amazonaws.com/";
             URL url = new URL(urlString);
             try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
                 return br.readLine();
@@ -296,18 +294,12 @@ public class BoostedAudio {
         int port = configuration.getAutoHostPort();
         webserver = new File(loader.getDataFolder(), "webhost");
         audioDir = new File(webserver, "audio");
-        // Spécifiez le répertoire où se trouvent les fichiers à servir
-
-
-        // Créez un gestionnaire de ressources pour le répertoire spécifié
         FileResourceManager resourceManager = new FileResourceManager(webserver);
-
-        // Créez un gestionnaire de ressources pour gérer les demandes de fichiers
         ResourceHandler resourceHandler = new ResourceHandler(resourceManager);
 
         Undertow.Builder builder = Undertow.builder();
-        if (sslContext != null) builder.addHttpsListener(port, "0.0.0.0", sslContext);
-        else builder.addHttpListener(port, "0.0.0.0");
+        if (configuration.isSsl() && sslContext != null) builder.addHttpsListener(port, "0.0.0.0", sslContext);
+        else builder.addHttpsListener(port, "0.0.0.0", dummySslContext);
         webServer = builder
                 .setHandler(resourceHandler)
                 .setServerOption(Options.REUSE_ADDRESSES, true)
@@ -326,31 +318,43 @@ public class BoostedAudio {
         debug("Init SSL...");
         try {
             debug("SSL setup...");
-            char[] keystorePassword = configuration.getKeystorePassword().toCharArray();
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            InputStream stream;
+
+            loader.saveResource("default.jks", true);
+            dummySslContext = getSSLContext(Files.newInputStream(new File(loader.getDataFolder(), "default.jks").toPath()), "boostedaudio".toCharArray());
             if (configuration.isSsl()) {
-                stream = Files.newInputStream(new File(loader.getDataFolder(), configuration.getKeystoreFileName()).toPath());
-            } else {
-                loader.saveResource("default.jks", true);
-                stream = Files.newInputStream(new File(loader.getDataFolder(), "default.jks").toPath());
-                keystorePassword = "boostedaudio".toCharArray();
-            }
-            keyStore.load(stream, keystorePassword);
+                sslContext = getSSLContext(
+                        Files.newInputStream(new File(loader.getDataFolder(), configuration.getKeystoreFileName()).toPath()),
+                        configuration.getKeystorePassword().toCharArray()
+                );
+            } else sslContext = dummySslContext;
 
-            // Configuration du gestionnaire de clés
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-            kmf.init(keyStore, keystorePassword);
-
-            // Configuration du contexte SSL
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(kmf.getKeyManagers(), null, null);
             debug("SSL setuped");
         } catch (Exception e) {
             debug("ERROR");
             if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
         }
         debug("SSL Init...");
+    }
+
+    private SSLContext getSSLContext(InputStream stream, char[] password) {
+        try {
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+
+            keyStore.load(stream, password);
+
+            // Configuration du gestionnaire de clés
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(keyStore, password);
+
+            // Configuration du contexte SSL
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), null, null);
+            return sslContext;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public boolean isPremium() {

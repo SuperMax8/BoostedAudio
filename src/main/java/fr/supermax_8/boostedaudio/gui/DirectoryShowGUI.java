@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.gui;
 
 import fr.supermax_8.boostedaudio.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.utils.*;
+import fr.supermax_8.boostedaudio.utils.editor.ChatEditor;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -13,6 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
+import java.text.FieldPosition;
 import java.util.ArrayList;
 
 public class DirectoryShowGUI extends AbstractGUI {
@@ -66,7 +68,8 @@ public class DirectoryShowGUI extends AbstractGUI {
                         "§f§l" + f.getName(),
                         "§7Path: " + s,
                         "",
-                        "§7Left click to copy path"
+                        "§7Left click to copy path",
+                        "§9Right click to modify audio file gain (volume)"
                 );
             }
             items.add(item);
@@ -92,15 +95,38 @@ public class DirectoryShowGUI extends AbstractGUI {
                     currentDir = file;
                 } else {
                     owner.closeInventory();
-                    String s = file.getAbsolutePath();
-                    s = s.substring(s.indexOf("audio"));
-                    TextComponent component = new TextComponent(s);
-                    component.setUnderlined(true);
-                    component.setColor(ChatColor.BOLD);
-                    component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, s));
-                    component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-                            "Click to copy to clipboard").create()));
-                    owner.spigot().sendMessage(component);
+                    switch (e.getClick()) {
+                        case LEFT:
+                            String s = file.getAbsolutePath();
+                            s = s.substring(s.indexOf("audio"));
+                            TextComponent component = new TextComponent(s);
+                            component.setUnderlined(true);
+                            component.setColor(ChatColor.BOLD);
+                            component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, s));
+                            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
+                                    "Click to copy to clipboard").create()));
+                            owner.spigot().sendMessage(component);
+                            break;
+                        case RIGHT:
+                            new ChatEditor(owner, value -> {
+                                try {
+                                    float v = Float.parseFloat(value);
+                                    try {
+                                        FileUtils.adjustGain(file.getAbsolutePath(),
+                                                new File(file.getParentFile(), "Harmonized_" + file.getName()).getAbsolutePath(),
+                                                v);
+                                        owner.sendMessage("§aAudio file Harmionized!");
+                                    } catch (Exception exx) {
+                                        if (FileUtils.ffmpeg == null || FileUtils.ffprobe == null) {
+                                            owner.sendMessage("§cYou need to have ffmpeg in libs, check the wiki");
+                                        } else exx.printStackTrace();
+                                    }
+                                } catch (Exception ex) {
+                                    owner.sendMessage("§cWrong value !");
+                                }
+                            }, "§7Enter in the chat the gain ajustement, §6WARNING: Modifying gain can decrease audio quality if you do it to many times, I recommend having a save of your audios file in local");
+                            break;
+                    }
                 }
         }
     }

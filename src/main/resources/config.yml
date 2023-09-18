@@ -4,10 +4,10 @@ debugMode: false
 # Update notifications and others
 notification: true
 
-# Web client (change http by https if you are using ssl)
+# Web client
 client-link: https://localhost:8080
-# Web Socket (change ws by wss if you are using ssl)
-clientWebSocketLink: ws://localhost:8081
+# Web Socket
+clientWebSocketLink: wss://localhost:8081
 
 # The self-host web server, useful to host the audio panel and audio files
 autoHost: true

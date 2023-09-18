@@ -20,8 +20,9 @@ public class BoostedAudioLoader extends JavaPlugin {
 
     private static final String[] libsLink = {
             "https://repo.codemc.io/repository/maven-public/org/codemc/worldguardwrapper/worldguardwrapper/1.2.1-SNAPSHOT/worldguardwrapper-1.2.1-20230624.184959-2.jar",
-            "https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.5.4/Java-WebSocket-1.5.4.jar",
+            "https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.5.0/Java-WebSocket-1.5.0.jar",
             "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar",
+            "https://repo1.maven.org/maven2/net/bramp/ffmpeg/ffmpeg/0.7.0/ffmpeg-0.7.0.jar",
 /*            "https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.76/bcprov-jdk18on-1.76.jar",
             "https://repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.76/bcpkix-jdk18on-1.76.jar",*/
             // UnderTow

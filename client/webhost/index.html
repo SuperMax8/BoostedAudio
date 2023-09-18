@@ -661,12 +661,17 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
     async function fadeIn(audio, duration, audioObj) {
         function fade() {
-            console.log("Starting FadeIn " + duration, audioObj);
+            console.log(
+                "Starting FadeIn " + duration,
+                "Audio Volume " + audio.volume,
+                "Ambient Volume " + ambientVolume, audioObj
+            )
+
             const interval = 50;
             const step = interval / duration;
             audio.volume = 0;
 
-            const fadeInterval = setInterval(function () {
+            const fadeInterval = setInterval(() => {
                 if (audio.volume < ambientVolume) {
                     audio.volume = Math.min(ambientVolume, audio.volume + step);
                 } else {
@@ -690,9 +695,13 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             const interval = 50;
             const step = interval / duration;
 
-            console.log("Starting FadeOut " + duration, audioObj)
+            console.log(
+                "Starting FadeOut " + duration,
+                "Audio Volume " + audio.volume,
+                "Ambient Volume " + ambientVolume, audioObj
+            )
 
-            const fadeInterval = setInterval(function () {
+            const fadeInterval = setInterval(() => {
                 if (audio.volume > 0) {
                     audio.volume = Math.max(0, audio.volume - step);
                 } else {
@@ -1037,13 +1046,23 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         connectWebSocket()
 
         let retryCount = 0;
+        let iframe = false;
         const interval = setInterval(() => {
             if (isOpen) {
                 clearInterval(interval);
                 return;
             }
             if (retryCount >= 3) {
-                alert("You are unable to connect to the websocket, try to refresh the page or restart your browser")
+                if (!iframe)
+                    alert("You are unable to connect to the websocket, try to refresh the page or restart your browser")
+            }
+
+            if (navigator.userAgent.indexOf("Firefox") !== -1 && !iframe) {
+                // If it's Firefox, create an iframe with a certain IP address
+                iframe = true;
+                window.open(wsIP.replace("wss", "https"), '_blank', "width=800,height=800");
+
+                alert("You are on firefox and the server use a self signed certificate, so you need to accept it manually on the popup, click on advanced and click on accept, after accepting close this popup and alert")
             }
             console.log("Retry to connect nb: ", retryCount)
             connectWebSocket();

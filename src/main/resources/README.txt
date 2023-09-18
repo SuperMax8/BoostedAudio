@@ -1,7 +1,6 @@
 All jar for this plugin BoostedAudio not coming from Spigot
 Is virus infected.
 
-
 Terms of Service:
 
     No refunds.
