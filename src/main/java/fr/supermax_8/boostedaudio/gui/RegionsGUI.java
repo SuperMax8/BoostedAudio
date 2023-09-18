@@ -118,8 +118,9 @@ public class RegionsGUI extends AbstractGUI {
                         owner.sendMessage("§cWrong values, read the format and try again");
                     }
                 }, "§6Enter the values of the new region audio in the chat",
-                        "§7Format:",
+                        "§7Formats:",
                         "§7link;region;fadeIn(optional);fadeOut(optional);loop(optional)",
+                        "§7OR",
                         "§7region;fadeIn;fadeOut;loop;link1;link2;link3(optional)..."
                 );
                 break;

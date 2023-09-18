@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.web;
 
+import org.codemc.worldguardwrapper.shaded.javassist.compiler.ast.Pair;
 import org.java_websocket.WebSocket;
 
 import java.util.Optional;
@@ -24,7 +25,6 @@ public class ConnectionManager {
     protected final ConcurrentHashMap<WebSocket, Optional<User>> sessionUsers = new ConcurrentHashMap<>();
 
     public ConnectionManager() {
-
     }
 
 
