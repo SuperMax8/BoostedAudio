@@ -16,6 +16,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.io.File;
 import java.text.FieldPosition;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 public class DirectoryShowGUI extends AbstractGUI {
 
@@ -51,8 +54,11 @@ public class DirectoryShowGUI extends AbstractGUI {
 
 
         if (directory == null || !directory.isDirectory()) return;
-        for (File f : directory.listFiles()) {
-            files.add(f);
+
+        List<File> files = new ArrayList<>(Arrays.asList(directory.listFiles()));
+        files.sort(new NaturalOrderComparator<>(File::getName));
+
+        for (File f : files) {
             ItemStack item;
             if (f.isDirectory()) {
                 item = ItemUtils.createItm(XMaterial.CHEST.parseMaterial(),
@@ -69,11 +75,13 @@ public class DirectoryShowGUI extends AbstractGUI {
                         "§7Path: " + s,
                         "",
                         "§7Left click to copy path",
-                        "§9Right click to modify audio file gain (volume)"
+                        "§9Right click to modify audio file gain (volume)",
+                        "§cShift right click to delete file"
                 );
             }
             items.add(item);
         }
+        this.files.addAll(files);
         scroll.setItems();
     }
 
@@ -112,10 +120,12 @@ public class DirectoryShowGUI extends AbstractGUI {
                                 try {
                                     float v = Float.parseFloat(value);
                                     try {
+                                        File outputFile = new File(file.getParentFile(), "Harmonized_" + file.getName());
+                                        if (outputFile.exists()) outputFile.delete();
                                         FileUtils.adjustGain(file.getAbsolutePath(),
-                                                new File(file.getParentFile(), "Harmonized_" + file.getName()).getAbsolutePath(),
+                                                outputFile.getAbsolutePath(),
                                                 v);
-                                        owner.sendMessage("§aAudio file Harmionized!");
+                                        owner.sendMessage("§aAudio file " + file.getName() + " Harmonized at " + v + "dB !");
                                     } catch (Exception exx) {
                                         if (FileUtils.ffmpeg == null || FileUtils.ffprobe == null) {
                                             owner.sendMessage("§cYou need to have ffmpeg in libs, check the wiki");
@@ -129,6 +139,16 @@ public class DirectoryShowGUI extends AbstractGUI {
                     }
                 }
         }
+    }
+
+    @Override
+    public void onShiftClickInCustomInv(InventoryClickEvent e) {
+        e.setCancelled(true);
+        int index = scroll.getListIndexFromSlot(e.getSlot());
+        if (index == -1) return;
+        File file = files.get(index);
+        file.delete();
+        setItems();
     }
 
     @Override

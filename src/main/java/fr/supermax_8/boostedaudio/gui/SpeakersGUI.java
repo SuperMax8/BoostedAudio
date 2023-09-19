@@ -17,10 +17,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SpeakersGUI extends AbstractGUI {
@@ -61,7 +58,7 @@ public class SpeakersGUI extends AbstractGUI {
 
     private ItemStack createSpeakerItem(Audio audio) {
         return ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(), "§l" + audio.getId(),
-                "§7Link: " + audio.getLink(),
+                "§7Links: " + audio.getLinks(),
                 "§7Location: " + audio.getSpatialInfo().getLocation(),
                 "§7Max distance: " + audio.getSpatialInfo().getMaxVoiceDistance(),
                 "§7Distance model: " + audio.getSpatialInfo().getDistanceModel(),
@@ -91,20 +88,18 @@ public class SpeakersGUI extends AbstractGUI {
             case 45:
                 new ChatEditor(owner, s -> {
                     try {
+                        List<String> links = new ArrayList<>();
                         String[] output = s.split(";");
-                        String link = output[0];
-                        double maxVoiceDistance = Double.parseDouble(output[1]);
-                        boolean loop = true;
-
                         Audio.AudioSpatialInfo info;
-                        if (output.length == 2) {
-                            info = new Audio.AudioSpatialInfo(
-                                    new SerializableLocation(owner.getLocation()), maxVoiceDistance);
-                        } else {
-                            String distanceModel = output[2];
-                            double refDistance = Double.parseDouble(output[3]);
-                            double rolloffFactor = Double.parseDouble(output[4]);
-                            loop = Boolean.parseBoolean(output[5]);
+                        boolean loop = true;
+                        double maxVoiceDistance;
+
+                        if (output.length >= 7) {
+                            maxVoiceDistance = Double.parseDouble(output[0]);
+                            String distanceModel = output[1];
+                            double refDistance = Double.parseDouble(output[2]);
+                            double rolloffFactor = Double.parseDouble(output[3]);
+                            loop = Boolean.parseBoolean(output[4]);
                             info = new Audio.AudioSpatialInfo(
                                     new SerializableLocation(owner.getLocation()),
                                     maxVoiceDistance,
@@ -112,16 +107,41 @@ public class SpeakersGUI extends AbstractGUI {
                                     refDistance,
                                     rolloffFactor
                             );
+                            links.addAll(Arrays.asList(output).subList(5, output.length));
+                        } else {
+                            links.add(output[0]);
+                            maxVoiceDistance = Double.parseDouble(output[1]);
+
+                            if (output.length == 2) {
+                                info = new Audio.AudioSpatialInfo(
+                                        new SerializableLocation(owner.getLocation()), maxVoiceDistance);
+                            } else {
+                                String distanceModel = output[2];
+                                double refDistance = Double.parseDouble(output[3]);
+                                double rolloffFactor = Double.parseDouble(output[4]);
+                                loop = Boolean.parseBoolean(output[5]);
+                                info = new Audio.AudioSpatialInfo(
+                                        new SerializableLocation(owner.getLocation()),
+                                        maxVoiceDistance,
+                                        distanceModel,
+                                        refDistance,
+                                        rolloffFactor
+                                );
+                            }
                         }
 
-                        speakerManager.addSpeaker(new Audio(link, info, UUID.randomUUID(), 100, 100, loop));
+                        speakerManager.addSpeaker(new Audio(links, info, UUID.randomUUID(), 100, 100, loop));
                         owner.sendMessage("§aSpeaker added");
                         BoostedAudio.getInstance().getAudioManager().saveData();
                     } catch (Exception e) {
                         owner.sendMessage("§cWrong values, read the format and try again");
                     }
                 }, "§6Enter the values of the new speaker in the chat, it will be placed at your position",
-                        "§7Format: link;maxVoiceDistance;distanceModel(optional);refDistance(optional);rolloffFactor(optional);loop(optional)");
+                        "§7Format:",
+                        "§7link;maxVoiceDistance;distanceModel(optional);refDistance(optional);rolloffFactor(optional);loop(optional)",
+                        "OR",
+                        "§7maxVoiceDistance;distanceModel;refDistance;rolloffFactor;loop;links1;links2(optional);links3(optional);links4(optional)"
+                );
                 break;
             default:
                 int index = scroll.getListIndexFromSlot(slot);
@@ -134,54 +154,66 @@ public class SpeakersGUI extends AbstractGUI {
 
                     component.setUnderlined(true);
                     component.setColor(ChatColor.BOLD);
-                    String currentParams = selectedSpeaker.getLink() + ";" +
+
+                    StringJoiner joiner = new StringJoiner(";");
+                    selectedSpeaker.getLinks().forEach(joiner::add);
+                    String currentParams =
                             selectedSpeaker.getSpatialInfo().getMaxVoiceDistance() + ";" +
-                            selectedSpeaker.getSpatialInfo().getDistanceModel() + ";" +
-                            selectedSpeaker.getSpatialInfo().getRefDistance() + ";" +
-                            selectedSpeaker.getSpatialInfo().getRolloffFactor() + ";" +
-                            selectedSpeaker.isLoop();
+                                    selectedSpeaker.getSpatialInfo().getDistanceModel() + ";" +
+                                    selectedSpeaker.getSpatialInfo().getRefDistance() + ";" +
+                                    selectedSpeaker.getSpatialInfo().getRolloffFactor() + ";" +
+                                    selectedSpeaker.isLoop() + ";"
+                                    + joiner;
+
                     component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, currentParams));
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
                             "Click to copy to clipboard").create()));
+
+                    owner.spigot().sendMessage(component);
                     return;
-                }
-                if (event.isLeftClick()) {
+                } else if (event.isLeftClick()) {
                     TextComponent component = new TextComponent("Enter the values for the modification of the speaker in the chat " +
-                            "§7Format: link;maxVoiceDistance;distanceModel;refDistance;rolloffFactor;loop");
+                            "§7Format: §7maxVoiceDistance;distanceModel;refDistance;rolloffFactor;loop;links1;links2(optional);links3(optional);links4(optional)");
 
                     component.setUnderlined(true);
                     component.setColor(ChatColor.GOLD);
-                    String currentParams = selectedSpeaker.getLink() + ";" +
+
+                    StringJoiner joiner = new StringJoiner(";");
+                    selectedSpeaker.getLinks().forEach(joiner::add);
+                    String currentParams =
                             selectedSpeaker.getSpatialInfo().getMaxVoiceDistance() + ";" +
-                            selectedSpeaker.getSpatialInfo().getDistanceModel() + ";" +
-                            selectedSpeaker.getSpatialInfo().getRefDistance() + ";" +
-                            selectedSpeaker.getSpatialInfo().getRolloffFactor() + ";" +
-                            selectedSpeaker.isLoop();
+                                    selectedSpeaker.getSpatialInfo().getDistanceModel() + ";" +
+                                    selectedSpeaker.getSpatialInfo().getRefDistance() + ";" +
+                                    selectedSpeaker.getSpatialInfo().getRolloffFactor() + ";" +
+                                    selectedSpeaker.isLoop() + ";"
+                                    + joiner;
                     component.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, currentParams));
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
                             "Click to copy to chat").create()));
 
                     new ChatEditor(owner, s -> {
                         try {
+                            List<String> links = new ArrayList<>();
                             String[] output = s.split(";");
-                            String link = output[0];
-                            double maxVoiceDistance = Double.parseDouble(output[1]);
-
                             Audio.AudioSpatialInfo info;
-                            String distanceModel = output[2];
-                            double refDistance = Double.parseDouble(output[3]);
-                            double rolloffFactor = Double.parseDouble(output[4]);
-                            boolean loop = Boolean.parseBoolean(output[5]);
+                            boolean loop;
+                            double maxVoiceDistance;
+                            maxVoiceDistance = Double.parseDouble(output[0]);
+                            String distanceModel = output[1];
+                            double refDistance = Double.parseDouble(output[2]);
+                            double rolloffFactor = Double.parseDouble(output[3]);
+                            loop = Boolean.parseBoolean(output[4]);
                             info = new Audio.AudioSpatialInfo(
-                                    selectedSpeaker.getSpatialInfo().getLocation(),
+                                    new SerializableLocation(owner.getLocation()),
                                     maxVoiceDistance,
                                     distanceModel,
                                     refDistance,
                                     rolloffFactor
                             );
+                            links.addAll(Arrays.asList(output).subList(5, output.length));
 
                             speakerManager.removeSpeaker(selectedSpeaker.getSpatialInfo().getLocation().toBukkitLocation());
-                            speakerManager.addSpeaker(new Audio(link, info, UUID.randomUUID(), 200, 200, loop));
+                            speakerManager.addSpeaker(new Audio(links, info, UUID.randomUUID(), 200, 200, loop));
                             owner.sendMessage("§aSpeaker modified");
                             BoostedAudio.getInstance().getAudioManager().saveData();
                         } catch (Exception e) {

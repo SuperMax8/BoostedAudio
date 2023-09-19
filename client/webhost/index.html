@@ -1062,7 +1062,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 iframe = true;
                 window.open(wsIP.replace("wss", "https"), '_blank', "width=800,height=800");
 
-                alert("You are on firefox and the server use a self signed certificate, so you need to accept it manually on the popup, click on advanced and click on accept, after accepting close this popup and alert")
+                alert("You are on firefox and the server use a self signed certificate, so you need to accept it manually on the popup, click on advanced and click on accept, after accepting close this popup and alert. If you already accept the certificate, try refresh the page")
             }
             console.log("Retry to connect nb: ", retryCount)
             connectWebSocket();
