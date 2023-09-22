@@ -146,11 +146,11 @@ public class BoostedAudio {
         if (audioManager != null) audioManager.cancel();
         HandlerList.unregisterAll(BoostedAudioLoader.getInstance());
         try {
-            if (webSocketServer != null && webSocketServer.isOpen()) webSocketServer.stop();
+            /*if (webSocketServer != null && webSocketServer.isOpen()) webSocketServer.stop();
             if (webServer != null) {
                 debug("Stopping undertow...");
                 webServer.stop();
-            }
+            }*/
         } catch (Exception e) {
             /*e.printStackTrace();*/
         }
