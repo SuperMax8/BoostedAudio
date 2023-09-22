@@ -29,8 +29,8 @@ public class RTCIcePacket implements Packet {
             User remoteUser = server.manager.getUsers().get(to);
             if (remoteUser != null) remoteUser.sendPacket(this);
         } else {
-            user.getSession().close();
-            BoostedAudio.debug("KickICE");
+           /* user.getSession().close();
+            BoostedAudio.debug("KickICE");*/
         }
     }
 

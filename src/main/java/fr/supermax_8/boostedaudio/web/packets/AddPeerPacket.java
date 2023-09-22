@@ -31,8 +31,8 @@ public class AddPeerPacket implements Packet {
         if (user.getRemotePeers().contains(to))
             server.manager.getUsers().get(to).sendPacket(this);
         else {
-            user.getSession().close();
-            BoostedAudio.debug("KickPEER");
+            /*user.getSession().close();
+            BoostedAudio.debug("KickPEER");*/
         }
     }
 

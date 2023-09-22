@@ -28,8 +28,8 @@ public class RemoveAudioPacket implements Packet {
         Map<UUID, Audio> audioMap = session.getPlayingAudio();
         Audio audio = audioMap.get(uuid);
         if (audio == null) {
-            session.getSession().close();
-            BoostedAudio.debug("RemoveAudioPacket close() session");
+            /*session.getSession().close();
+            BoostedAudio.debug("RemoveAudioPacket close() session");*/
             return;
         }
         if (audio.isLoop()) {

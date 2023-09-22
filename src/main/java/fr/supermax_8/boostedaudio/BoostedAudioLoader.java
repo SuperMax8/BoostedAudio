@@ -1,8 +1,10 @@
 package fr.supermax_8.boostedaudio;
 
+import fr.supermax_8.boostedaudio.utils.FileUtils;
 import fr.supermax_8.jarloader.JarDependency;
 import fr.supermax_8.jarloader.JarLoader;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,8 +45,32 @@ public class BoostedAudioLoader extends JavaPlugin {
             if (BoostedAudio.getInstance().getConfiguration().isDebugMode()) e.printStackTrace();
         }
 
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                int pluginId = 19857;
+                Metrics metrics = new Metrics(BoostedAudioLoader.getInstance(), pluginId);
+                metrics.addCustomChart(new Metrics.SimplePie("sucessful_setup", () -> String.valueOf(boostedAudio.isSucessfulSetup())));
+                metrics.addCustomChart(new Metrics.SimplePie("ffmpeg_setuped", () -> String.valueOf(FileUtils.ffmpeg != null)));
+                metrics.addCustomChart(new Metrics.SingleLineChart("players_connected_to_audio_panel", () ->
+                        BoostedAudio.getInstance().getWebSocketServer().manager.getUsers().size()));
+                metrics.addCustomChart(new Metrics.SimplePie("nbspeakers", () -> intMetricToEzReadString(BoostedAudio.getInstance().getAudioManager().getSpeakerManager().speakers.size())));
+                metrics.addCustomChart(new Metrics.SimplePie("nbregions", () -> intMetricToEzReadString(BoostedAudio.getInstance().getAudioManager().getRegionManager().getAudioRegions().size())));
+            }
+        }.runTaskLater(this, 20 * 5);
+
         boostedAudio = new BoostedAudio();
         boostedAudio.onEnable();
+    }
+
+    private String intMetricToEzReadString(int metrics) {
+        if (metrics >= 1000) return "> 1000 (WOW)";
+        if (metrics >= 200) return "> 200";
+        if (metrics >= 100) return "> 100";
+        if (metrics >= 30) return "> 30";
+        if (metrics >= 10) return "> 10";
+        if (metrics >= 5) return "> 5";
+        return "0";
     }
 
     @Override

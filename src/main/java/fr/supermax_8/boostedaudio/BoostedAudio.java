@@ -68,6 +68,8 @@ public class BoostedAudio {
     private File webserver;
     private File audioDir;
 
+    private boolean sucessfulSetup = false;
+
     private LinkedList<Listener> listeners;
 
     public void onEnable() {
@@ -75,6 +77,7 @@ public class BoostedAudio {
         loader = BoostedAudioLoader.getInstance();
         VERSION = loader.getDescription().getVersion();
         listeners = new LinkedList<>();
+
 
         try {
             NumberFormat f = NumberFormat.getInstance();
@@ -115,7 +118,7 @@ public class BoostedAudio {
         try {
             if (!configuration.isNotification()) return;
             BoostedAudio.info("Checking for updates...");
-            new UpdateChecker(BoostedAudioLoader.getInstance(), Integer.parseInt("%%__RESOURCE__%%")).getVersion(v -> {
+            new UpdateChecker(BoostedAudioLoader.getInstance(), 112747).getVersion(v -> {
                 if (v.equals(VERSION)) return;
                 new BukkitRunnable() {
                     @Override
@@ -276,6 +279,7 @@ public class BoostedAudio {
         CompletableFuture.runAsync(() -> {
             webSocketServer.run();
         });
+        sucessfulSetup = true;
     }
 
     private String getPublicIp() {
@@ -359,6 +363,10 @@ public class BoostedAudio {
 
     public boolean isPremium() {
         return false;
+    }
+
+    public boolean isSucessfulSetup() {
+        return sucessfulSetup;
     }
 
 }
