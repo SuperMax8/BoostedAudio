@@ -2,8 +2,10 @@ package fr.supermax_8.boostedaudio.web.packets;
 
 import fr.supermax_8.boostedaudio.BoostedAudio;
 import fr.supermax_8.boostedaudio.BoostedAudioConfiguration;
+import fr.supermax_8.boostedaudio.ingame.RegionManager;
 import fr.supermax_8.boostedaudio.web.*;
 
+import javax.swing.plaf.synth.Region;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,9 +40,10 @@ public class TrustPacket implements Packet {
             BoostedAudio.debug("New trusted: " + playerId);
             BoostedAudioConfiguration configuration = BoostedAudio.getInstance().getConfiguration();
             newUser.sendPacket(new TrustPacket(null, new ServerInfo(
-                    configuration.getMaxVoiceDistance(), configuration.getRolloffFactor(), configuration.getRefDistance(), configuration.getDistanceModel())
+                    configuration.getMaxVoiceDistance(), configuration.getRolloffFactor(), configuration.getRefDistance(), configuration.getDistanceModel(), playerId.toString())
             ));
-            BoostedAudio.getInstance().getAudioManager().getRegionManager().getInfoMap().get(playerId).setLastRegions(new CopyOnWriteArrayList<>());
+            RegionManager manager1 = BoostedAudio.getInstance().getAudioManager().getRegionManager();
+            if (manager1 != null) manager1.getInfoMap().get(playerId).setLastRegions(new CopyOnWriteArrayList<>());
         } else {
             user.getSession().close();
             BoostedAudio.debug("onReceive close() session");
@@ -59,12 +62,14 @@ public class TrustPacket implements Packet {
         private final float rolloffFactor;
         private final float refDistance;
         private final String distanceModel;
+        private final String playerId;
 
-        public ServerInfo(double maxDistance, float rolloffFactor, float refDistance, String distanceModel) {
+        public ServerInfo(double maxDistance, float rolloffFactor, float refDistance, String distanceModel, String playerId) {
             this.maxDistance = maxDistance;
             this.rolloffFactor = rolloffFactor;
             this.refDistance = refDistance;
             this.distanceModel = distanceModel;
+            this.playerId = playerId;
         }
 
     }

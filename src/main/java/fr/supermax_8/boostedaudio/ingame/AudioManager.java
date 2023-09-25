@@ -36,7 +36,13 @@ public class AudioManager extends BukkitRunnable {
     private File data;
 
     public AudioManager() {
-        regionManager = RegionManager.create();
+        RegionManager regionManager1;
+        try {
+            regionManager1 = RegionManager.create();
+        } catch (Throwable e) {
+            regionManager1 = null;
+        }
+        regionManager = regionManager1;
         speakerManager = new SpeakerManager();
         loadData();
     }
@@ -310,7 +316,7 @@ public class AudioManager extends BukkitRunnable {
             usr1.getRemotePeers().add(id2);
             usr2.getRemotePeers().add(id1);
 
-            AddPeerPacket peerPacket = new AddPeerPacket(new AddPeerPacket.RTCDescription("", "createoffer"), usr1.getPlayerId(), usr2.getPlayerId());
+            AddPeerPacket peerPacket = new AddPeerPacket(new AddPeerPacket.RTCDescription("", "createoffer"), usr1.getPlayerId(), usr2.getPlayerId(), Bukkit.getPlayer(usr1.getPlayerId()).getName());
 
             usr2.sendPacket(peerPacket);
         }

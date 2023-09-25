@@ -22,7 +22,7 @@ import java.util.UUID;
 
 public class AudioCommand implements CommandExecutor {
 
-    private static final int TOKEN_LENGTH = 8;
+    private static int TOKEN_LENGTH = 3;
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -35,12 +35,17 @@ public class AudioCommand implements CommandExecutor {
         return false;
     }
 
-    public static String generateToken() {
+    public static String generateConnectionToken() {
         SecureRandom random = new SecureRandom();
         byte[] tokenBytes = new byte[TOKEN_LENGTH];
         random.nextBytes(tokenBytes);
 
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+        if (BoostedAudio.getInstance().getWebSocketServer().manager.getPlayerTokens().values().contains(token)) {
+            TOKEN_LENGTH++;
+            return generateConnectionToken();
+        }
+        return token;
     }
 
     public static void sendConnectMessage(Player p) {
@@ -55,14 +60,15 @@ public class AudioCommand implements CommandExecutor {
                 BoostedAudio.debug("sendConnectMessage close() session");
             }
         }
-        String token = generateToken();
+        String token = generateConnectionToken();
         tokenMap.put(playerId, token);
 
         BoostedAudioConfiguration configuration = BoostedAudio.getInstance().getConfiguration();
-        TextComponent text = MessageUtils.colorFormatToTextComponent(new StringBuilder(configuration.getConnectionMessage()));
+
+        String link = BoostedAudio.getInstance().getConfiguration().getClientLink() + "?t=" + token;
+        TextComponent text = MessageUtils.colorFormatToTextComponent(new StringBuilder(configuration.getConnectionMessage().replace("{link}", link)));
         text.setColor(ChatColor.GOLD);
 
-        String link = BoostedAudio.getInstance().getConfiguration().getClientLink() + "?token=" + token + "&playerId=" + playerId;
         text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
         text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(configuration.getConnectionHoverMessage())).toString()).create()));
 

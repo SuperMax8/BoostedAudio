@@ -55,9 +55,15 @@ public class BoostedAudioLoader extends JavaPlugin {
                 metrics.addCustomChart(new Metrics.SingleLineChart("players_connected_to_audio_panel", () ->
                         BoostedAudio.getInstance().getWebSocketServer().manager.getUsers().size()));
                 metrics.addCustomChart(new Metrics.SimplePie("nbspeakers", () -> intMetricToEzReadString(BoostedAudio.getInstance().getAudioManager().getSpeakerManager().speakers.size())));
-                metrics.addCustomChart(new Metrics.SimplePie("nbregions", () -> intMetricToEzReadString(BoostedAudio.getInstance().getAudioManager().getRegionManager().getAudioRegions().size())));
+                metrics.addCustomChart(new Metrics.SimplePie("nbregions", () -> {
+                    try {
+                        return intMetricToEzReadString(BoostedAudio.getInstance().getAudioManager().getRegionManager().getAudioRegions().size());
+                    } catch (Exception e) {
+                        return "No regions";
+                    }
+                }));
             }
-        }.runTaskLater(this, 20 * 5);
+        }.runTaskLater(instance, 20 * 5);
 
         boostedAudio = new BoostedAudio();
         boostedAudio.onEnable();

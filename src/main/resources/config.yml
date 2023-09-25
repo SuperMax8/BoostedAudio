@@ -22,7 +22,7 @@ ssl:
 # WebSocket
 webSocket:
   webSocketPort: 8081
-  webSocketHostName: localhost
+  webSocketHostName: 0.0.0.0
 
 #VoiceChat
 voicechat:
@@ -53,6 +53,8 @@ sendOnConnectDelay: 30
 customClient: false
 
 # Messages
+# If you want to add the generated url in the message for example geyser compatibility you can add the placeholder {link} in the message
+# connectionMessage: "§6Join the audio client by clicking here! Link: {link}"
 connectionMessage: "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"
 

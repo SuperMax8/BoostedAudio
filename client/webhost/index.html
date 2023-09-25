@@ -424,10 +424,11 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             case "AddPeerPacket":
                 from = packet.from;
                 to = packet.to;
+                let username = packet.username;
                 switch (packet.rtcDesc.type) {
                     // Packet action from server
                     case "createoffer":
-                        pc = await createPeerConnection(from)
+                        pc = await createPeerConnection(from, username)
                         const offer = await pc.createOffer()
                         await pc.setLocalDescription(offer)
 
@@ -437,6 +438,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                                 "value": {
                                     "from": playerId,
                                     "to": from,
+                                    "username": "",
                                     "rtcDesc": {
                                         "type": offer.type,
                                         "sdp": offer.sdp,
@@ -452,7 +454,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     // Packet action from other user, check by server
                     // Receive offer
                     case "offer":
-                        pc = await createPeerConnection(from)
+                        pc = await createPeerConnection(from, username)
                         const desc = new RTCSessionDescription(packet.rtcDesc);
                         await pc.setRemoteDescription(desc)
 
@@ -465,6 +467,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                                 "value": {
                                     "from": to,
                                     "to": from,
+                                    "username": "",
                                     "rtcDesc": {
                                         "type": answer.type,
                                         "sdp": answer.sdp,
@@ -634,6 +637,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 rolloffFactor = serverInfo.rolloffFactor;
                 refDistance = serverInfo.refDistance;
                 distanceModel = serverInfo.distanceModel;
+                playerId = serverInfo.playerId;
                 console.log("ServerInfo set")
                 serverInfoSet = true;
                 initWithServerInfo()
@@ -749,7 +753,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         return degrees * (pi / 180);
     }
 
-    async function createPeerConnection(from) {
+    async function createPeerConnection(from, username) {
         console.log("New RTCPeerConnection")
         let pc = new RTCPeerConnection(servers)
         if (peerConnections.has(from)) closePeerConnection(peerConnections.get(from))
@@ -775,6 +779,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             gain: gain,
             gainValue: 1,
             playerId: from,
+            username: username,
             mute: false,
             loc: null,
             element: null
@@ -851,15 +856,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
     function showUser(peerObj) {
         return new Promise(async (resolve, reject) => {
-            let userName = peerObj.playerId;
-            try {
-                const url = 'https://corsproxy.io/?' + encodeURIComponent('https://sessionserver.mojang.com/session/minecraft/profile/' + peerObj.playerId + '?unsigned=false');
-                const response = await fetch(url);
-                userName = JSON.parse(await response.text()).name;
-            } catch (ee) {
-                console.log("Error fetching user name, mojang api down ?")
-                console.log(ee)
-            }
+            let userName = peerObj.username;
 
             const element = htmlStringToElement(userTemplate)
             const nameElement = element.getElementsByClassName("username").item(0)
@@ -887,7 +884,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             element.id = peerObj.playerId
 
             nameElement.textContent = userName;
-            logoElement.src = "https://cravatar.eu/avatar/" + userName + "/512.png"
+            logoElement.src = "https://cravatar.eu/avatar/" + peerObj.playerId + "/512.png"
 
             peerObj.element = element;
 
@@ -913,7 +910,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         const trustPacket = [{
             "type": "TrustPacket",
             "value": {
-                "token": params.get("token")
+                "token": params.get("t")
             }
         }]
 
@@ -991,9 +988,11 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         muteButton.addEventListener('click', e => {
             muteButton.classList.add('hidden');
             mutedButton.classList.remove('hidden');
-            micStream.getTracks().forEach(t => {
-                t.enabled = false
-            })
+            if (micStream)
+                micStream.getTracks().forEach(t => {
+                    t.enabled = false
+                })
+            else console.log("MicStream is null, this mean you browser certainly don't have access to your mic")
         });
 
         mutedButton.addEventListener('click', e => {
@@ -1005,12 +1004,11 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         });
 
         function connectWebSocket() {
-            if (!params.has("token") || !params.has("playerId")) {
-                console.log("Without token or playerId this will not connected to the websocket")
+            if (!params.has("t")) {
+                alert("Without token the client can't connect")
+                console.log("Without token this will not connected to the websocket")
                 return
             }
-
-            playerId = params.get("playerId");
 
             console.log("Starting WebSocket...")
             ws = new WebSocket(wsIP);

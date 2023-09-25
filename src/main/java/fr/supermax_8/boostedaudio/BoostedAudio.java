@@ -72,12 +72,14 @@ public class BoostedAudio {
 
     private LinkedList<Listener> listeners;
 
+    private static final String premiumStr = "${is.premium}";
+    private static final boolean premium = Boolean.parseBoolean(premiumStr);
+
     public void onEnable() {
         BoostedAudio.instance = this;
         loader = BoostedAudioLoader.getInstance();
         VERSION = loader.getDescription().getVersion();
         listeners = new LinkedList<>();
-
 
         try {
             NumberFormat f = NumberFormat.getInstance();
@@ -145,15 +147,6 @@ public class BoostedAudio {
         if (aroundManager != null) aroundManager.cancel();
         if (audioManager != null) audioManager.cancel();
         HandlerList.unregisterAll(BoostedAudioLoader.getInstance());
-        try {
-            /*if (webSocketServer != null && webSocketServer.isOpen()) webSocketServer.stop();
-            if (webServer != null) {
-                debug("Stopping undertow...");
-                webServer.stop();
-            }*/
-        } catch (Exception e) {
-            /*e.printStackTrace();*/
-        }
     }
 
     public void onDisable() {
@@ -278,8 +271,8 @@ public class BoostedAudio {
         webSocketServer.setTcpNoDelay(true);
         CompletableFuture.runAsync(() -> {
             webSocketServer.run();
+            sucessfulSetup = true;
         });
-        sucessfulSetup = true;
     }
 
     private String getPublicIp() {
