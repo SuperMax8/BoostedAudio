@@ -6,23 +6,7 @@
 
     <groupId>fr.supermax_8.boostedaudio</groupId>
     <artifactId>BoostedAudio</artifactId>
-    <version>1.1.0</version>
-
-    <profiles>
-        <profile>
-            <id>FREE</id>
-            <properties>
-                <is.premium>false</is.premium>
-            </properties>
-        </profile>
-        <profile>
-            <id>PREMIUM</id>
-            <properties>
-                <is.premium>true</is.premium>
-            </properties>
-        </profile>
-    </profiles>
-
+    <version>1.1.1</version>
 
     <build>
         <plugins>
@@ -38,7 +22,7 @@
                     </compilerArguments>-->
                 </configuration>
             </plugin>
-            <plugin>
+<!--            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.1</version>
@@ -58,7 +42,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
         </plugins>
         <resources>
             <resource>
@@ -117,7 +101,8 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <version>2.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.undertow</groupId>

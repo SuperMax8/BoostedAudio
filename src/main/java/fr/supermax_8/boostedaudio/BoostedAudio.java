@@ -67,13 +67,8 @@ public class BoostedAudio {
     private AudioManager audioManager;
     private File webserver;
     private File audioDir;
-
     private boolean sucessfulSetup = false;
-
     private LinkedList<Listener> listeners;
-
-    private static final String premiumStr = "${is.premium}";
-    private static final boolean premium = Boolean.parseBoolean(premiumStr);
 
     public void onEnable() {
         BoostedAudio.instance = this;
@@ -96,21 +91,31 @@ public class BoostedAudio {
 
     public void reload() {
         info("Plugin load...");
+        /*debug("GSon version: " + Gson);*/
         stop();
         aroundManager = new AroundManager();
         configuration = new BoostedAudioConfiguration();
-        CompletableFuture.runAsync(this::startServers);
+        CompletableFuture.runAsync(() -> {
+            try {
+                startServers();
+            } catch (Throwable ex) {
+                debug("Error while starting servers");
+                if (configuration.isDebugMode()) ex.printStackTrace();
+            }
+        });
         new BukkitRunnable() {
             @Override
             public void run() {
                 if (webSocketServer != null && webSocketServer.isOpen()) {
                     cancel();
+                    info("AudioManager starting...");
                     audioManager = new AudioManager();
                     audioManager.runTaskTimerAsynchronously(loader, 0, 0);
                     PlayerListener playerListener = new PlayerListener();
                     loader.getServer().getPluginManager().registerEvents(playerListener, loader);
                     listeners.add(playerListener);
                     Bukkit.getOnlinePlayers().forEach(player -> playerListener.join(new PlayerJoinEvent(player, null)));
+                    info("AudioManager started !");
                 }
             }
         }.runTaskTimerAsynchronously(loader, 0, 0);
@@ -355,7 +360,7 @@ public class BoostedAudio {
     }
 
     public boolean isPremium() {
-        return false;
+        return true;
     }
 
     public boolean isSucessfulSetup() {

@@ -34,7 +34,7 @@ public class PacketList {
         @Override
         public PacketList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             List<Packet> packets = new ArrayList<>();
-            json.getAsJsonArray().asList().forEach(jsonElement -> {
+            json.getAsJsonArray().forEach(jsonElement -> {
                 JsonObject jsonObject = jsonElement.getAsJsonObject();
                 String type = jsonObject.get("type").getAsString();
                 JsonElement valueElement = jsonObject.get("value");

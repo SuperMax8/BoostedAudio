@@ -7,6 +7,7 @@ import fr.supermax_8.boostedaudio.commands.AudioCommand;
 import fr.supermax_8.boostedaudio.web.User;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -16,23 +17,23 @@ import java.util.concurrent.CompletableFuture;
 
 public class PlayerListener implements Listener {
 
-    private final BoostedAudioConfiguration config = BoostedAudio.getInstance().getConfiguration();
     private String data = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
 
     @EventHandler
     public void join(PlayerJoinEvent e) {
-        RegionManager regionManager = BoostedAudio.getInstance().getAudioManager().getRegionManager();
-        if (regionManager == null) return;
         Player p = e.getPlayer();
-        regionManager.getInfoMap().put(p.getUniqueId(), new RegionManager.RegionInfo());
-        if (config.isSendOnConnect()) {
+        BoostedAudioConfiguration config = BoostedAudio.getInstance().getConfiguration();
+        if (config.isSendOnConnect())
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     AudioCommand.sendConnectMessage(p);
                 }
             }.runTaskLaterAsynchronously(BoostedAudioLoader.getInstance(), config.getSendOnConnectDelay());
-        }
+
+        RegionManager regionManager = BoostedAudio.getInstance().getAudioManager().getRegionManager();
+        if (regionManager == null) return;
+        regionManager.getInfoMap().put(p.getUniqueId(), new RegionManager.RegionInfo());
     }
 
     @EventHandler

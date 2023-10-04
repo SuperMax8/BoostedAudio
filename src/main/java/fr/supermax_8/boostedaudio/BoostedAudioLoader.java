@@ -1,5 +1,7 @@
 package fr.supermax_8.boostedaudio;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import fr.supermax_8.boostedaudio.utils.FileUtils;
 import fr.supermax_8.jarloader.JarDependency;
 import fr.supermax_8.jarloader.JarLoader;
@@ -8,6 +10,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +27,7 @@ public class BoostedAudioLoader extends JavaPlugin {
             "https://repo.codemc.io/repository/maven-public/org/codemc/worldguardwrapper/worldguardwrapper/1.2.1-SNAPSHOT/worldguardwrapper-1.2.1-20230624.184959-2.jar",
             "https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.5.0/Java-WebSocket-1.5.0.jar",
             "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar",
+            "https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.jar",
             "https://repo1.maven.org/maven2/net/bramp/ffmpeg/ffmpeg/0.7.0/ffmpeg-0.7.0.jar",
 /*            "https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.76/bcprov-jdk18on-1.76.jar",
             "https://repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.76/bcpkix-jdk18on-1.76.jar",*/

@@ -3,6 +3,7 @@ package fr.supermax_8.boostedaudio;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 public class BoostedAudioConfiguration {
@@ -34,6 +35,7 @@ public class BoostedAudioConfiguration {
 
     public BoostedAudioConfiguration() {
         load();
+        BoostedAudio.info("Configuratuion loaded");
     }
 
     private void load() {
@@ -79,6 +81,23 @@ public class BoostedAudioConfiguration {
         connectionHoverMessage = config.getString("connectionHoverMessage", "Click here");
 
         clientConfig = config.getStringList("clientConfig");
+        if (isDebugMode()) showConfiguration();
+    }
+
+    public void showConfiguration() {
+        Class<?> classs = this.getClass();
+        Field[] fields = classs.getDeclaredFields();
+
+        System.out.println("Instance of class " + classs.getName());
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                Object value = field.get(this);
+                System.out.println(field.getName() + ": " + value);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public List<String> getClientConfig() {

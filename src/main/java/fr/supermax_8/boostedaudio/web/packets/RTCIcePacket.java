@@ -53,7 +53,7 @@ public class RTCIcePacket implements Packet {
             object.addProperty("type", rtcIcePacket.type);
             object.addProperty("from", rtcIcePacket.from.toString());
             object.addProperty("to", rtcIcePacket.to.toString());
-            object.add("candidate", JsonParser.parseString(rtcIcePacket.candidate).getAsJsonObject());
+            object.add("candidate", new JsonParser().parse(rtcIcePacket.candidate).getAsJsonObject());
             return object;
         }
 
