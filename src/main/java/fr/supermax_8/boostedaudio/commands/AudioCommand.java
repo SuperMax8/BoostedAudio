@@ -22,8 +22,7 @@ import java.util.UUID;
 
 public class AudioCommand implements CommandExecutor {
 
-    private static final int TOKEN_LENGTH = 32;
-
+    private static int TOKEN_LENGTH = 3;
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -32,42 +31,48 @@ public class AudioCommand implements CommandExecutor {
             return false;
         }
         Player p = (Player) sender;
+        sendConnectMessage(p);
+        return false;
+    }
+
+    public static String generateConnectionToken() {
+        SecureRandom random = new SecureRandom();
+        byte[] tokenBytes = new byte[TOKEN_LENGTH];
+        random.nextBytes(tokenBytes);
+
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+        if (BoostedAudio.getInstance().getWebSocketServer().manager.getPlayerTokens().values().contains(token)) {
+            TOKEN_LENGTH++;
+            return generateConnectionToken();
+        }
+        return token;
+    }
+
+    public static void sendConnectMessage(Player p) {
         UUID playerId = p.getUniqueId();
 
         ConnectionManager manager = BoostedAudio.getInstance().getWebSocketServer().manager;
         Map<UUID, String> tokenMap = manager.getPlayerTokens();
         if (tokenMap.containsKey(playerId)) {
             User user = manager.getUsers().get(playerId);
-            if (user != null) user.getSession().close();
+            if (user != null) {
+                user.getSession().close();
+                BoostedAudio.debug("sendConnectMessage close() session");
+            }
         }
-        String token = generateToken();
+        String token = generateConnectionToken();
         tokenMap.put(playerId, token);
 
         BoostedAudioConfiguration configuration = BoostedAudio.getInstance().getConfiguration();
-        TextComponent text = MessageUtils.colorFormatToTextComponent(new StringBuilder(configuration.getConnectionMessage()));
+
+        String link = BoostedAudio.getInstance().getConfiguration().getClientLink() + "?t=" + token;
+        TextComponent text = MessageUtils.colorFormatToTextComponent(new StringBuilder(configuration.getConnectionMessage().replace("{link}", link)));
         text.setColor(ChatColor.GOLD);
 
-        String link = BoostedAudio.getInstance().getConfiguration().getClientLink() + "?token=" + token + "&playerId=" + playerId;
         text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
         text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(configuration.getConnectionHoverMessage())).toString()).create()));
 
         p.spigot().sendMessage(text);
-        /*ConnectionManager manager = BoostedAudio.getInstance().getWebSocketServer().manager;
-        List<UUID> list = manage r.getUsers().values().stream().map(User::getPlayerId).collect(Collectors.toList());
-        manager.getUsers().forEach((id, user) -> {
-            List<UUID> exclude = new LinkedList<>(list);
-            exclude.remove(id);
-            manager.setRemotePeers(id, exclude);
-        });*/
-        return false;
-    }
-
-    public static String generateToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] tokenBytes = new byte[TOKEN_LENGTH];
-        random.nextBytes(tokenBytes);
-
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
     }
 
 }

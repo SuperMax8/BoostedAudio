@@ -1,9 +1,14 @@
 package fr.supermax_8.boostedaudio;
 
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+
+import java.lang.reflect.Field;
+import java.util.List;
 
 public class BoostedAudioConfiguration {
+
+    private String data = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
 
     private boolean debugMode;
     private String clientLink;
@@ -19,20 +24,29 @@ public class BoostedAudioConfiguration {
     private String distanceModel;
     private float refDistance;
     private float rolloffFactor;
+    private boolean sendOnConnect;
+    private int sendOnConnectDelay;
+    private boolean customClient;
     private String connectionMessage;
     private String connectionHoverMessage;
+    private List<String> clientConfig;
+    private String clientWebSocketLink;
+    private boolean notification;
 
     public BoostedAudioConfiguration() {
         load();
+        BoostedAudio.info("Configuratuion loaded");
     }
 
     private void load() {
-        BoostedAudio.getInstance().saveDefaultConfig();
-        FileConfiguration config = BoostedAudio.getInstance().getConfig();
+        BoostedAudioLoader.getInstance().saveDefaultConfig();
+        FileConfiguration config = BoostedAudioLoader.getInstance().getConfig();
 
+        notification = config.getBoolean("notification", true);
         debugMode = config.getBoolean("debugMode");
 
         clientLink = config.getString("client-link", "http://localhost:8080");
+        clientWebSocketLink = config.getString("clientWebSocketLink", "ws://localhost:8081");
         autoHost = config.getBoolean("autoHost", true);
         autoHostPort = config.getInt("autoHostPort", 8080);
 
@@ -54,15 +68,44 @@ public class BoostedAudioConfiguration {
             voiceChatEnabled = voiceChatSection.getBoolean("voicechat", true);
             maxVoiceDistance = (float) voiceChatSection.getDouble("maxVoiceDistance", 30);
             distanceModel = voiceChatSection.getString("distanceModel", "exponential");
-            refDistance = (float) voiceChatSection.getDouble("refDistance", 3);
-            rolloffFactor = (float) voiceChatSection.getDouble("rolloffFactor", 2);
+            refDistance = (float) voiceChatSection.getDouble("refDistance", 4);
+            rolloffFactor = (float) voiceChatSection.getDouble("rolloffFactor", 1);
         }
+
+        sendOnConnect = config.getBoolean("sendOnConnect", true);
+        sendOnConnectDelay = config.getInt("sendOnConnectDelay", 30);
+
+        customClient = config.getBoolean("customClient", false);
 
         connectionMessage = config.getString("connectionMessage", "§6Join the audio client by clicking here!");
         connectionHoverMessage = config.getString("connectionHoverMessage", "Click here");
+
+        clientConfig = config.getStringList("clientConfig");
+        if (isDebugMode()) showConfiguration();
+    }
+
+    public void showConfiguration() {
+        Class<?> classs = this.getClass();
+        Field[] fields = classs.getDeclaredFields();
+
+        System.out.println("Instance of class " + classs.getName());
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                Object value = field.get(this);
+                System.out.println(field.getName() + ": " + value);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public List<String> getClientConfig() {
+        return clientConfig;
     }
 
     public boolean isDebugMode() {
+        if (debugMode) System.out.println("DebugMode: ");
         return debugMode;
     }
 
@@ -98,6 +141,14 @@ public class BoostedAudioConfiguration {
         return webSocketHostName;
     }
 
+    public boolean isNotification() {
+        return notification;
+    }
+
+    public String getClientWebSocketLink() {
+        return clientWebSocketLink;
+    }
+
     public boolean isVoiceChatEnabled() {
         return voiceChatEnabled;
     }
@@ -116,6 +167,18 @@ public class BoostedAudioConfiguration {
 
     public float getRolloffFactor() {
         return rolloffFactor;
+    }
+
+    public boolean isSendOnConnect() {
+        return sendOnConnect;
+    }
+
+    public int getSendOnConnectDelay() {
+        return sendOnConnectDelay;
+    }
+
+    public boolean isCustomClient() {
+        return customClient;
     }
 
     public String getConnectionMessage() {

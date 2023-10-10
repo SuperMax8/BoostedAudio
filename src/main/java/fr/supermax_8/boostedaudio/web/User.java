@@ -1,36 +1,26 @@
 package fr.supermax_8.boostedaudio.web;
 
 import fr.supermax_8.boostedaudio.BoostedAudio;
+import fr.supermax_8.boostedaudio.web.packets.AddAudioPacket;
+import fr.supermax_8.boostedaudio.web.packets.PausePlayAudioPacket;
+import fr.supermax_8.boostedaudio.web.packets.RemoveAudioPacket;
 import org.java_websocket.WebSocket;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class User {
 
     private final Set<UUID> remotePeers = new HashSet<>();
+    private final Map<UUID, Audio> playingAudio = new HashMap<>();
     private final WebSocket session;
     private final String connectionToken;
     private final UUID playerId;
-
-    /**
-     * Use only this constructor if you only want to use the hashcode method of this class
-     *
-     * @param session The sessionq
-     */
-    public User(WebSocket session) {
-        this.session = session;
-        connectionToken = null;
-        playerId = null;
-    }
 
     public User(WebSocket session, String connectionToken, UUID playerId) {
         this.session = session;
         this.connectionToken = connectionToken;
         this.playerId = playerId;
     }
-
 
     public Set<UUID> getRemotePeers() {
         return remotePeers;
@@ -48,21 +38,82 @@ public class User {
         return playerId;
     }
 
-    @Override
-    public int hashCode() {
-        return session.hashCode();
+    public Map<UUID, Audio> getPlayingAudio() {
+        return playingAudio;
     }
 
-    public void send(Packet... packets) {
-        send(new PacketList(packets));
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fade) {
+        return playAudio(link, spatialInfo, fade, fade, false);
     }
 
-    public void send(PacketList packetList) {
+    public Audio playAudio(String link, int fade) {
+        return playAudio(link, null, fade, fade, false);
+    }
+
+    public Audio playAudio(String link, int fadeIn, int fadeOut) {
+        return playAudio(link, null, fadeIn, fadeOut, false);
+    }
+
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop) {
+        UUID id = UUID.randomUUID();
+        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop);
+        playAudio(audio);
+        return audio;
+    }
+
+    public void playAudio(Audio audio) {
+        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
+        playingAudio.put(audio.getId(), audio);
+        sendPacket(packet);
+    }
+
+    public Audio pauseAudio(String link) {
+        Audio audio = null;
+        for (Audio audio1 : playingAudio.values()) if (audio1.getLink().equals(link)) audio = audio1;
+        if (audio != null) pauseAudio(audio);
+        return audio;
+    }
+
+    public Audio pauseAudio(UUID id) {
+        Audio audio = playingAudio.get(id);
+        pauseAudio(audio);
+        return audio;
+    }
+
+    public void pauseAudio(Audio audio) {
+        PausePlayAudioPacket packet = new PausePlayAudioPacket(audio.getId(), audio.getFadeOut());
+        sendPacket(packet);
+    }
+
+
+    public Audio stopAudio(String link) {
+        Audio audio = null;
+        for (Audio audio1 : playingAudio.values()) if (audio1.getLink().equals(link)) audio = audio1;
+        if (audio != null) stopAudio(audio);
+        return audio;
+    }
+
+    public Audio stopAudio(UUID id) {
+        Audio audio = playingAudio.get(id);
+        stopAudio(audio);
+        return audio;
+    }
+
+    public void stopAudio(Audio audio) {
+        RemoveAudioPacket packet = new RemoveAudioPacket(audio.getId(), audio.getFadeOut());
+        sendPacket(packet);
+    }
+
+    public void sendPacket(Packet... packets) {
+        sendPacket(new PacketList(packets));
+    }
+
+    public void sendPacket(PacketList packetList) {
         String packet = BoostedAudio.getGson().toJson(packetList);
-        send(packet);
+        sendPacket(packet);
     }
 
-    public void send(String packet) {
+    public void sendPacket(String packet) {
         if (session.isOpen()) session.send(packet);
     }
 

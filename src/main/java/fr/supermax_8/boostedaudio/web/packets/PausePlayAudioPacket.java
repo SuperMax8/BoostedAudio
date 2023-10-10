@@ -7,12 +7,18 @@ import fr.supermax_8.boostedaudio.web.User;
 
 import java.util.UUID;
 
-public class RemovePeerPacket implements Packet {
+public class PausePlayAudioPacket implements Packet {
 
-    private final UUID playerToRemove;
+    private UUID uuid;
 
-    public RemovePeerPacket(UUID playerToRemove) {
-        this.playerToRemove = playerToRemove;
+    /**
+     * Fade in ms
+     */
+    private int fade;
+
+    public PausePlayAudioPacket(UUID uuid, int fade) {
+        this.uuid = uuid;
+        this.fade = fade;
     }
 
     @Override

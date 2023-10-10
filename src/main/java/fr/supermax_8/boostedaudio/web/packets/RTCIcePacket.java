@@ -25,11 +25,12 @@ public class RTCIcePacket implements Packet {
 
     @Override
     public void onReceive(User user, AudioWebSocketServer server) {
-        if (user.getRemotePeers().contains(to))
-            server.manager.getUsers().get(to).send(this);
-        else {
-            user.getSession().close();
-            BoostedAudio.debug("KickICE");
+        if (user.getRemotePeers().contains(to)) {
+            User remoteUser = server.manager.getUsers().get(to);
+            if (remoteUser != null) remoteUser.sendPacket(this);
+        } else {
+           /* user.getSession().close();
+            BoostedAudio.debug("KickICE");*/
         }
     }
 
@@ -52,7 +53,7 @@ public class RTCIcePacket implements Packet {
             object.addProperty("type", rtcIcePacket.type);
             object.addProperty("from", rtcIcePacket.from.toString());
             object.addProperty("to", rtcIcePacket.to.toString());
-            object.add("candidate", JsonParser.parseString(rtcIcePacket.candidate).getAsJsonObject());
+            object.add("candidate", new JsonParser().parse(rtcIcePacket.candidate).getAsJsonObject());
             return object;
         }
 
