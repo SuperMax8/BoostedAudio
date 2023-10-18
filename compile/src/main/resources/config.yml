@@ -1,0 +1,96 @@
+# Show debug messages, websocket connections and others, useful if you want to come on the discord for support
+debugMode: false
+
+# Update notifications and others
+notification: true
+
+# If true the plugin will set to diffuser mode and will send data to the other instance of the plugin normally setuped on your bungee
+bungeecoord: false
+
+# Web client
+client-link: https://localhost:8080
+# Web Socket
+clientWebSocketLink: wss://localhost:8081
+
+# The self-host web server, useful to host the audio panel and audio files
+autoHost: true
+autoHostPort: 8080
+
+# SSL, ssl will be used for WebClient if enabled and websocket
+ssl:
+  ssl: false
+  keystorePassword: "YOUR_PASSWORD"
+  keystoreFileName: "keystore.jks"
+
+# WebSocket
+webSocket:
+  webSocketPort: 8081
+  webSocketHostName: 0.0.0.0
+
+#VoiceChat
+voicechat:
+  # If the system is enabled
+  voicechat: true
+
+  # The maximum distance at which players can be heard
+  maxVoiceDistance: 30
+
+  # The calculation model for the distance volume attenuation
+  # linear, inverse, exponential
+  distanceModel: exponential
+
+  # This property defines the distance from which the sound begins to attenuate
+  refDistance: 4
+
+  # This property controls how quickly the sound attenuates as distance increases
+  rolloffFactor: 1
+
+# Send the connection message when the player connects
+sendOnConnect: true
+# Delay of the connection message in tick when the player connects
+sendOnConnectDelay: 30
+
+# Don't use if you are not sure
+# If this is true that means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
+# this property allows you to fully customize the client by modifying the code of the client
+customClient: false
+
+# Messages
+# If you want to add the generated url in the message for example geyser compatibility you can add the placeholder {link} in the message
+# connectionMessage: "§6Join the audio client by clicking here! Link: {link}"
+connectionMessage: "§6Join the audio client by clicking here!"
+connectionHoverMessage: "Click here"
+
+# Premium settings
+# Custom placeholder in the client html, if you custom the client you even can add new placeholder if you need it,
+# inside placeholder you can use html directly (if the placeholder target is not a tag parameter)
+# if you want more customization with like images or things
+clientConfig:
+  # Custom Colors
+  - "{mainColor}=#262c3c"
+  - "{primaryColor}=#202433"
+  - "{secondaryColor}=#205295"
+  - "{accentColor}=#4797de"
+
+  # Images
+  - "{bg-img}=https://i.imgur.com/6MelMqC.jpg"
+  # Messages
+  - "{title}=BoostedAudio" # You can put html image here to set a logo
+# - "{title}=<img src="your_logo.png">"
+  - "{ambient-volume}=Ambient Volume"
+  - "{voice-volume}=Voice Volume"
+  - "{click-to-connect}=Click on the page to connect"
+  - "{sidebar-content}=Sidebar Content"
+  - "{userList}=User List"
+  - "{search-placeholder}=Search..."
+  - "{user-count-label}=Players you can hear:"
+
+  # Texts for Settings
+  - "{settings-title}=Settings"
+  - "{settings-label}=Parameters of the audio client"
+  - "{settings-microphone-device-label}=Microphone Device"
+  - "{settings-close-button-label}=Close Settings"
+
+  # Texts for Audio Control Buttons and Labels
+  - "{ambient-volume-label}=Ambient Volume"
+  - "{voice-volume-label}=Voice Volume"
