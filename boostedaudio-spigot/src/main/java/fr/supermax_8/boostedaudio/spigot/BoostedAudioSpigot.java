@@ -54,7 +54,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         BoostedAudioAPIImpl.configuration = configuration;
         getCommand("audio").setExecutor(new AudioCommand());
 
-
         checkForUpdates();
 
         try {

@@ -1,5 +1,8 @@
 package fr.supermax_8.boostedaudio.core.websocket.packets;
 
+import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
+import fr.supermax_8.boostedaudio.core.InternalAPI;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.api.Packet;
 import fr.supermax_8.boostedaudio.core.websocket.User;
@@ -13,7 +16,7 @@ public class AddPeerPacket implements Packet {
 
     private final UUID from;
     private final UUID to;
-    private final String username;
+    private String username;
     private final String layerId;
 
     public AddPeerPacket(String layerId, RTCDescription rtcDesc, UUID from, UUID to, String username) {
@@ -38,12 +41,10 @@ public class AddPeerPacket implements Packet {
         BoostedAudio.debug("TO " + to);
         BoostedAudio.debug("FROM " + from);
         BoostedAudio.debug("PEERS" + user.getRemotePeers());*/
-        try {
-            /*username = Bukkit.getPlayer(from).getName();*/
-        } catch (Exception e) {
-        }
-        if (user.getRemotePeers(layerId).contains(to))
+        if (user.getRemotePeers(layerId).contains(to)) {
+            if (rtcDesc.type.equals("offer")) username = BoostedAudioAPI.getAPI().getInternalAPI().getUsername(from);
             server.manager.getUsers().get(to).sendPacket(this);
+        }
     }
 
     public static class RTCDescription {
