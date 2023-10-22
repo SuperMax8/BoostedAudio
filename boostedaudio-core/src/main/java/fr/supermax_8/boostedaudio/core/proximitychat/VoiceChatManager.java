@@ -32,6 +32,8 @@ public class VoiceChatManager {
         HashSet<PeerConnection> toUnLink = new HashSet<>();
 
         fillLinkUnlink(toLink, toUnLink, layerInfo);
+        System.out.println("toLink = " + toLink);
+        System.out.println("toUnLink = " + toUnLink);
 
         toLink.forEach(PeerConnection::link);
         toUnLink.forEach(PeerConnection::unLink);
@@ -45,23 +47,31 @@ public class VoiceChatManager {
             PlayerInfo playerInfo = entry.getValue();
 
             List<UUID> newPeersOfUser = playerInfo.getPeers();
-            Set<UUID> oldPeersOfUser = user.getRemotePeers().get(layerInfo.getLayerId());
+            Set<UUID> oldPeersOfUser = user.getRemotePeers(layerInfo.getLayerId());
+
+            System.out.println("USERRRR" + user.getPlayerId());
+            System.out.println("newPeersOfUser=" + newPeersOfUser);
+            System.out.println("oldPeersOfUser=" + oldPeersOfUser);
 
             if (newPeersOfUser == null || oldPeersOfUser == null) continue;
 
             // Player to add
+            System.out.println("TOLINK");
             processPeers(users, user, layerInfo.getLayerId(), toLink, newPeersOfUser, oldPeersOfUser);
             // Player to remove
+            System.out.println("TOUNLINK");
             processPeers(users, user, layerInfo.getLayerId(), toUnLink, oldPeersOfUser, newPeersOfUser);
         }
     }
 
-    private void processPeers(ConcurrentHashMap<UUID, User> users, User user, String layerId, Set<PeerConnection> toLink, Collection<UUID> peers1, Collection<UUID> peers2) {
+    private void processPeers(ConcurrentHashMap<UUID, User> users, User user, String layerId, Set<PeerConnection> links, Collection<UUID> peers1, Collection<UUID> peers2) {
         for (UUID peer : peers1) {
             if (!peers2.contains(peer)) {
                 User peerUsr = users.get(peer);
-                if (peerUsr != null)
-                    toLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerId));
+                if (peerUsr != null) {
+                    System.out.println("LINKKK" + peerUsr.getPlayerId());
+                    links.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerId));
+                }
             }
         }
     }

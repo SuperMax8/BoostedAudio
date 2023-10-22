@@ -16,7 +16,7 @@ https://www.baeldung.com/convert-pem-to-jks
 Dev RoadMap 2.0:
 ----
 - [x] Multi Module setup
-- [ ] Faire fonctionner la partie purement spigot en multi module
+- [x] Faire fonctionner la partie purement spigot en multi module
 - [ ] BungeeCoord compa
 - [ ] Gestion sauvegarde memoire via cookie
 - [ ] Mute and ban system

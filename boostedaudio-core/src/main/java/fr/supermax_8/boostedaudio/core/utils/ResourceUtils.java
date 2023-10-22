@@ -2,9 +2,11 @@ package fr.supermax_8.boostedaudio.core.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Enumeration;
 
 public class ResourceUtils {
 
@@ -17,7 +19,8 @@ public class ResourceUtils {
      * @throws IOException If an error occurs while copying the resource.
      */
     public static void saveResource(String resourcePath, String outputPath) throws IOException {
-        try (InputStream inputStream = ResourceUtils.class.getResourceAsStream(resourcePath)) {
+        printAllResources();
+        try (InputStream inputStream = getResourceAsStream(resourcePath)) {
             if (inputStream == null) {
                 throw new IOException("The specified resource was not found: " + resourcePath);
             }
@@ -39,11 +42,27 @@ public class ResourceUtils {
      * @throws IOException If the resource is not found or an error occurs while opening it.
      */
     public static InputStream getResourceAsStream(String resourcePath) throws IOException {
-        InputStream inputStream = ResourceUtils.class.getResourceAsStream(resourcePath);
+        InputStream inputStream = ResourceUtils.class.getClassLoader().getResourceAsStream(resourcePath);
         if (inputStream == null) {
             throw new IOException("The specified resource was not found: " + resourcePath);
         }
         return inputStream;
+    }
+
+
+    public static void printAllResources() {
+        try {
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            Enumeration<URL> resources = classLoader.getResources("");
+
+            while (resources.hasMoreElements()) {
+                URL resource = resources.nextElement();
+                System.out.println("Resource: " + resource.getFile());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Gérez l'exception selon les besoins de votre application
+        }
     }
 
 

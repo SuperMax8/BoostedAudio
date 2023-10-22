@@ -18,10 +18,15 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
 
     public static BoostedAudioConfiguration configuration;
     public static HostProvider hostProvider;
+    public static InternalAPI internalAPI;
 
 
     public static BoostedAudioAPIImpl getApi() {
         return api;
+    }
+
+    public InternalAPI getInternalAPI() {
+        return internalAPI;
     }
 
     @Override

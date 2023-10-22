@@ -3,6 +3,7 @@ package fr.supermax_8.boostedaudio.api;
 import com.google.gson.Gson;
 import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
+import fr.supermax_8.boostedaudio.core.InternalAPI;
 
 public interface BoostedAudioAPI {
 
@@ -21,8 +22,15 @@ public interface BoostedAudioAPI {
 
     BoostedAudioConfiguration getConfiguration();
 
+    InternalAPI getInternalAPI();
+
     void info(String message);
 
     void debug(String message);
+
+    static BoostedAudioAPI getAPI() {
+        return api;
+    }
+
 
 }

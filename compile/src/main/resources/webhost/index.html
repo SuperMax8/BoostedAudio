@@ -281,6 +281,8 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     </div>
 </div>
 
+</body>
+</html>
 <script>
     const servers = {
         iceServers: [
@@ -291,7 +293,10 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         iceCandidatePoolSize: 10,
     };
 
+    // Map<String(layerId), Map<UUID, PeerConnectionContainer>>
     const peerConnections = new Map();
+    peerConnections.set("proximitychat", new Map());
+
     const audioMap = new Map();
     let micStream;
     let playerId;
@@ -369,7 +374,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         document.getElementById("voice").classList.add("hidden")
     } else {
         setInterval(() => {
-            userCount.textContent = peerConnections.size
+            userCount.textContent = peerConnections.get("proximitychat").size
             const userElement = users.getElementsByClassName("user")
             if (search.value.length === 0) return
             for (let i = 0; i < userElement.length; i++) {
@@ -409,6 +414,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         let audio;
         let id;
         let audioObj;
+        let layerId;
 
         if (type !== "TrustPacket") {
             if (!consent || !serverInfoSet) {
@@ -424,11 +430,12 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             case "AddPeerPacket":
                 from = packet.from;
                 to = packet.to;
+                layerId = packet.layerId;
                 let username = packet.username;
                 switch (packet.rtcDesc.type) {
                     // Packet action from server
                     case "createoffer":
-                        pc = await createPeerConnection(from, username)
+                        pc = await createPeerConnection(layerId, from, username)
                         const offer = await pc.createOffer()
                         await pc.setLocalDescription(offer)
 
@@ -436,6 +443,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                             {
                                 "type": "AddPeerPacket",
                                 "value": {
+                                    "layerId": layerId,
                                     "from": playerId,
                                     "to": from,
                                     "username": "",
@@ -454,7 +462,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     // Packet action from other user, check by server
                     // Receive offer
                     case "offer":
-                        pc = await createPeerConnection(from, username)
+                        pc = await createPeerConnection(layerId, from, username)
                         const desc = new RTCSessionDescription(packet.rtcDesc);
                         await pc.setRemoteDescription(desc)
 
@@ -465,6 +473,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                             {
                                 "type": "AddPeerPacket",
                                 "value": {
+                                    "layerId": layerId,
                                     "from": to,
                                     "to": from,
                                     "username": "",
@@ -482,16 +491,19 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     // Packet action from other user, check by server
                     // Receive answer
                     case "answer":
-                        pc = peerConnections.get(from).pc
+                        pc = peerConnections.get(layerId).get(from).pc
                         await pc.setRemoteDescription(new RTCSessionDescription(packet.rtcDesc))
                         console.log("Receive answer")
                         break
                 }
                 break
             case "RTCIcePacket":
+                console.log("RECEIVING ICE CANDIDATE")
                 from = packet.from;
                 to = packet.to;
-                pc = peerConnections.get(from).pc
+                layerId = packet.layerId;
+                console.log(from, to, layerId, packet)
+                pc = peerConnections.get(layerId).get(from).pc
                 const iceCandidate = new RTCIceCandidate({
                     "candidate": packet.candidate.candidate,
                     "sdpMid": packet.candidate.sdpMid,
@@ -508,8 +520,9 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 console.log("ICE Candidate set")
                 break
             case "RemovePeerPacket":
+                layerId = packet.layerId;
                 const playerToRemoveId = packet.playerToRemove;
-                closePeerConnection(peerConnections.get(playerToRemoveId))
+                closePeerConnection(peerConnections.get(layerId).get(playerToRemoveId))
                 break
             case "UpdateVocalPositionsPacket":
                 // Parse clientloc
@@ -521,10 +534,13 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     if (players.hasOwnProperty(key)) map.set(key, players[key]);
                 }
 
-                peerConnections.forEach((peerObj, uuid) => {
-                    peerObj.loc = map.get(uuid)
-                    spatializeAudio(peerObj.panner, peerObj.loc)
+                peerConnections.forEach((layerMap, layerId) => {
+                    layerMap.forEach((peerObj, uuid) => {
+                        peerObj.loc = map.get(uuid)
+                        spatializeAudio(peerObj.panner, peerObj.loc)
+                    })
                 })
+
                 audioMap.forEach((audioObj, uuid) => {
                     const loc = audioObj.location;
                     if (loc) {
@@ -753,10 +769,10 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         return degrees * (pi / 180);
     }
 
-    async function createPeerConnection(from, username) {
+    async function createPeerConnection(layerId, peerId, username) {
         console.log("New RTCPeerConnection")
         let pc = new RTCPeerConnection(servers)
-        if (peerConnections.has(from)) closePeerConnection(peerConnections.get(from))
+        if (peerConnections.get(layerId).has(peerId)) closePeerConnection(peerConnections.get(layerId).get(peerId))
 
         // Init var
         const panner = new PannerNode(audioContext, {
@@ -773,13 +789,14 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
         const mediaStream = new MediaStream();
 
-        const connection = {
+        const peerConnectionContainer = {
             pc: pc,
             panner: panner,
             gain: gain,
             gainValue: 1,
-            playerId: from,
+            playerId: peerId,
             username: username,
+            layerId: layerId,
             mute: false,
             loc: null,
             element: null
@@ -787,16 +804,13 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
         pc.onicecandidate = (event) => {
             if (event.candidate) {
-                let to = null;
-                peerConnections.forEach((pcc, id) => {
-                    if (pcc.pc === pc) to = id
-                })
                 const packet = [
                     {
                         "type": "RTCIcePacket",
                         "value": {
+                            "layerId": layerId,
                             "from": playerId,
-                            "to": to,
+                            "to": peerId,
                             type: 'candidate',
                             candidate: event.candidate
                         }
@@ -807,7 +821,9 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 console.log("Sending ICE candidate ", playerId)
             }
         }
-        peerConnections.set(from, connection)
+
+        if (!peerConnections.has(layerId)) peerConnections.set(layerId, new Map())
+        peerConnections.get(layerId).set(peerId, peerConnectionContainer)
 
         pc.ontrack = event => {
             if (event.track.kind === 'audio') {
@@ -835,16 +851,16 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
         async function userThing() {
             // Show user
-            await showUser(connection)
+            await showUser(peerConnectionContainer)
 
             // Setup user bar
-            const userVolume = connection.element.getElementsByClassName("user-volume").item(0);
+            const userVolume = peerConnectionContainer.element.getElementsByClassName("user-volume").item(0);
             gain.gain.value = 1;
             userVolume.value = 100;
             userVolume.addEventListener('input', (e) => {
                 const volume = parseFloat(e.target.value) / 100;
-                connection.gainValue = volume;
-                if (connection.mute) return
+                peerConnectionContainer.gainValue = volume;
+                if (peerConnectionContainer.mute) return
                 gain.gain.value = volume * voiceVolume;
             });
         }
@@ -897,7 +913,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         if (peerConnectionContainer == null) return
         peerConnectionContainer.pc.close()
         if (peerConnectionContainer.element != null) peerConnectionContainer.element.remove()
-        peerConnections.delete(peerConnectionContainer.playerId)
+        peerConnections.get(peerConnectionContainer.layerId).delete(peerConnectionContainer.playerId)
     }
 
     function htmlStringToElement(htmlString) {
@@ -939,8 +955,10 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         voice.value = 100;
         voice.addEventListener('input', function () {
             voiceVolume = parseFloat(this.value) / 100;
-            peerConnections.forEach((peerObj, id) => {
-                peerObj.gain.gain.value = peerObj.gainValue * voiceVolume;
+            peerConnections.forEach((layerMap, layerId) => {
+                layerMap.forEach((peerObj, id) => {
+                    peerObj.gain.gain.value = peerObj.gainValue * voiceVolume;
+                });
             })
         });
 
@@ -962,15 +980,17 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 micStream = await navigator.mediaDevices.getUserMedia(constraints);
                 const newAudioTrack = micStream.getAudioTracks()[0];
                 newAudioTrack.enabled = isMuted;
-                peerConnections.forEach((peerObj, id) => {
-                    const pc = peerObj.pc;
-                    const senders = pc.getSenders();
-                    const audioSender = senders.find(sender => sender.track.kind === 'audio');
-                    if (audioSender) {
-                        const currentAudioTrack = audioSender.track;
-                        currentAudioTrack.stop();
-                        audioSender.replaceTrack(newAudioTrack);
-                    }
+                peerConnections.forEach((layerMap, id) => {
+                    layerMap.forEach((peerObj, id) => {
+                        const pc = peerObj.pc;
+                        const senders = pc.getSenders();
+                        const audioSender = senders.find(sender => sender.track.kind === 'audio');
+                        if (audioSender) {
+                            const currentAudioTrack = audioSender.track;
+                            currentAudioTrack.stop();
+                            audioSender.replaceTrack(newAudioTrack);
+                        }
+                    })
                 });
             } catch (error) {
                 console.error("Error getting selected microphone stream:", error);
@@ -1021,8 +1041,10 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
                 setInterval(() => {
                     console.log("States:")
-                    peerConnections.forEach((pc, k) => {
-                        console.log("- State: " + pc.pc.connectionState)
+                    peerConnections.forEach((layerMap, k) => {
+                        layerMap.forEach((pc, k) => {
+                            console.log("- State: " + pc.pc.connectionState)
+                        })
                     })
                 }, 3000)
             }
@@ -1078,5 +1100,3 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
     }
 </script>
-</body>
-</html>
