@@ -5,8 +5,12 @@ import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BoostedAudioConfiguration {
 
@@ -89,7 +93,37 @@ public class BoostedAudioConfiguration {
         connectionHoverMessage = (String) config.get("connectionHoverMessage", "Click here");
 
         clientConfig = (List<String>) config.get("clientConfig");
+
+        Map<String, String> defaultParams = convertConfigList((List<String>) CrossConfiguration.newConfig()
+                .load(new InputStreamReader(getClass().getResourceAsStream("config.yml")))
+                .get("clientConfig"));
+        Map<String, String> params = convertConfigList(clientConfig);
+
+        boolean updated = false;
+        for (Map.Entry<String, String> param : defaultParams.entrySet()) {
+            String key = param.getKey();
+            String value = param.getValue();
+            if (!params.containsKey(key)) {
+                clientConfig.add(key + "=" + value);
+                updated = true;
+            }
+        }
+        if (updated) {
+            config.set("clientConfig", clientConfig);
+            config.save(configFile);
+            BoostedAudioAPI.api.info("The clientConfig has been updated, new parameters have been added !");
+        }
+
         if (isDebugMode()) showConfiguration();
+    }
+
+    public Map<String, String> convertConfigList(List<String> config) {
+        HashMap<String, String> map = new HashMap<>();
+        for (String s : config) {
+            String[] placeholderEntry = s.split("=", 2);
+            map.put(placeholderEntry[0], placeholderEntry[1]);
+        }
+        return map;
     }
 
     public void showConfiguration() {

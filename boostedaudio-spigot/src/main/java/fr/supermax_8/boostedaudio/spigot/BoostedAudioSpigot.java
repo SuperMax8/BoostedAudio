@@ -54,10 +54,15 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         BoostedAudioAPIImpl.configuration = configuration;
         getCommand("audio").setExecutor(new AudioCommand());
 
+
+        checkForUpdates();
+
         try {
             BoostedAudioLoader.loadExternalLibs(getDataFolder());
         } catch (IOException e) {
+            BoostedAudioAPI.api.info("Error while loading external libs, the plugin can't started, maybe the server don't have access to internet connection ? Or the plugin don't have permission to write in the plugin folder ?");
             e.printStackTrace();
+            return;
         }
 
         BoostedAudioAPIImpl.internalAPI = new InternalAPI() {
@@ -67,62 +72,8 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             }
         };
 
-        if (configuration.isBungeecoord()) {
-            // Diffuser mode
-            Bukkit.getServer().getMessenger().registerIncomingPluginChannel(this, "boostedaudio:fromproxy", (channel, player, message) -> {
-                System.out.println("Received message from " + player.getName() + " : " + new String(message));
-            });
-            Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(this, "boostedaudio:fromspigot");
-            Scheduler.runTaskTimer(() -> {
-                Bukkit.getServer().sendPluginMessage(this, "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
-                //Bukkit.getOnlinePlayers().stream().findFirst().get().sendPluginMessage(this, "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
-                //Bukkit.getServer().getMessenger().dispatchIncomingMessage(Bukkit.getOnlinePlayers().stream().findFirst().get(), "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
-            }, 0, 40);
-        } else {
-            // Host mode
-            host = new BoostedAudioHost(configuration);
-            Bukkit.getScheduler().runTaskLater(this, this::initMetrics, 20 * 60);
-            BoostedAudioAPIImpl.hostProvider = new HostProvider() {
-                @Override
-                public Map<UUID, User> getPlayersOnServer() {
-                    waitUntilPluginSetup();
-                    System.out.println("SIZE: " + host.getWebSocketServer().manager.getUsers().size());
-                    return host.getWebSocketServer().manager.getUsers();
-                }
-
-                @Override
-                public void waitUntilPluginSetup() {
-                    System.out.println("Start waiting");
-                    long ts1 = System.currentTimeMillis();
-                    while (!host.isSucessfulSetup()) {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    long ts2 = System.currentTimeMillis();
-                    System.out.println("Done waiting, NoWait:" + (ts1 == ts2));
-                }
-            };
-
-            BoostedAudioAPI.api.debug("STARTING PROCESS RUNNABLE");
-            voiceChatManager = new VoiceChatManager();
-            Scheduler.runTaskTimerAsync(() -> {
-                System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-                try {
-                    VoiceChatResult result = voiceChatProcessor.process();
-
-                    if (configuration.isDebugMode()) {
-                        System.out.println("Result : " + BoostedAudioAPI.api.getGson().toJson(result));
-                    }
-                    voiceChatManager.processResult(result);
-                } catch (Throwable e) {
-                    System.out.println("Error while processing voice chat TOUT PETETETETETET");
-                    e.printStackTrace();
-                }
-            }, 0, 60);
-        }
+        if (configuration.isBungeecoord()) setupDiffuser();
+        else setupHost();
 
         voiceChatProcessor = new VoiceChatProcessor();
         voiceChatProcessor.getLayers().put("proximitychat", new VoiceLayer(true, 0, null, "proximitychat"));
@@ -152,6 +103,65 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                 return "No regions";
             }
         }));*/
+    }
+
+    private void setupHost() {
+        // Host mode
+        host = new BoostedAudioHost(configuration);
+        Bukkit.getScheduler().runTaskLater(this, this::initMetrics, 20 * 60);
+        BoostedAudioAPIImpl.hostProvider = new HostProvider() {
+            @Override
+            public Map<UUID, User> getPlayersOnServer() {
+                waitUntilPluginSetup();
+                System.out.println("SIZE: " + host.getWebSocketServer().manager.getUsers().size());
+                return host.getWebSocketServer().manager.getUsers();
+            }
+
+            @Override
+            public void waitUntilPluginSetup() {
+                System.out.println("Start waiting");
+                long ts1 = System.currentTimeMillis();
+                while (!host.isSucessfulSetup()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                long ts2 = System.currentTimeMillis();
+                System.out.println("Done waiting, NoWait:" + (ts1 == ts2));
+            }
+        };
+
+        BoostedAudioAPI.api.debug("STARTING PROCESS RUNNABLE");
+        voiceChatManager = new VoiceChatManager();
+        Scheduler.runTaskTimerAsync(() -> {
+            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            try {
+                VoiceChatResult result = voiceChatProcessor.process();
+
+                if (configuration.isDebugMode()) {
+                    System.out.println("Result : " + BoostedAudioAPI.api.getGson().toJson(result));
+                }
+                voiceChatManager.processResult(result);
+            } catch (Throwable e) {
+                System.out.println("Error while processing voice chat TOUT PETETETETETET");
+                e.printStackTrace();
+            }
+        }, 0, 60);
+    }
+
+    private void setupDiffuser() {
+        // Diffuser mode
+        Bukkit.getServer().getMessenger().registerIncomingPluginChannel(this, "boostedaudio:fromproxy", (channel, player, message) -> {
+            System.out.println("Received message from " + player.getName() + " : " + new String(message));
+        });
+        Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(this, "boostedaudio:fromspigot");
+        Scheduler.runTaskTimer(() -> {
+            Bukkit.getServer().sendPluginMessage(this, "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
+            //Bukkit.getOnlinePlayers().stream().findFirst().get().sendPluginMessage(this, "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
+            //Bukkit.getServer().getMessenger().dispatchIncomingMessage(Bukkit.getOnlinePlayers().stream().findFirst().get(), "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
+        }, 0, 40);
     }
 
     private void checkForUpdates() {

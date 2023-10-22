@@ -51,7 +51,7 @@ sendOnConnect: true
 sendOnConnectDelay: 30
 
 # Don't use if you are not sure
-# If this is true that means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
+# If this is true it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
 # this property allows you to fully customize the client by modifying the code of the client
 customClient: false
 
@@ -61,7 +61,7 @@ customClient: false
 connectionMessage: "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"
 
-# Premium settings
+# WORKS ONLY WITH THE PREMIUM VERSION
 # Custom placeholder in the client html, if you custom the client you even can add new placeholder if you need it,
 # inside placeholder you can use html directly (if the placeholder target is not a tag parameter)
 # if you want more customization with like images or things

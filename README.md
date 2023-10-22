@@ -16,8 +16,10 @@ https://www.baeldung.com/convert-pem-to-jks
 Dev RoadMap 2.0:
 ----
 - [x] Multi Module setup
-- [x] Faire fonctionner la partie purement spigot en multi module
-- [ ] BungeeCoord compa
+- [x] Faire fonctionner la partie purement spigot voicechat en multi module
+- [ ] BungeeCoord compa donc système de packet bungee
+- [ ] Réimplementer le système de speaker et region audio
+- [ ] Work sur l'API avec le système de packet bungee
 - [ ] Gestion sauvegarde memoire via cookie
 - [ ] Mute and ban system
 - [ ] Gérer les perms
