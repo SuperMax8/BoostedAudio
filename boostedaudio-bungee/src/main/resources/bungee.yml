@@ -1,0 +1,3 @@
+name: BoostedAudio
+version: '${project.version}'
+main: fr.supermax_8.boostedaudio.bungee.BoostedAudioBungee
