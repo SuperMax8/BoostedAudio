@@ -39,12 +39,12 @@ public class ResourceUtils {
      *
      * @param resourcePath The path of the resource to retrieve from the JAR.
      * @return An InputStream for the specified resource.
-     * @throws IOException If the resource is not found or an error occurs while opening it.
      */
-    public static InputStream getResourceAsStream(String resourcePath) throws IOException {
+    public static InputStream getResourceAsStream(String resourcePath) {
         InputStream inputStream = ResourceUtils.class.getClassLoader().getResourceAsStream(resourcePath);
         if (inputStream == null) {
-            throw new IOException("The specified resource was not found: " + resourcePath);
+            System.out.println("The specified resource was not found: " + resourcePath);
+            return null;
         }
         return inputStream;
     }

@@ -20,6 +20,8 @@ Dev RoadMap 2.0:
 - [ ] BungeeCoord compa donc système de packet bungee
 - [ ] Réimplementer le système de speaker et region audio
 - [ ] Work sur l'API avec le système de packet bungee
+
+Mise à jour si j'ai la flemme:
 - [ ] Gestion sauvegarde memoire via cookie
 - [ ] Mute and ban system
 - [ ] Gérer les perms

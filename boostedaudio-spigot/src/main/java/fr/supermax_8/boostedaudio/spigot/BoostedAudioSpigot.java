@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.spigot;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.*;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
@@ -9,7 +10,7 @@ import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
-import fr.supermax_8.boostedaudio.core.websocket.User;
+import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommand;
 import fr.supermax_8.boostedaudio.spigot.proximitychat.VoiceChatProcessor;
 import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
@@ -17,13 +18,14 @@ import fr.supermax_8.boostedaudio.spigot.utils.TemporaryListener;
 import fr.supermax_8.boostedaudio.spigot.utils.configuration.SpigotCrossConfiguration;
 import fr.supermax_8.boostedaudio.spigot.utils.configuration.SpigotCrossConfigurationSection;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.wildfly.common.annotation.Nullable;
-import org.xnio.channels.SuspendableAcceptChannel;
 
 import java.io.File;
 import java.io.IOException;
@@ -110,16 +112,13 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         Bukkit.getScheduler().runTaskLater(this, this::initMetrics, 20 * 60);
         BoostedAudioAPIImpl.hostProvider = new HostProvider() {
             @Override
-            public Map<UUID, User> getPlayersOnServer() {
+            public Map<UUID, User> getUsersOnServer() {
                 waitUntilPluginSetup();
-                System.out.println("SIZE: " + host.getWebSocketServer().manager.getUsers().size());
                 return host.getWebSocketServer().manager.getUsers();
             }
 
             @Override
             public void waitUntilPluginSetup() {
-                System.out.println("Start waiting");
-                long ts1 = System.currentTimeMillis();
                 while (!host.isSucessfulSetup()) {
                     try {
                         Thread.sleep(100);
@@ -127,24 +126,19 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                         e.printStackTrace();
                     }
                 }
-                long ts2 = System.currentTimeMillis();
-                System.out.println("Done waiting, NoWait:" + (ts1 == ts2));
             }
         };
 
-        BoostedAudioAPI.api.debug("STARTING PROCESS RUNNABLE");
         voiceChatManager = new VoiceChatManager();
         Scheduler.runTaskTimerAsync(() -> {
-            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             try {
                 VoiceChatResult result = voiceChatProcessor.process();
-
                 if (configuration.isDebugMode()) {
                     System.out.println("Result : " + BoostedAudioAPI.api.getGson().toJson(result));
                 }
                 voiceChatManager.processResult(result);
             } catch (Throwable e) {
-                System.out.println("Error while processing voice chat TOUT PETETETETETET");
+                System.out.println("Error while processing voice chat :");
                 e.printStackTrace();
             }
         }, 0, 60);
@@ -152,15 +146,45 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     private void setupDiffuser() {
         // Diffuser mode
-        Bukkit.getServer().getMessenger().registerIncomingPluginChannel(this, "boostedaudio:fromproxy", (channel, player, message) -> {
-            System.out.println("Received message from " + player.getName() + " : " + new String(message));
+        BoostedAudioAPIImpl.hostProvider = new HostProvider() {
+            @Override
+            public Map<UUID, User> getUsersOnServer() {
+                waitUntilPluginSetup();
+                return host.getWebSocketServer().manager.getUsers();
+            }
+
+            @Override
+            public void waitUntilPluginSetup() {
+            }
+        };
+
+
+        registerOutgoingPluginMessage("tick");
+        registerOutgoingPluginMessage("audiotoken");
+        registerIncomingPluginMessage("audiotoken", (channel, player, message) -> {
+            String msg = new String(message);
+            String[] split = msg.split(";", 2);
+            OfflinePlayer player1 = Bukkit.getOfflinePlayer(UUID.fromString(split[0]));
+            if (!player1.isOnline()) return;
+            AudioCommand.sendConnectMessage(player1.getPlayer(), split[1]);
         });
-        Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(this, "boostedaudio:fromspigot");
-        Scheduler.runTaskTimer(() -> {
+
+        Scheduler.runTaskTimerAsync(() -> {
+            try {
+                VoiceChatResult result = voiceChatProcessor.process();
+                Bukkit.getServer().sendPluginMessage(this, "boostedaudio:tick", BoostedAudioAPI.api.getGson().toJson(result).getBytes());
+            } catch (Throwable e) {
+                System.out.println("Error while processing voice chat :");
+                e.printStackTrace();
+            }
+        }, 0, 60);
+
+
+/*        Scheduler.runTaskTimer(() -> {
             Bukkit.getServer().sendPluginMessage(this, "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
             //Bukkit.getOnlinePlayers().stream().findFirst().get().sendPluginMessage(this, "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
             //Bukkit.getServer().getMessenger().dispatchIncomingMessage(Bukkit.getOnlinePlayers().stream().findFirst().get(), "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
-        }, 0, 40);
+        }, 0, 40);*/
     }
 
     private void checkForUpdates() {
@@ -200,5 +224,17 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         }
     }
 
+
+    public static void sendPluginMessage(String channel, String value) {
+        Bukkit.getServer().sendPluginMessage(instance, "boostedaudio:" + channel, value.getBytes());
+    }
+
+    public static void registerIncomingPluginMessage(String channel, PluginMessageListener listener) {
+        Bukkit.getServer().getMessenger().registerIncomingPluginChannel(instance, "boostedaudio:" + channel, listener);
+    }
+
+    public static void registerOutgoingPluginMessage(String channel) {
+        Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(instance, "boostedaudio:" + channel);
+    }
 
 }

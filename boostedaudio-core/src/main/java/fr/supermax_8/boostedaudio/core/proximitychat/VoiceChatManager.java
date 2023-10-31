@@ -1,8 +1,9 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
-import fr.supermax_8.boostedaudio.core.websocket.User;
+import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.UpdateVocalPositionsPacket;
 
 import java.util.*;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 // Host Only
 public class VoiceChatManager {
+
 
 
     public VoiceChatManager() {
@@ -32,46 +34,38 @@ public class VoiceChatManager {
         HashSet<PeerConnection> toUnLink = new HashSet<>();
 
         fillLinkUnlink(toLink, toUnLink, layerInfo);
-        System.out.println("toLink = " + toLink);
-        System.out.println("toUnLink = " + toUnLink);
 
         toLink.forEach(PeerConnection::link);
         toUnLink.forEach(PeerConnection::unLink);
+        System.out.println("toLink: " + toLink.size());
+        System.out.println("toUnLink: " + toUnLink.size());
     }
 
     private void fillLinkUnlink(Set<PeerConnection> toLink, Set<PeerConnection> toUnLink, LayerInfo layerInfo) {
         ConcurrentHashMap<UUID, User> users = AudioWebSocketServer.getInstance().manager.getUsers();
 
         for (Map.Entry<UUID, PlayerInfo> entry : layerInfo.getPlayersInfo().entrySet()) {
-            User user = users.get(entry.getKey());
+            HostUser user = (HostUser) users.get(entry.getKey());
             PlayerInfo playerInfo = entry.getValue();
 
             List<UUID> newPeersOfUser = playerInfo.getPeers();
             Set<UUID> oldPeersOfUser = user.getRemotePeers(layerInfo.getLayerId());
 
-            System.out.println("USERRRR" + user.getPlayerId());
-            System.out.println("newPeersOfUser=" + newPeersOfUser);
-            System.out.println("oldPeersOfUser=" + oldPeersOfUser);
-
             if (newPeersOfUser == null || oldPeersOfUser == null) continue;
 
             // Player to add
-            System.out.println("TOLINK");
             processPeers(users, user, layerInfo.getLayerId(), toLink, newPeersOfUser, oldPeersOfUser);
             // Player to remove
-            System.out.println("TOUNLINK");
             processPeers(users, user, layerInfo.getLayerId(), toUnLink, oldPeersOfUser, newPeersOfUser);
         }
     }
 
-    private void processPeers(ConcurrentHashMap<UUID, User> users, User user, String layerId, Set<PeerConnection> links, Collection<UUID> peers1, Collection<UUID> peers2) {
+    private void processPeers(ConcurrentHashMap<UUID, User> users, HostUser user, String layerId, Set<PeerConnection> links, Collection<UUID> peers1, Collection<UUID> peers2) {
         for (UUID peer : peers1) {
             if (!peers2.contains(peer)) {
                 User peerUsr = users.get(peer);
-                if (peerUsr != null) {
-                    System.out.println("LINKKK" + peerUsr.getPlayerId());
+                if (peerUsr != null)
                     links.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerId));
-                }
             }
         }
     }

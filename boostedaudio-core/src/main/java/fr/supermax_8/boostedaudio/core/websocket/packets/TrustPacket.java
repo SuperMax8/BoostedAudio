@@ -3,17 +3,15 @@ package fr.supermax_8.boostedaudio.core.websocket.packets;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.Packet;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
-import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.core.FreeVersionLimit;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
-import fr.supermax_8.boostedaudio.core.websocket.User;
+import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TrustPacket implements Packet {
 
@@ -26,11 +24,11 @@ public class TrustPacket implements Packet {
     }
 
     @Override
-    public void onReceive(User user, AudioWebSocketServer server) {
+    public void onReceive(HostUser user, AudioWebSocketServer server) {
         UUID playerId;
         ConnectionManager manager = server.manager;
         if ((playerId = getKeyByValue(manager.getPlayerTokens(), token)) != null) {
-            User newUser = new User(user.getSession(), token, playerId);
+            HostUser newUser = new HostUser(user.getSession(), token, playerId);
             if (!BoostedAudioLoader.isPremium()) {
                 if (manager.getUsers().size() >= FreeVersionLimit.getMaxUserConnected()) {
                     BoostedAudioAPI.api.info("You have reached the maximum number of connected users for the free version, for no limit, please consider buying the plugin");

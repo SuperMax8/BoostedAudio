@@ -4,7 +4,7 @@ import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.websocket.Audio;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.api.Packet;
-import fr.supermax_8.boostedaudio.core.websocket.User;
+import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 
 import java.util.UUID;
 
@@ -33,7 +33,7 @@ public class AddAudioPacket implements Packet {
     }
 
     @Override
-    public void onReceive(User session, AudioWebSocketServer server) {
+    public void onReceive(HostUser session, AudioWebSocketServer server) {
         session.getSession().close();
         BoostedAudioAPI.api.debug("AddAudioPacket close() session");
     }

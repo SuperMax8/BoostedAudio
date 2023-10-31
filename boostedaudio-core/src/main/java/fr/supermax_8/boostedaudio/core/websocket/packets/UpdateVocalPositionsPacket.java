@@ -4,7 +4,7 @@ import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.api.Packet;
-import fr.supermax_8.boostedaudio.core.websocket.User;
+import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 
 import java.util.Map;
 import java.util.UUID;
@@ -20,7 +20,7 @@ public class UpdateVocalPositionsPacket implements Packet {
     }
 
     @Override
-    public void onReceive(User session, AudioWebSocketServer server) {
+    public void onReceive(HostUser session, AudioWebSocketServer server) {
         session.getSession().close();
         BoostedAudioAPI.api.debug("UpdateVocalPositionsPacket close() session");
     }

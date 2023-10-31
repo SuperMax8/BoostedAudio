@@ -1,11 +1,9 @@
 package fr.supermax_8.boostedaudio.core.websocket.packets;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
-import fr.supermax_8.boostedaudio.core.InternalAPI;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.api.Packet;
-import fr.supermax_8.boostedaudio.core.websocket.User;
+import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 
 import java.util.UUID;
 
@@ -36,7 +34,7 @@ public class AddPeerPacket implements Packet {
      * Server ->1 ADP answer
      */
     @Override
-    public void onReceive(User user, AudioWebSocketServer server) {
+    public void onReceive(HostUser user, AudioWebSocketServer server) {
 /*        BoostedAudio.debug("RECEIVED PEER MESSAGE FROM " + user.getPlayerId());
         BoostedAudio.debug("TO " + to);
         BoostedAudio.debug("FROM " + from);

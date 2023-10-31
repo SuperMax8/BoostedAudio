@@ -64,12 +64,12 @@ public class AudioWebSocketServer extends WebSocketServer {
             BoostedAudioAPI.api.debug("WebSocket connection closed : " + webSocket.getRemoteSocketAddress().getAddress());
             BoostedAudioAPI.api.debug("REASON " + s + " STATUSCODE: " + i);
 
-            Optional<User> user = manager.getSessionUsers().remove(webSocket);
+            Optional<HostUser> user = manager.getSessionUsers().remove(webSocket);
             BoostedAudioAPI.api.debug("SessionUsersSize " + manager.getSessionUsers().size());
             if (!user.isPresent()) return;
 
             UUID playerId = user.get().getPlayerId();
-            User realUser = manager.getUsers().remove(playerId);
+            HostUser realUser = manager.getUsers().remove(playerId);
 
             if (realUser == null) return;
 
@@ -77,7 +77,7 @@ public class AudioWebSocketServer extends WebSocketServer {
                 String layerId = entry.getKey();
 
                 for (UUID id : entry.getValue()) {
-                    User usr = manager.getUsers().get(id);
+                    HostUser usr = manager.getUsers().get(id);
                     if (usr == null) continue;
                     new PeerConnection(realUser.getPlayerId(), usr.getPlayerId(), layerId).unLink();
                 }
@@ -103,7 +103,7 @@ public class AudioWebSocketServer extends WebSocketServer {
             return;
         }
 
-        Optional<User> user = manager.getSessionUsers().get(client);
+        Optional<HostUser> user = manager.getSessionUsers().get(client);
         if (user.isPresent())
             for (Packet packet : packetList.getPackets()) packet.onReceive(user.get(), this);
         else
@@ -129,7 +129,7 @@ public class AudioWebSocketServer extends WebSocketServer {
         if (message.getPackets().isEmpty() || !((packet = message.getPackets().get(0)) instanceof TrustPacket)) {
             BoostedAudioAPI.api.debug("Kick Untrust: " + session);
             session.close();
-        } else packet.onReceive(new User(session, null, null), this);
+        } else packet.onReceive(new HostUser(session, null, null), this);
     }
 
 

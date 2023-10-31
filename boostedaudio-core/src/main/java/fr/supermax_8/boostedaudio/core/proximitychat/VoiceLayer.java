@@ -1,12 +1,13 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
+import com.google.gson.annotations.Expose;
 import org.wildfly.common.annotation.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
 
 public class VoiceLayer {
-
+    
     private final boolean audioSpatialized;
     private final int priority;
     @Nullable
@@ -14,6 +15,7 @@ public class VoiceLayer {
 
     private final Set<UUID> playersInside = new HashSet<>();
 
+    @Expose
     private final String id;
 
 

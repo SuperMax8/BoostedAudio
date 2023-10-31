@@ -83,21 +83,21 @@ public class BungeeCrossConfiguration extends CrossConfiguration {
 
     @Override
     public CrossConfiguration load(Object o) {
-        if (o instanceof Reader) {
+        if (o instanceof Reader reader) {
             try {
-                config = net.md_5.bungee.config.YamlConfiguration.getProvider(net.md_5.bungee.config.YamlConfiguration.class).load(configFile);
+                config = net.md_5.bungee.config.YamlConfiguration.getProvider(net.md_5.bungee.config.YamlConfiguration.class).load(reader);
             } catch (Exception e) {
                 e.printStackTrace();
             }
             this.configFile = null;
         } else if (o instanceof File file) {
             try {
-                config = net.md_5.bungee.config.YamlConfiguration.getProvider(net.md_5.bungee.config.YamlConfiguration.class).load(configFile);
+                config = net.md_5.bungee.config.YamlConfiguration.getProvider(net.md_5.bungee.config.YamlConfiguration.class).load(file);
                 configFile = file;
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        } else throw new RuntimeException("Cannot load data");
+        } else throw new RuntimeException("Cannot load data " + o.toString());
         return this;
     }
 

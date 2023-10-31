@@ -1,11 +1,13 @@
 package fr.supermax_8.boostedaudio.core;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.core.proximitychat.LayerInfo;
+import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
+import fr.supermax_8.boostedaudio.core.utils.configuration.LazyConfigUpdater;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -49,6 +51,12 @@ public class BoostedAudioConfiguration {
 
     private void load(File configFile) {
         dataFolder = configFile.getParentFile();
+        try {
+            // ConfigUpdater.update(ResourceUtils::getResourceAsStream, "config.yml", configFile);
+            LazyConfigUpdater.update(CrossConfiguration.newConfig().load(configFile), ResourceUtils.getResourceAsStream("config.yml"), configFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         CrossConfiguration config = CrossConfiguration.newConfig().load(configFile);
 
@@ -95,7 +103,7 @@ public class BoostedAudioConfiguration {
         clientConfig = (List<String>) config.get("clientConfig");
 
         Map<String, String> defaultParams = convertConfigList((List<String>) CrossConfiguration.newConfig()
-                .load(new InputStreamReader(getClass().getResourceAsStream("config.yml")))
+                .load(new InputStreamReader(ResourceUtils.getResourceAsStream("config.yml")))
                 .get("clientConfig"));
         Map<String, String> params = convertConfigList(clientConfig);
 

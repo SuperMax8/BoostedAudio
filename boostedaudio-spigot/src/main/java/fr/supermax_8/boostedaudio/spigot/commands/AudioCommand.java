@@ -4,8 +4,6 @@ import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.core.utils.MessageUtils;
-import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
-import fr.supermax_8.boostedaudio.core.websocket.User;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -17,14 +15,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.Map;
 import java.util.UUID;
 
 public class AudioCommand implements CommandExecutor {
-
-    private static int TOKEN_LENGTH = 3;
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -36,34 +29,17 @@ public class AudioCommand implements CommandExecutor {
         return false;
     }
 
-    public static String generateConnectionToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] tokenBytes = new byte[TOKEN_LENGTH];
-        random.nextBytes(tokenBytes);
-
-        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
-        if (BoostedAudioHost.getInstance().getWebSocketServer().manager.getPlayerTokens().values().contains(token)) {
-            TOKEN_LENGTH++;
-            return generateConnectionToken();
+    public static void sendConnectMessage(Player p) {
+        if (BoostedAudioAPI.api.getConfiguration().isBungeecoord()) {
+            BoostedAudioSpigot.sendPluginMessage("audiotoken", p.getUniqueId().toString());
+        } else {
+            UUID playerId = p.getUniqueId();
+            String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.generateConnectionToken(playerId);
+            sendConnectMessage(p, token);
         }
-        return token;
     }
 
-    public static void sendConnectMessage(Player p) {
-        UUID playerId = p.getUniqueId();
-
-        ConnectionManager manager = BoostedAudioHost.getInstance().getWebSocketServer().manager;
-        Map<UUID, String> tokenMap = manager.getPlayerTokens();
-        if (tokenMap.containsKey(playerId)) {
-            User user = manager.getUsers().get(playerId);
-            if (user != null) {
-                user.getSession().close();
-                BoostedAudioAPI.api.debug("sendConnectMessage close() session");
-            }
-        }
-        String token = generateConnectionToken();
-        tokenMap.put(playerId, token);
-
+    public static void sendConnectMessage(Player p, String token) {
         BoostedAudioConfiguration configuration = BoostedAudioAPI.api.getConfiguration();
 
         String link = configuration.getClientLink() + "?t=" + token;

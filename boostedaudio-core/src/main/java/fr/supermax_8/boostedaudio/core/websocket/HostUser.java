@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.core.websocket;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.Packet;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
@@ -9,7 +10,7 @@ import org.java_websocket.WebSocket;
 
 import java.util.*;
 
-public class User {
+public class HostUser implements User {
 
     private final Map<String, Set<UUID>> remotePeers = new HashMap<>();
     private final Map<UUID, Audio> playingAudio = new HashMap<>();
@@ -17,7 +18,7 @@ public class User {
     private final String connectionToken;
     private final UUID playerId;
 
-    public User(WebSocket session, String connectionToken, UUID playerId) {
+    public HostUser(WebSocket session, String connectionToken, UUID playerId) {
         this.session = session;
         this.connectionToken = connectionToken;
         this.playerId = playerId;
@@ -39,6 +40,7 @@ public class User {
         return connectionToken;
     }
 
+    @Override
     public UUID getPlayerId() {
         return playerId;
     }
@@ -47,18 +49,27 @@ public class User {
         return playingAudio;
     }
 
+    @Override
+    public void close() {
+        session.close();
+    }
+
+    @Override
     public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fade) {
         return playAudio(link, spatialInfo, fade, fade, false);
     }
 
+    @Override
     public Audio playAudio(String link, int fade) {
         return playAudio(link, null, fade, fade, false);
     }
 
+    @Override
     public Audio playAudio(String link, int fadeIn, int fadeOut) {
         return playAudio(link, null, fadeIn, fadeOut, false);
     }
 
+    @Override
     public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop) {
         UUID id = UUID.randomUUID();
         Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop);
@@ -66,12 +77,14 @@ public class User {
         return audio;
     }
 
+    @Override
     public void playAudio(Audio audio) {
         AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
         playingAudio.put(audio.getId(), audio);
         sendPacket(packet);
     }
 
+    @Override
     public Audio pauseAudio(String link) {
         Audio audio = null;
         for (Audio audio1 : playingAudio.values()) if (audio1.getLink().equals(link)) audio = audio1;
@@ -79,18 +92,20 @@ public class User {
         return audio;
     }
 
+    @Override
     public Audio pauseAudio(UUID id) {
         Audio audio = playingAudio.get(id);
         pauseAudio(audio);
         return audio;
     }
 
+    @Override
     public void pauseAudio(Audio audio) {
         PausePlayAudioPacket packet = new PausePlayAudioPacket(audio.getId(), audio.getFadeOut());
         sendPacket(packet);
     }
 
-
+    @Override
     public Audio stopAudio(String link) {
         Audio audio = null;
         for (Audio audio1 : playingAudio.values()) if (audio1.getLink().equals(link)) audio = audio1;
@@ -98,21 +113,25 @@ public class User {
         return audio;
     }
 
+    @Override
     public Audio stopAudio(UUID id) {
         Audio audio = playingAudio.get(id);
         stopAudio(audio);
         return audio;
     }
 
+    @Override
     public void stopAudio(Audio audio) {
         RemoveAudioPacket packet = new RemoveAudioPacket(audio.getId(), audio.getFadeOut());
         sendPacket(packet);
     }
 
+    @Override
     public void sendPacket(Packet... packets) {
         sendPacket(new PacketList(packets));
     }
 
+    @Override
     public void sendPacket(PacketList packetList) {
         String packet = BoostedAudioAPI.api.getGson().toJson(packetList);
         sendPacket(packet);

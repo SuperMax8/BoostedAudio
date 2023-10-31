@@ -1,14 +1,13 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
-import fr.supermax_8.boostedaudio.core.InternalAPI;
 import fr.supermax_8.boostedaudio.core.websocket.PacketList;
-import fr.supermax_8.boostedaudio.core.websocket.User;
+import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddPeerPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemovePeerPacket;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,8 +26,8 @@ public class PeerConnection {
     }
 
     public void link() {
-        User usr1 = users.get(id1);
-        User usr2 = users.get(id2);
+        HostUser usr1 = (HostUser) users.get(id1);
+        HostUser usr2 = (HostUser) users.get(id2);
         usr1.getRemotePeers(layerId).add(id2);
         usr2.getRemotePeers(layerId).add(id1);
 
@@ -39,8 +38,8 @@ public class PeerConnection {
     }
 
     public void unLink() {
-        User usr1 = users.get(id1);
-        User usr2 = users.get(id2);
+        HostUser usr1 = (HostUser) users.get(id1);
+        HostUser usr2 = (HostUser) users.get(id2);
 
         if (usr1 != null) {
             usr1.getRemotePeers().get(layerId).remove(id2);
@@ -50,6 +49,7 @@ public class PeerConnection {
             usr2.getRemotePeers().get(layerId).remove(id1);
             usr2.sendPacket(new PacketList(new RemovePeerPacket(layerId, id1)));
         }
+        BoostedAudioAPI.api.debug("Sending unlinkPeer packet to " + usr2.getPlayerId());
     }
 
     @Override

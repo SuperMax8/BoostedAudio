@@ -3,7 +3,7 @@ package fr.supermax_8.boostedaudio.core.websocket.packets;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.api.Packet;
-import fr.supermax_8.boostedaudio.core.websocket.User;
+import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 
 import java.util.UUID;
 
@@ -18,7 +18,7 @@ public class RemovePeerPacket implements Packet {
     }
 
     @Override
-    public void onReceive(User session, AudioWebSocketServer server) {
+    public void onReceive(HostUser session, AudioWebSocketServer server) {
         session.getSession().close();
         BoostedAudioAPI.api.debug("RemovePeerPacket close() session");
     }

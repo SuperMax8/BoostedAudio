@@ -1,6 +1,5 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 

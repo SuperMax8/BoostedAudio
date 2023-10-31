@@ -3,7 +3,7 @@ package fr.supermax_8.boostedaudio.core.websocket.packets;
 import fr.supermax_8.boostedaudio.core.websocket.Audio;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.api.Packet;
-import fr.supermax_8.boostedaudio.core.websocket.User;
+import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 
 import java.util.Map;
 import java.util.UUID;
@@ -23,7 +23,7 @@ public class RemoveAudioPacket implements Packet {
     }
 
     @Override
-    public void onReceive(User session, AudioWebSocketServer server) {
+    public void onReceive(HostUser session, AudioWebSocketServer server) {
         Map<UUID, Audio> audioMap = session.getPlayingAudio();
         Audio audio = audioMap.get(uuid);
         if (audio == null) {
