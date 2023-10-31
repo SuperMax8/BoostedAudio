@@ -61,7 +61,6 @@ public class ResourceUtils {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            // Gérez l'exception selon les besoins de votre application
         }
     }
 

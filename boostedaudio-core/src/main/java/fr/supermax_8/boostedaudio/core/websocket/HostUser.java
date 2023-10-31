@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.core.websocket;
 
+import com.google.gson.annotations.Expose;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.Packet;
 import fr.supermax_8.boostedaudio.api.User;
@@ -12,10 +13,15 @@ import java.util.*;
 
 public class HostUser implements User {
 
-    private final Map<String, Set<UUID>> remotePeers = new HashMap<>();
-    private final Map<UUID, Audio> playingAudio = new HashMap<>();
     private final WebSocket session;
+
+    @Expose
+    private final Map<String, Set<UUID>> remotePeers = new HashMap<>();
+    @Expose
+    private final Map<UUID, Audio> playingAudio = new HashMap<>();
+    @Expose
     private final String connectionToken;
+    @Expose
     private final UUID playerId;
 
     public HostUser(WebSocket session, String connectionToken, UUID playerId) {
@@ -28,6 +34,7 @@ public class HostUser implements User {
         return remotePeers.computeIfAbsent(layerId, k -> new HashSet<>());
     }
 
+    @Override
     public Map<String, Set<UUID>> getRemotePeers() {
         return remotePeers;
     }
@@ -36,6 +43,7 @@ public class HostUser implements User {
         return session;
     }
 
+    @Override
     public String getConnectionToken() {
         return connectionToken;
     }
@@ -45,6 +53,7 @@ public class HostUser implements User {
         return playerId;
     }
 
+    @Override
     public Map<UUID, Audio> getPlayingAudio() {
         return playingAudio;
     }
@@ -137,6 +146,7 @@ public class HostUser implements User {
         sendPacket(packet);
     }
 
+    @Override
     public void sendPacket(String packet) {
         if (session.isOpen()) session.send(packet);
     }

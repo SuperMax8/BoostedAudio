@@ -1,11 +1,18 @@
 package fr.supermax_8.boostedaudio.core.utils;
 
+import com.google.gson.annotations.Expose;
+
 public class SerializableLocation {
 
+    @Expose
     private final double x;
+    @Expose
     private final double y;
+    @Expose
     private final double z;
+    @Expose
     private final float yaw;
+    @Expose
     private final String world;
 
     public SerializableLocation(float x, float y, float z, float yaw, String world) {

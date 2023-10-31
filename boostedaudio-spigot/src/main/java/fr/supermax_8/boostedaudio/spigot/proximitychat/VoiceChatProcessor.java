@@ -33,6 +33,7 @@ public class VoiceChatProcessor {
 
     public VoiceChatResult process() {
         Map<UUID, User> userOnServer = BoostedAudioAPI.api.getHostProvider().getUsersOnServer();
+        if (userOnServer == null) return null;
 
         // Calculate peers
         Map<UUID, List<UUID>> peers;

@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.core.websocket.packets;
 
 import com.google.gson.*;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.api.Packet;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
@@ -28,7 +29,7 @@ public class RTCIcePacket implements Packet {
     @Override
     public void onReceive(HostUser user, AudioWebSocketServer server) {
         if (user.getRemotePeers(layerId).contains(to)) {
-            HostUser remoteUser = server.manager.getUsers().get(to);
+            User remoteUser = server.manager.getUsers().get(to);
             if (remoteUser != null) {
                 remoteUser.sendPacket(this);
             }

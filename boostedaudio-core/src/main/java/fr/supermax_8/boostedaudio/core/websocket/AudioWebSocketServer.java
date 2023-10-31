@@ -66,10 +66,10 @@ public class AudioWebSocketServer extends WebSocketServer {
 
             Optional<HostUser> user = manager.getSessionUsers().remove(webSocket);
             BoostedAudioAPI.api.debug("SessionUsersSize " + manager.getSessionUsers().size());
-            if (!user.isPresent()) return;
+            if (user.isEmpty()) return;
 
             UUID playerId = user.get().getPlayerId();
-            HostUser realUser = manager.getUsers().remove(playerId);
+            HostUser realUser = (HostUser) manager.getUsers().remove(playerId);
 
             if (realUser == null) return;
 
@@ -77,7 +77,7 @@ public class AudioWebSocketServer extends WebSocketServer {
                 String layerId = entry.getKey();
 
                 for (UUID id : entry.getValue()) {
-                    HostUser usr = manager.getUsers().get(id);
+                    HostUser usr = (HostUser) manager.getUsers().get(id);
                     if (usr == null) continue;
                     new PeerConnection(realUser.getPlayerId(), usr.getPlayerId(), layerId).unLink();
                 }

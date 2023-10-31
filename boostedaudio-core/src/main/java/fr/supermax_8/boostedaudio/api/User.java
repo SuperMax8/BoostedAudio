@@ -3,11 +3,19 @@ package fr.supermax_8.boostedaudio.api;
 import fr.supermax_8.boostedaudio.core.websocket.Audio;
 import fr.supermax_8.boostedaudio.core.websocket.PacketList;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public interface User {
 
+    Map<String, Set<UUID>> getRemotePeers();
+
+    String getConnectionToken();
+
     UUID getPlayerId();
+
+    Map<UUID, Audio> getPlayingAudio();
 
     void close();
 
@@ -37,4 +45,5 @@ public interface User {
 
     void sendPacket(PacketList packetList);
 
+    void sendPacket(String packet);
 }

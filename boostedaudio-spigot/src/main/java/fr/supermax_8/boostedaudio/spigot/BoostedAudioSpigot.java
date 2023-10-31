@@ -4,6 +4,7 @@ import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
 import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.*;
+import fr.supermax_8.boostedaudio.core.pluginmessage.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
@@ -31,7 +32,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.UUID;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
@@ -42,6 +45,11 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private BoostedAudioHost host;
     @Nullable
     private VoiceChatManager voiceChatManager;
+
+    @Nullable
+    private HostRequester hostRequester;
+    @Nullable
+    private Map<UUID, User> usersOnServer;
 
     private VoiceChatProcessor voiceChatProcessor;
     private BoostedAudioConfiguration configuration;
@@ -146,17 +154,36 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     private void setupDiffuser() {
         // Diffuser mode
+        hostRequester = new HostRequester();
+
         BoostedAudioAPIImpl.hostProvider = new HostProvider() {
             @Override
             public Map<UUID, User> getUsersOnServer() {
                 waitUntilPluginSetup();
-                return host.getWebSocketServer().manager.getUsers();
+                return usersOnServer;
             }
 
             @Override
             public void waitUntilPluginSetup() {
             }
         };
+
+        Scheduler.runTaskTimerAsync(() -> {
+            try {
+                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!Requesting users!!!!!!!!!!!!!!!!!!!!!!!!");
+                StringJoiner joiner = new StringJoiner(";");
+                Bukkit.getOnlinePlayers().forEach(player -> joiner.add(player.getUniqueId().toString()));
+                hostRequester.request("usersfromuuids", joiner.toString(), (UsersFromUuids usersFromUuids) -> {
+                    Map<UUID, User> map = new HashMap<>();
+                    usersFromUuids.getUsers().forEach(user -> map.put(user.getPlayerId(), new DiffuserUser(user)));
+                    usersOnServer = map;
+                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!SETTTTTINGGG users!!!!!!!!!!!!!!!!!!!!!!!!");
+                }, UsersFromUuids.class);
+                usersOnServer = null;
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }, 0, 0);
 
 
         registerOutgoingPluginMessage("tick");
@@ -172,12 +199,13 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         Scheduler.runTaskTimerAsync(() -> {
             try {
                 VoiceChatResult result = voiceChatProcessor.process();
-                Bukkit.getServer().sendPluginMessage(this, "boostedaudio:tick", BoostedAudioAPI.api.getGson().toJson(result).getBytes());
+                if (result == null) return;
+                sendPluginMessage("tick", BoostedAudioAPI.api.getGson().toJson(result));
             } catch (Throwable e) {
                 System.out.println("Error while processing voice chat :");
                 e.printStackTrace();
             }
-        }, 0, 60);
+        }, 0, 0);
 
 
 /*        Scheduler.runTaskTimer(() -> {
@@ -186,6 +214,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             //Bukkit.getServer().getMessenger().dispatchIncomingMessage(Bukkit.getOnlinePlayers().stream().findFirst().get(), "boostedaudio:fromspigot", "From spigot messaaaaaage !!!!!!!".getBytes());
         }, 0, 40);*/
     }
+
 
     private void checkForUpdates() {
         try {
@@ -227,6 +256,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     public static void sendPluginMessage(String channel, String value) {
         Bukkit.getServer().sendPluginMessage(instance, "boostedaudio:" + channel, value.getBytes());
+        System.out.println("Sending message to " + channel + " : " + value);
     }
 
     public static void registerIncomingPluginMessage(String channel, PluginMessageListener listener) {

@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.core.websocket;
 
+import com.google.gson.annotations.Expose;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import org.wildfly.common.annotation.Nullable;
 
@@ -10,15 +11,18 @@ import java.util.UUID;
 
 public class Audio {
 
+    @Expose
     private final List<String> links;
 
-    @Nullable
+    @Nullable@Expose
     private final AudioSpatialInfo spatialInfo;
-
+    @Expose
     private final UUID id;
-
+    @Expose
     private final int fadeIn;
+    @Expose
     private final int fadeOut;
+    @Expose
     private final boolean loop;
 
     public Audio(String links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop) {
@@ -66,14 +70,15 @@ public class Audio {
 
     public static class AudioSpatialInfo {
 
+        @Expose
         private final SerializableLocation location;
-
+        @Expose
         private final double maxVoiceDistance;
-
+        @Expose
         private final String distanceModel;
-
+        @Expose
         private final double refDistance;
-
+        @Expose
         private final double rolloffFactor;
 
         public AudioSpatialInfo(SerializableLocation location, double maxVoiceDistance) {
