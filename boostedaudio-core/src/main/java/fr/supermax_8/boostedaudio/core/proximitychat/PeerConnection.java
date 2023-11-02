@@ -42,11 +42,11 @@ public class PeerConnection {
         HostUser usr2 = (HostUser) users.get(id2);
 
         if (usr1 != null) {
-            usr1.getRemotePeers().get(layerId).remove(id2);
+            usr1.getRemotePeers(layerId).remove(id2);
             usr1.sendPacket(new PacketList(new RemovePeerPacket(layerId, id2)));
         }
         if (usr2 != null) {
-            usr2.getRemotePeers().get(layerId).remove(id1);
+            usr2.getRemotePeers(layerId).remove(id1);
             usr2.sendPacket(new PacketList(new RemovePeerPacket(layerId, id1)));
         }
         BoostedAudioAPI.api.debug("Sending unlinkPeer packet to " + usr2.getPlayerId());

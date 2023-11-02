@@ -72,11 +72,8 @@ public class BoostedAudioHost {
     }
 
     private void startServers() throws IOException {
-        System.out.println("AHHHHHHH1");
         BoostedAudioAPI.api.info("Starting servers...");
-        System.out.println("AHHHHHHH2 " + configuration.isDebugMode());
         initSSL();
-        System.out.println("AHHHHHHH3");
         File webserver = new File(configuration.getDataFolder(), "webhost");
         File index = new File(webserver, "index.html");
         if (!configuration.isCustomClient()) {
@@ -189,14 +186,12 @@ public class BoostedAudioHost {
     }
 
     private void initSSL() {
-        System.out.println("BBBBBB1");
         BoostedAudioAPI.api.debug("Init SSL...");
-        System.out.println("BBBBBB2");
         try {
             BoostedAudioAPI.api.debug("SSL setup...");
 
             ResourceUtils.saveResource("default.jks", new File(configuration.getDataFolder(), "default.jks").getAbsolutePath());
-            dummySslContext = getSSLContext(Files.newInputStream(new File(configuration.getDataFolder(), "default.jks").toPath()), "boostedaudio".toCharArray());
+            dummySslContext = getSSLContext(Files.newInputStream(new File(configuration.getDataFolder(), "default.jks").toPath()), "changeit".toCharArray());
             if (configuration.isSsl()) {
                 sslContext = getSSLContext(
                         Files.newInputStream(new File(configuration.getDataFolder(), configuration.getKeystoreFileName()).toPath()),

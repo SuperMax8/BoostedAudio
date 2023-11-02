@@ -5,7 +5,7 @@ api-version: '1.16'
 authors:
   - SuperMax_8
 description: Realtime music and proximity voice chat
-website: https://www.spigotmc.org/resources/boostedaudio-free-%E2%9C%A8proximity-voice-chat-and-music.112747/
+website: https://www.spigotmc.org/resources/boostedaudio-%E2%9C%A8proximity-voice-chat-and-music.112942/
 softdepend:
   - WorldGuard
 commands:

@@ -1,6 +1,8 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
+import org.wildfly.common.annotation.NotNull;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +28,7 @@ public class PlayerInfo {
         return location;
     }
 
-
+    @NotNull
     public List<UUID> getPeers() {
         return peers;
     }

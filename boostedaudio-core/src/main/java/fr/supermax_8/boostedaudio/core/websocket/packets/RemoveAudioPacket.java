@@ -10,12 +10,12 @@ import java.util.UUID;
 
 public class RemoveAudioPacket implements Packet {
 
-    private UUID uuid;
+    private final UUID uuid;
 
     /**
      * Fade in ms
      */
-    private int fade;
+    private final int fade;
 
     public RemoveAudioPacket(UUID uuid, int fade) {
         this.uuid = uuid;

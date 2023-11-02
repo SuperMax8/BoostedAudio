@@ -14,11 +14,9 @@ import java.util.stream.Collectors;
 public class VoiceChatManager {
 
 
-
     public VoiceChatManager() {
 
     }
-
 
     public void processResult(VoiceChatResult result) {
         for (LayerInfo layerInfo : result.getLayers()) processLayer(layerInfo);
@@ -37,8 +35,9 @@ public class VoiceChatManager {
 
         toLink.forEach(PeerConnection::link);
         toUnLink.forEach(PeerConnection::unLink);
+/*        System.out.println(layerInfo.getLayerId());
         System.out.println("toLink: " + toLink.size());
-        System.out.println("toUnLink: " + toUnLink.size());
+        System.out.println("toUnLink: " + toUnLink.size());*/
     }
 
     private void fillLinkUnlink(Set<PeerConnection> toLink, Set<PeerConnection> toUnLink, LayerInfo layerInfo) {
@@ -53,10 +52,26 @@ public class VoiceChatManager {
 
             if (newPeersOfUser == null || oldPeersOfUser == null) continue;
 
+            for (UUID peer : newPeersOfUser) {
+                if (!oldPeersOfUser.contains(peer)) {
+                    User peerUsr = users.get(peer);
+                    if (peerUsr != null)
+                        toLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId()));
+                }
+            }
+
+            for (UUID peer : oldPeersOfUser) {
+                if (!newPeersOfUser.contains(peer)) {
+                    User peerUsr = users.get(peer);
+                    if (peerUsr != null)
+                        toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId()));
+                }
+            }
+
             // Player to add
-            processPeers(users, user, layerInfo.getLayerId(), toLink, newPeersOfUser, oldPeersOfUser);
+            // processPeers(users, user, layerInfo.getLayerId(), toLink, newPeersOfUser, oldPeersOfUser);
             // Player to remove
-            processPeers(users, user, layerInfo.getLayerId(), toUnLink, oldPeersOfUser, newPeersOfUser);
+            // processPeers(users, user, layerInfo.getLayerId(), toUnLink, oldPeersOfUser, newPeersOfUser);
         }
     }
 

@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.spigot.commands;
 
 import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import fr.supermax_8.boostedaudio.spigot.gui.BoostedAudioGUI;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,14 +21,14 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 case "help":
                     sendHelp(sender);
                     break;
-                case "reload":
+/*                case "reload":
                     sender.sendMessage("§7Plugin reload...");
-                    /*BoostedAudioHost.getInstance().reload();*/
+                    *//*BoostedAudioHost.getInstance().reload();*//*
                     sender.sendMessage("§aPlugin reloaded !");
-                    break;
+                    break;*/
                 case "edit":
                     if (!(sender instanceof Player p)) return false;
-                    /*new BoostedAudioGUI(p);*/
+                    new BoostedAudioGUI(p);
                     break;
                 default:
                     sendHelp(sender);
@@ -45,7 +46,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 "§8§l[§9§lBoostedAudio§8§l] §7v§f" + BoostedAudioSpigot.getInstance().getPluginVersion() + " " + (BoostedAudioLoader.isPremium() ? "§6§lPremium" : "§aFree"),
                 "",
                 "§7/boostedaudio help §8- §7Show this help",
-                "§7/boostedaudio reload §8- §7Reload the plugin (can make the server freeze temporarily, and kick all players)",
+                //"§7/boostedaudio reload §8- §7Reload the plugin (can make the server freeze temporarily, and kick all players)",
                 "§7/boostedaudio edit §8- Open edition GUI",
         });
     }

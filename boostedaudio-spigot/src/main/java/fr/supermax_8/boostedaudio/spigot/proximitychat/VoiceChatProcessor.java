@@ -65,11 +65,12 @@ public class VoiceChatProcessor {
         for (User user : userOnServer.values()) {
             UUID userId = user.getPlayerId();
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(userId);
+            // Kick from pannel if offline
             if (!offlinePlayer.isOnline()) {
-                user.close();
                 continue;
             }
 
+            // Check if player is inside the layer
             if (predicate != null) {
                 if (predicate.test(user.getPlayerId())) playersInside.add(userId);
                 else playersInside.remove(userId);
@@ -79,9 +80,11 @@ public class VoiceChatProcessor {
             // Put result
             if (layer.isAudioSpatialized()) {
                 List<UUID> globalPeersOfUser = peers.get(userId);
+                PlayerInfo playerInfo = new PlayerInfo(pLoc);
+                result.put(userId, playerInfo);
                 for (UUID peer : globalPeersOfUser) {
                     if (playersInside.contains(peer))
-                        result.computeIfAbsent(userId, k -> new PlayerInfo(pLoc)).getPeers().add(peer);
+                        playerInfo.getPeers().add(peer);
                 }
             } else result.put(userId, new PlayerInfo(playersInside.stream().toList(), pLoc));
         }

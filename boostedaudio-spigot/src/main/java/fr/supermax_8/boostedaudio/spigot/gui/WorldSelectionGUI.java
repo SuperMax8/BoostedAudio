@@ -1,4 +1,3 @@
-/*
 package fr.supermax_8.boostedaudio.spigot.gui;
 
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
@@ -70,4 +69,4 @@ public class WorldSelectionGUI extends AbstractGUI {
     }
 
 
-}*/
+}

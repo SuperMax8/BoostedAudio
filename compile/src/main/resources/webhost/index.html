@@ -283,6 +283,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
 </body>
 </html>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script>
     const servers = {
         iceServers: [
@@ -335,6 +336,9 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     let userTemplate;
 
     let isOpen = false;
+
+    console.log(adapter.browserDetails.browser)
+    console.log(adapter.browserDetails.version)
 
     // Setup html user element
     const user = document.getElementById("user")
@@ -744,6 +748,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
     function spatializeAudio(panner, objToSpatialize) {
         if (objToSpatialize == null) return
+        //console.log("Spatialize audio", objToSpatialize, panner)
         // Calc peer loc relative to the client
         const x = objToSpatialize.x - clientLoc.x;
         const y = objToSpatialize.y - clientLoc.y;
@@ -760,8 +765,6 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         panner.positionX.value = newX
         panner.positionY.value = y
         panner.positionZ.value = newZ
-
-        //panner.setPosition(newX, y, newZ);
     }
 
     function degrees_to_radians(degrees) {
@@ -802,6 +805,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             element: null
         }
 
+        // RTCICEPACKET
         pc.onicecandidate = (event) => {
             if (event.candidate) {
                 const packet = [
@@ -825,14 +829,15 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         if (!peerConnections.has(layerId)) peerConnections.set(layerId, new Map())
         peerConnections.get(layerId).set(peerId, peerConnectionContainer)
 
+
         pc.ontrack = event => {
             if (event.track.kind === 'audio') {
-                console.log("Track set")
                 const track = event.track;
 
                 mediaStream.addTrack(track)
                 // Connecting things
                 const source = audioContext.createMediaStreamSource(mediaStream);
+                //source.connect(audioContext.destination)
                 source.connect(panner)
                 panner.connect(gain)
                 gain.connect(audioContext.destination)
@@ -842,11 +847,13 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 const dummyAudio = new Audio();
                 dummyAudio.muted = true;
                 dummyAudio.srcObject = mediaStream;
+                console.log("Track set")
             }
         }
 
         micStream.getTracks().forEach((track) => {
             pc.addTrack(track, micStream);
+            console.log("MicTrack added")
         });
 
         async function userThing() {
@@ -860,7 +867,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             userVolume.addEventListener('input', (e) => {
                 const volume = parseFloat(e.target.value) / 100;
                 peerConnectionContainer.gainValue = volume;
-                if (peerConnectionContainer.mute) return
+                if (peerConnectionContainer.mute) return;
                 gain.gain.value = volume * voiceVolume;
             });
         }
@@ -989,6 +996,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                             const currentAudioTrack = audioSender.track;
                             currentAudioTrack.stop();
                             audioSender.replaceTrack(newAudioTrack);
+                            console.log("replaceTrack", newAudioTrack)
                         }
                     })
                 });
@@ -1044,6 +1052,8 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     peerConnections.forEach((layerMap, k) => {
                         layerMap.forEach((pc, k) => {
                             console.log("- State: " + pc.pc.connectionState)
+                            console.log(pc.gain.gain.value)
+                            console.log(pc)
                         })
                     })
                 }, 3000)

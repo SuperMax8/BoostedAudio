@@ -15,11 +15,12 @@ public class HostRequester {
         if (!waitingRequests.containsKey(channel)) {
             BoostedAudioSpigot.registerOutgoingPluginMessage(channel);
             BoostedAudioSpigot.registerIncomingPluginMessage(channel, (s, player, bytes) -> {
-                System.out.println("Receiving something from " + channel);
                 try {
-                    waitingRequests.get(channel).remove(0);
+                    List<Consumer> consumers = waitingRequests.get(channel);
+                    if (consumers.isEmpty()) return;
+                    Consumer consumer = consumers.remove(0);
                     R r = BoostedAudioAPI.api.getGson().fromJson(new String(bytes), requestedClass);
-                    whenReceived.accept(r);
+                    consumer.accept(r);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
@@ -27,7 +28,6 @@ public class HostRequester {
         }
         waitingRequests.computeIfAbsent(channel, k -> new LinkedList<>()).add(whenReceived);
         BoostedAudioSpigot.sendPluginMessage(channel, input);
-        System.out.println("Sending something to " + channel);
     }
 
 

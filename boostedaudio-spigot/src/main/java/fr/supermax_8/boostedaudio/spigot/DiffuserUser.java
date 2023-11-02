@@ -1,10 +1,14 @@
 package fr.supermax_8.boostedaudio.spigot;
 
+import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.Packet;
 import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.websocket.Audio;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.core.websocket.PacketList;
+import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
+import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
+import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
 
 import java.util.Map;
 import java.util.Set;
@@ -49,77 +53,97 @@ public class DiffuserUser implements User {
 
     @Override
     public void close() {
-
+        BoostedAudioSpigot.sendPluginMessage("closeuser", playerId.toString());
     }
 
     @Override
     public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fade) {
-        return null;
+        return playAudio(link, spatialInfo, fade, fade, false);
     }
 
     @Override
     public Audio playAudio(String link, int fade) {
-        return null;
+        return playAudio(link, null, fade, fade, false);
     }
 
     @Override
     public Audio playAudio(String link, int fadeIn, int fadeOut) {
-        return null;
+        return playAudio(link, null, fadeIn, fadeOut, false);
     }
 
     @Override
     public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop) {
-        return null;
+        UUID id = UUID.randomUUID();
+        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop);
+        playAudio(audio);
+        return audio;
     }
 
     @Override
     public void playAudio(Audio audio) {
-
+        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
+        playingAudio.put(audio.getId(), audio);
+        sendPacket(packet);
     }
 
     @Override
     public Audio pauseAudio(String link) {
-        return null;
+        Audio audio = null;
+        for (Audio audio1 : playingAudio.values()) if (audio1.getLink().equals(link)) audio = audio1;
+        if (audio != null) pauseAudio(audio);
+        return audio;
     }
 
     @Override
     public Audio pauseAudio(UUID id) {
-        return null;
+        Audio audio = playingAudio.get(id);
+        pauseAudio(audio);
+        return audio;
     }
 
     @Override
     public void pauseAudio(Audio audio) {
-
+        PausePlayAudioPacket packet = new PausePlayAudioPacket(audio.getId(), audio.getFadeOut());
+        sendPacket(packet);
     }
 
     @Override
     public Audio stopAudio(String link) {
-        return null;
+        Audio audio = null;
+        for (Audio audio1 : playingAudio.values()) if (audio1.getLink().equals(link)) audio = audio1;
+        if (audio != null) stopAudio(audio);
+        return audio;
     }
 
     @Override
     public Audio stopAudio(UUID id) {
-        return null;
+        Audio audio = playingAudio.get(id);
+        stopAudio(audio);
+        return audio;
     }
 
     @Override
     public void stopAudio(Audio audio) {
-
+        RemoveAudioPacket packet = new RemoveAudioPacket(audio.getId(), audio.getFadeOut());
+        sendPacket(packet);
     }
 
     @Override
     public void sendPacket(Packet... packets) {
-
+        sendPacket(new PacketList(packets));
     }
 
     @Override
     public void sendPacket(PacketList packetList) {
-
+        String packet = BoostedAudioAPI.api.getGson().toJson(packetList);
+        sendPacket(packet);
     }
 
     @Override
     public void sendPacket(String packet) {
-
+        System.out.println("SendingPacket: " + packet);
+        String message = playerId.toString() + ";" + packet;
+        BoostedAudioSpigot.sendPluginMessage("senduserpacket", message);
     }
 
 }

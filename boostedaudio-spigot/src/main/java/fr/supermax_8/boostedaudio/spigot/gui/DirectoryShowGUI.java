@@ -1,14 +1,14 @@
-/*
 package fr.supermax_8.boostedaudio.spigot.gui;
 
-import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
+import fr.supermax_8.boostedaudio.core.utils.NaturalOrderComparator;
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
+import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
+import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;
-import fr.supermax_8.boostedaudio.core.utils.*;
-import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -17,7 +17,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -110,7 +109,7 @@ public class DirectoryShowGUI extends AbstractGUI {
                     switch (e.getClick()) {
                         case LEFT:
                             String s = file.getAbsolutePath();
-                            s = s.substring(s.indexOf("audio"));
+                            s = s.substring(s.indexOf("audio")).replaceAll("\\\\", "/");
                             TextComponent component = new TextComponent(s);
                             component.setUnderlined(true);
                             component.setColor(ChatColor.BOLD);
@@ -120,7 +119,7 @@ public class DirectoryShowGUI extends AbstractGUI {
                             owner.spigot().sendMessage(component);
                             break;
                         case RIGHT:
-                            new ChatEditor(owner, value -> {
+                            new ChatEditor(BoostedAudioSpigot.getInstance(), owner, value -> {
                                 try {
                                     float v = Float.parseFloat(value);
                                     try {
@@ -160,13 +159,10 @@ public class DirectoryShowGUI extends AbstractGUI {
         if (currentDir.equals(baseDir)) return;
         currentDir = currentDir.getParentFile();
         setItems(currentDir);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                initSelfListener();
-                p.openInventory(inv);
-            }
-        }.runTaskLater(BoostedAudioLoader.getInstance(), 1);
+        Scheduler.runTaskLater(() -> {
+            initSelfListener();
+            p.openInventory(inv);
+        }, 1);
     }
 
-}*/
+}

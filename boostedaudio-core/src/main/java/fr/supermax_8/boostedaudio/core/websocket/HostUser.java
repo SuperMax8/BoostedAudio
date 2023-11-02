@@ -133,6 +133,7 @@ public class HostUser implements User {
     public void stopAudio(Audio audio) {
         RemoveAudioPacket packet = new RemoveAudioPacket(audio.getId(), audio.getFadeOut());
         sendPacket(packet);
+        playingAudio.remove(audio.getId());
     }
 
     @Override

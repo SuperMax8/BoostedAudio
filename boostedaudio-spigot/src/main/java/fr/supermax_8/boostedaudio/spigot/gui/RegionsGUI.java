@@ -1,14 +1,13 @@
-/*
 package fr.supermax_8.boostedaudio.spigot.gui;
 
-import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
-import fr.supermax_8.boostedaudio.core.ingame.RegionManager;
+import fr.supermax_8.boostedaudio.core.websocket.Audio;
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
+import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;
-import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
-import fr.supermax_8.boostedaudio.core.websocket.Audio;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -25,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class RegionsGUI extends AbstractGUI {
 
-    private final RegionManager regionManager = BoostedAudioHost.getInstance().getAudioManager().getRegionManager();
+    private final RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
     private final InventoryScroll scroll;
     private final List<ItemStack> items;
     private LinkedHashMap<String, Audio> regionsOfWorld;
@@ -92,7 +91,7 @@ public class RegionsGUI extends AbstractGUI {
                 scroll.previousClick();
                 break;
             case 45:
-                new ChatEditor(owner, s -> {
+                new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
                     try {
                         String[] output = s.split(";");
                         String region;
@@ -117,7 +116,7 @@ public class RegionsGUI extends AbstractGUI {
                         }
                         regionManager.addRegion(region, new Audio(links, null, UUID.randomUUID(), fadeIn, fadeOut, loop));
                         owner.sendMessage("§aRegion audio added");
-                        BoostedAudioHost.getInstance().getAudioManager().saveData();
+                        BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                     } catch (Exception e) {
                         owner.sendMessage("§cWrong values, read the format and try again");
                     }
@@ -154,7 +153,7 @@ public class RegionsGUI extends AbstractGUI {
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
                             "Click to copy to chat").create()));
 
-                    new ChatEditor(owner, s -> {
+                    new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
                         try {
                             String[] output = s.split(";");
                             String region = output[0];
@@ -165,7 +164,7 @@ public class RegionsGUI extends AbstractGUI {
 
                             regionManager.addRegion(region, new Audio(links, null, UUID.randomUUID(), fadeIn, fadeOut, loop));
                             owner.sendMessage("§aRegion audio modified");
-                            BoostedAudioHost.getInstance().getAudioManager().saveData();
+                            BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                         } catch (Exception e) {
                             owner.sendMessage("§cWrong values, read the format and try again");
                         }
@@ -206,4 +205,4 @@ public class RegionsGUI extends AbstractGUI {
     public void onClose(Player player) {
     }
 
-}*/
+}

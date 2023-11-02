@@ -1,8 +1,7 @@
-/*
-package fr.supermax_8.boostedaudio.core.ingame;
+package fr.supermax_8.boostedaudio.spigot.manager;
 
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.websocket.Audio;
-import fr.supermax_8.boostedaudio.core.websocket.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.codemc.worldguardwrapper.WorldGuardWrapper;
@@ -24,10 +23,7 @@ public class RegionManager {
 
     }
 
-    public static long lastTick = 0;
-
     public void tick(Map<UUID, User> connectedUsers) {
-        lastTick = Bukkit.getServer().getWorlds().get(0).getTime();
         for (User user : connectedUsers.values()) {
             List<IWrappedRegion> lastRegions = infoMap.get(user.getPlayerId()).getLastRegions();
             if (lastRegions == null) continue;
@@ -97,7 +93,7 @@ public class RegionManager {
 
     public static class RegionInfo {
 
-        private List<IWrappedRegion> lastRegions;
+        private List<IWrappedRegion> lastRegions = new ArrayList<>();
 
         public List<IWrappedRegion> getLastRegions() {
             return lastRegions;
@@ -113,4 +109,4 @@ public class RegionManager {
         return api;
     }
 
-}*/
+}

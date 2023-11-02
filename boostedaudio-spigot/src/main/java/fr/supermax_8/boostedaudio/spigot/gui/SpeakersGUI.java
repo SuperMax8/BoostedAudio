@@ -1,17 +1,14 @@
-/*
 package fr.supermax_8.boostedaudio.spigot.gui;
 
-*/
-/*import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
-import fr.supermax_8.boostedaudio.core.ingame.SpeakerManager;*//*
-
+import fr.supermax_8.boostedaudio.core.websocket.Audio;
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import fr.supermax_8.boostedaudio.spigot.manager.SpeakerManager;
+import fr.supermax_8.boostedaudio.spigot.utils.InternalUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
+import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;
-import fr.supermax_8.boostedaudio.core.utils.*;
-import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
-import fr.supermax_8.boostedaudio.core.websocket.Audio;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -29,7 +26,7 @@ import java.util.stream.Collectors;
 
 public class SpeakersGUI extends AbstractGUI {
 
-    private final SpeakerManager speakerManager = BoostedAudioHost.getInstance().getAudioManager().getSpeakerManager();
+    private final SpeakerManager speakerManager = BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager();
     private final InventoryScroll scroll;
     private final List<ItemStack> items;
     private List<Audio> speakersOfWorld;
@@ -93,7 +90,7 @@ public class SpeakersGUI extends AbstractGUI {
                 scroll.previousClick();
                 break;
             case 45:
-                new ChatEditor(owner, s -> {
+                new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
                     try {
                         List<String> links = new ArrayList<>();
                         String[] output = s.split(";");
@@ -108,7 +105,7 @@ public class SpeakersGUI extends AbstractGUI {
                             double rolloffFactor = Double.parseDouble(output[3]);
                             loop = Boolean.parseBoolean(output[4]);
                             info = new Audio.AudioSpatialInfo(
-                                    new SerializableLocation(owner.getLocation()),
+                                    InternalUtils.bukkitLocationToSerializableLoc(owner.getLocation()),
                                     maxVoiceDistance,
                                     distanceModel,
                                     refDistance,
@@ -121,14 +118,14 @@ public class SpeakersGUI extends AbstractGUI {
 
                             if (output.length == 2) {
                                 info = new Audio.AudioSpatialInfo(
-                                        new SerializableLocation(owner.getLocation()), maxVoiceDistance);
+                                        InternalUtils.bukkitLocationToSerializableLoc(owner.getLocation()), maxVoiceDistance);
                             } else {
                                 String distanceModel = output[2];
                                 double refDistance = Double.parseDouble(output[3]);
                                 double rolloffFactor = Double.parseDouble(output[4]);
                                 loop = Boolean.parseBoolean(output[5]);
                                 info = new Audio.AudioSpatialInfo(
-                                        new SerializableLocation(owner.getLocation()),
+                                        InternalUtils.bukkitLocationToSerializableLoc(owner.getLocation()),
                                         maxVoiceDistance,
                                         distanceModel,
                                         refDistance,
@@ -139,7 +136,7 @@ public class SpeakersGUI extends AbstractGUI {
 
                         speakerManager.addSpeaker(new Audio(links, info, UUID.randomUUID(), 100, 100, loop));
                         owner.sendMessage("§aSpeaker added");
-                        BoostedAudioHost.getInstance().getAudioManager().saveData();
+                        BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                     } catch (Exception e) {
                         owner.sendMessage("§cWrong values, read the format and try again");
                     }
@@ -198,9 +195,8 @@ public class SpeakersGUI extends AbstractGUI {
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
                             "Click to copy to chat").create()));
 
-                    new ChatEditor(owner, s -> {
+                    new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
                         try {
-                            List<String> links = new ArrayList<>();
                             String[] output = s.split(";");
                             Audio.AudioSpatialInfo info;
                             boolean loop;
@@ -211,18 +207,18 @@ public class SpeakersGUI extends AbstractGUI {
                             double rolloffFactor = Double.parseDouble(output[3]);
                             loop = Boolean.parseBoolean(output[4]);
                             info = new Audio.AudioSpatialInfo(
-                                    new SerializableLocation(owner.getLocation()),
+                                    InternalUtils.bukkitLocationToSerializableLoc(owner.getLocation()),
                                     maxVoiceDistance,
                                     distanceModel,
                                     refDistance,
                                     rolloffFactor
                             );
-                            links.addAll(Arrays.asList(output).subList(5, output.length));
+                            List<String> links = new ArrayList<>(Arrays.asList(output).subList(5, output.length));
 
-                            speakerManager.removeSpeaker(selectedSpeaker.getSpatialInfo().getLocation().toBukkitLocation());
+                            speakerManager.removeSpeaker(InternalUtils.serializableLocToBukkitLocation(selectedSpeaker.getSpatialInfo().getLocation()));
                             speakerManager.addSpeaker(new Audio(links, info, UUID.randomUUID(), 200, 200, loop));
                             owner.sendMessage("§aSpeaker modified");
-                            BoostedAudioHost.getInstance().getAudioManager().saveData();
+                            BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                         } catch (Exception e) {
                             owner.sendMessage("§cWrong values, read the format and try again");
                         }
@@ -242,7 +238,7 @@ public class SpeakersGUI extends AbstractGUI {
             Audio selectedSpeaker = speakersOfWorld.get(index);
 
             if (event.getClick().equals(ClickType.SHIFT_RIGHT)) {
-                speakerManager.removeSpeaker(selectedSpeaker.getSpatialInfo().getLocation().toBukkitLocation());
+                speakerManager.removeSpeaker(InternalUtils.serializableLocToBukkitLocation(selectedSpeaker.getSpatialInfo().getLocation()));
                 setItems();
             }
         }
@@ -252,4 +248,4 @@ public class SpeakersGUI extends AbstractGUI {
     public void onClose(Player player) {
     }
 
-}*/
+}

@@ -1,11 +1,13 @@
-/*
 package fr.supermax_8.boostedaudio.spigot.gui;
 
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+
+import java.io.File;
 
 public class BoostedAudioGUI extends AbstractGUI {
 
@@ -31,9 +33,7 @@ public class BoostedAudioGUI extends AbstractGUI {
         switch (e.getSlot()) {
             case 1:
                 owner.closeInventory();
-                */
-/*new DirectoryShowGUI(owner, BoostedAudio);*//*
-
+                new DirectoryShowGUI(owner, new File(BoostedAudioSpigot.getInstance().getDataFolder(), "webhost" + File.separator + "audio"));
                 break;
             case 4:
                 owner.closeInventory();
@@ -59,4 +59,4 @@ public class BoostedAudioGUI extends AbstractGUI {
     }
 
 
-}*/
+}

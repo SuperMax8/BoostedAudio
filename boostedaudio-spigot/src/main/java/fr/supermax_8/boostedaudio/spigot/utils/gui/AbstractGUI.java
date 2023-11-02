@@ -1,7 +1,7 @@
-/*
 package fr.supermax_8.boostedaudio.spigot.utils.gui;
 
 import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.TemporaryListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -146,10 +146,10 @@ public abstract class AbstractGUI implements InventoryHolder {
                         p.openInventory(parent.inv);
                         parent.initSelfListener();
                     }
-                }.runTaskLater(BoostedAudioLoader.getInstance(), 1);
+                }.runTaskLater(BoostedAudioSpigot.getInstance(), 1);
             return true;
         });
     }
 
 
-}*/
+}

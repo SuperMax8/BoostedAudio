@@ -1,6 +1,5 @@
 package fr.supermax_8.boostedaudio.spigot.utils.editor;
 
-import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -15,11 +14,12 @@ import java.util.function.Consumer;
 
 public class ChatEditor implements Listener {
 
-    private Player p;
-    private Consumer<String> c;
-    private JavaPlugin instance = null;
+    private final Player p;
+    private final Consumer<String> c;
+    private final JavaPlugin instance;
 
-    public ChatEditor(Player p, Consumer<String> c, String... msg) {
+    public ChatEditor(JavaPlugin instance, Player p, Consumer<String> c, String... msg) {
+        this.instance = instance;
         this.p = p;
         this.c = c;
         p.closeInventory();
@@ -28,7 +28,8 @@ public class ChatEditor implements Listener {
         Bukkit.getPluginManager().callEvent(new EditorRegisterEvent(p, this));
     }
 
-    public ChatEditor(Player p, Consumer<String> c, TextComponent msg) {
+    public ChatEditor(JavaPlugin instance, Player p, Consumer<String> c, TextComponent msg) {
+        this.instance = instance;
         this.p = p;
         this.c = c;
         p.closeInventory();
