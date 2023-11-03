@@ -57,6 +57,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private AudioManager audioManager;
     private AroundManager aroundManager;
     private BoostedAudioConfiguration configuration;
+    private String workingMode = "";
 
     @Override
     public void onEnable() {
@@ -124,6 +125,8 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         metrics.addCustomChart(new Metrics.SingleLineChart("players_connected_to_audio_panel", () ->
                 host.getWebSocketServer().manager.getUsers().size()));
         metrics.addCustomChart(new Metrics.SimplePie("nbspeakers", () -> DataVisualisationUtils.intMetricToEzReadString(BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager().speakers.size())));
+        metrics.addCustomChart(new Metrics.SimplePie("workingmode", () -> workingMode));
+        metrics.addCustomChart(new Metrics.SimplePie("ispremium", () -> String.valueOf(BoostedAudioLoader.isPremium())));
         metrics.addCustomChart(new Metrics.SimplePie("nbregions", () -> {
             try {
                 return DataVisualisationUtils.intMetricToEzReadString(audioManager.getRegionManager().getAudioRegions().size());
@@ -135,6 +138,8 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     private void setupHost() {
         // Host mode
+        workingMode = "Host";
+
         host = new BoostedAudioHost(configuration);
         Bukkit.getScheduler().runTaskLater(this, this::initMetrics, 20 * 60);
         BoostedAudioAPIImpl.hostProvider = new HostProvider() {
@@ -170,8 +175,9 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     private void setupDiffuser() {
         // Diffuser mode
-        hostRequester = new HostRequester();
+        workingMode = "Diffuser";
 
+        hostRequester = new HostRequester();
         BoostedAudioAPIImpl.hostProvider = new HostProvider() {
             @Override
             public Map<UUID, User> getUsersOnServer() {
