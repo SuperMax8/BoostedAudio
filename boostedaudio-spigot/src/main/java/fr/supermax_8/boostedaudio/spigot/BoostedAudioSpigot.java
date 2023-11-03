@@ -12,7 +12,7 @@ import fr.supermax_8.boostedaudio.core.utils.DataVisualisationUtils;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
-import fr.supermax_8.boostedaudio.spigot.commands.AudioCommand;
+import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.spigot.manager.AudioManager;
 import fr.supermax_8.boostedaudio.spigot.proximitychat.VoiceChatProcessor;
@@ -67,7 +67,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         CrossConfigurationSection.converter = o -> new SpigotCrossConfigurationSection((ConfigurationSection) o);
         configuration = new BoostedAudioConfiguration(new File(getDataFolder(), "config.yml"));
         BoostedAudioAPIImpl.configuration = configuration;
-        getCommand("audio").setExecutor(new AudioCommand());
+        if (!configuration.isBungeecoord()) getCommand("audio").setExecutor(new AudioCommandSpigot());
         getCommand("boostedaudio").setExecutor(new BoostedAudioCommand());
 
         checkForUpdates();
@@ -205,7 +205,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             String msg = new String(message);
             String[] split = msg.split(";", 2);
             OfflinePlayer player1 = Bukkit.getOfflinePlayer(UUID.fromString(split[0]));
-            if (player1.isOnline()) AudioCommand.sendConnectMessage(player1.getPlayer(), split[1]);
+            if (player1.isOnline()) AudioCommandSpigot.sendConnectMessage(player1.getPlayer(), split[1]);
         });
         registerOutgoingPluginMessage("senduserpacket");
 

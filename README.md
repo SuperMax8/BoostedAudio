@@ -18,8 +18,8 @@ Dev RoadMap 2.0:
 - [x] Multi Module setup
 - [x] Faire fonctionner la partie purement spigot voicechat en multi module
 - [x] BungeeCoord compa donc système de packet bungee
-- [ ] Réimplementer le système de speaker et region audio
-- [ ] Work sur l'API avec le système de packet bungee
+- [x] Réimplementer le système de speaker et region audio
+- [x] Work sur l'API avec le système de packet bungee
 
 Mise à jour si j'ai la flemme:
 - [ ] Gestion sauvegarde memoire via cookie

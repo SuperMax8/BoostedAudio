@@ -3,8 +3,7 @@ package fr.supermax_8.boostedaudio.spigot;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
-import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
-import fr.supermax_8.boostedaudio.spigot.commands.AudioCommand;
+import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
 import org.bukkit.entity.Player;
@@ -13,8 +12,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.concurrent.CompletableFuture;
-
 public class PlayerListener implements Listener {
 
     @EventHandler
@@ -22,8 +19,8 @@ public class PlayerListener implements Listener {
         Player p = e.getPlayer();
         BoostedAudioConfiguration config = BoostedAudioAPI.getAPI().getConfiguration();
         Scheduler.runTaskAsync(() -> {
-            if (config.isSendOnConnect() && !BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId()))
-                AudioCommand.sendConnectMessage(p);
+            if (config.isSendOnConnect() && !config.isBungeecoord() && !BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId()))
+                AudioCommandSpigot.sendConnectMessage(p);
         });
 
         RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
@@ -37,6 +34,14 @@ public class PlayerListener implements Listener {
         if (regionManager == null) return;
         Player p = e.getPlayer();
         regionManager.getInfoMap().remove(p.getUniqueId());
+
+        Scheduler.runTaskAsync(() -> {
+            BoostedAudioConfiguration config = BoostedAudioAPI.getAPI().getConfiguration();
+            if (!config.isBungeecoord()) {
+                User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
+                if (user != null) user.close();
+            }
+        });
     }
 
 

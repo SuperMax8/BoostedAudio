@@ -1,3 +1,5 @@
 name: BoostedAudio
 version: '${project.version}'
 main: fr.supermax_8.boostedaudio.bungee.BoostedAudioBungee
+author: SuperMax_8
+description: ProximityVoiceChat and Music powered by webhost

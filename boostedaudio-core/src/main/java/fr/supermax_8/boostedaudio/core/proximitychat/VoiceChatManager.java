@@ -23,8 +23,16 @@ public class VoiceChatManager {
     }
 
     private void processLayer(LayerInfo layerInfo) {
+        checkInfo(layerInfo);
         processPeersUpdate(layerInfo);
         processPositionUpdate(layerInfo);
+    }
+
+    private void checkInfo(LayerInfo layerInfo) {
+        for (UUID uuid : new LinkedList<>(layerInfo.getPlayersInfo().keySet())) {
+            if (!AudioWebSocketServer.getInstance().manager.getUsers().containsKey(uuid))
+                layerInfo.getPlayersInfo().remove(uuid);
+        }
     }
 
     private void processPeersUpdate(LayerInfo layerInfo) {

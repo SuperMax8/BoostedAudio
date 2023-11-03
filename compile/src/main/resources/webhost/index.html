@@ -662,6 +662,16 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 serverInfoSet = true;
                 initWithServerInfo()
                 break;
+            case "ServerChangePacket":
+                const serverName = packet.serverName;
+                console.log("Server change to " + serverName)
+                audioMap.forEach((audioObj, uuid) => {
+                    const audio = audioObj.audio;
+                    audio.pause();
+                    audio.currentTime = 0;
+                })
+                audioMap.clear()
+                break
             default:
                 break;
         }

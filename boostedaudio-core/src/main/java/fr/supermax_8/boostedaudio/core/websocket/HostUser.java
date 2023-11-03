@@ -24,6 +24,8 @@ public class HostUser implements User {
     @Expose
     private final UUID playerId;
 
+    private long waitUntil = 0;
+
     public HostUser(WebSocket session, String connectionToken, UUID playerId) {
         this.session = session;
         this.connectionToken = connectionToken;
@@ -88,6 +90,7 @@ public class HostUser implements User {
 
     @Override
     public void playAudio(Audio audio) {
+        waitUntil();
         AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
         playingAudio.put(audio.getId(), audio);
         sendPacket(packet);
@@ -110,6 +113,7 @@ public class HostUser implements User {
 
     @Override
     public void pauseAudio(Audio audio) {
+        waitUntil();
         PausePlayAudioPacket packet = new PausePlayAudioPacket(audio.getId(), audio.getFadeOut());
         sendPacket(packet);
     }
@@ -131,6 +135,7 @@ public class HostUser implements User {
 
     @Override
     public void stopAudio(Audio audio) {
+        waitUntil();
         RemoveAudioPacket packet = new RemoveAudioPacket(audio.getId(), audio.getFadeOut());
         sendPacket(packet);
         playingAudio.remove(audio.getId());
@@ -150,6 +155,20 @@ public class HostUser implements User {
     @Override
     public void sendPacket(String packet) {
         if (session.isOpen()) session.send(packet);
+    }
+
+    private void waitUntil() {
+        while (waitUntil > System.currentTimeMillis()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void waitUntil(long time) {
+        waitUntil = System.currentTimeMillis() + time;
     }
 
 }

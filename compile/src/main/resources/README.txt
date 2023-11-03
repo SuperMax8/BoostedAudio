@@ -1,5 +1,5 @@
-All jar for this plugin BoostedAudio not coming from Spigot
-Is virus infected.
+All jars for this plugin BoostedAudio not coming from Spigot or BuildByBit
+Are virus infected.
 
 Terms of Service:
 

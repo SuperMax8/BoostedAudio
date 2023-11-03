@@ -25,8 +25,9 @@ public class RegionManager {
 
     public void tick(Map<UUID, User> connectedUsers) {
         for (User user : connectedUsers.values()) {
-            List<IWrappedRegion> lastRegions = infoMap.get(user.getPlayerId()).getLastRegions();
-            if (lastRegions == null) continue;
+            RegionInfo regionInfo = infoMap.get(user.getPlayerId());
+            if (regionInfo == null) continue;
+            List<IWrappedRegion> lastRegions = regionInfo.getLastRegions();
 
             Player p = Bukkit.getPlayer(user.getPlayerId());
             Set<IWrappedRegion> playerRegions = api.getRegions(p.getLocation());

@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-public class AudioCommand implements CommandExecutor {
+public class AudioCommandSpigot implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -36,14 +36,14 @@ public class AudioCommand implements CommandExecutor {
         } else {
             UUID playerId = p.getUniqueId();
             String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.generateConnectionToken(playerId);
+            if (token == null) return;
             sendConnectMessage(p, token);
         }
     }
 
-    public static void sendConnectMessage(Player p, String token) {
+    public static void sendConnectMessage(Player p, String link) {
         BoostedAudioConfiguration configuration = BoostedAudioAPI.api.getConfiguration();
 
-        String link = configuration.getClientLink() + "?t=" + token;
         TextComponent text = MessageUtils.colorFormatToTextComponent(new StringBuilder(configuration.getConnectionMessage().replace("{link}", link)));
         text.setColor(ChatColor.GOLD);
 

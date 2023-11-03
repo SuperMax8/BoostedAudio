@@ -141,7 +141,7 @@ public class DiffuserUser implements User {
 
     @Override
     public void sendPacket(String packet) {
-        System.out.println("SendingPacket: " + packet);
+        if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) System.out.println("SendingPacket: " + packet);
         String message = playerId.toString() + ";" + packet;
         BoostedAudioSpigot.sendPluginMessage("senduserpacket", message);
     }
