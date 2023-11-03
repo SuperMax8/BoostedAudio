@@ -15,6 +15,7 @@ import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSec
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.spigot.manager.AudioManager;
+import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.proximitychat.VoiceChatProcessor;
 import fr.supermax_8.boostedaudio.spigot.utils.AroundManager;
 import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
@@ -96,16 +97,21 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         aroundManager = new AroundManager();
         audioManager = new AudioManager();
 
-        Scheduler.runTaskTimerAsync(() -> {
-            try {
-                audioManager.getRegionManager().tick(BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer());
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }, 0, 0);
+        // Region manager
+        RegionManager regionManager = audioManager.getRegionManager();
+        if (regionManager != null)
+            Scheduler.runTaskTimerAsync(() -> {
+                try {
+                    regionManager.tick(BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer());
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }, 0, 0);
 
         voiceChatProcessor = new VoiceChatProcessor();
         voiceChatProcessor.getLayers().put("proximitychat", new VoiceLayer(true, 0, null, "proximitychat"));
+
+        Bukkit.getScheduler().runTaskLater(this, this::initMetrics, 20 * 60);
     }
 
     @Override
@@ -141,7 +147,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         workingMode = "Host";
 
         host = new BoostedAudioHost(configuration);
-        Bukkit.getScheduler().runTaskLater(this, this::initMetrics, 20 * 60);
         BoostedAudioAPIImpl.hostProvider = new HostProvider() {
             @Override
             public Map<UUID, User> getUsersOnServer() {

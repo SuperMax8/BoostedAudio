@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
@@ -46,7 +47,8 @@ public class BoostedAudioGUI extends AbstractGUI {
                 owner.closeInventory();
                 new WorldSelectionGUI(owner, w -> {
                     owner.closeInventory();
-                    new RegionsGUI(owner, w);
+                    if (BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager() != null) new RegionsGUI(owner, w);
+                    else owner.sendMessage("§c§lYou need to install WorldGuard to use this feature");
                 });
                 break;
         }

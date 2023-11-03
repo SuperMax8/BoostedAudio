@@ -24,16 +24,18 @@ public class PlayerListener implements Listener {
         });
 
         RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
-        if (regionManager == null) return;
-        regionManager.getInfoMap().put(p.getUniqueId(), new RegionManager.RegionInfo());
+        if (regionManager != null) {
+            regionManager.getInfoMap().put(p.getUniqueId(), new RegionManager.RegionInfo());
+        }
     }
 
     @EventHandler
     public void quit(PlayerQuitEvent e) {
-        RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
-        if (regionManager == null) return;
         Player p = e.getPlayer();
-        regionManager.getInfoMap().remove(p.getUniqueId());
+        RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
+        if (regionManager != null) {
+            regionManager.getInfoMap().remove(p.getUniqueId());
+        }
 
         Scheduler.runTaskAsync(() -> {
             BoostedAudioConfiguration config = BoostedAudioAPI.getAPI().getConfiguration();
