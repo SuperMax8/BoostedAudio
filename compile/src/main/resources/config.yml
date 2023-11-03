@@ -1,3 +1,14 @@
+#    /$$$$$$$                                  /$$                     /$$  /$$$$$$                  /$$ /$$                  /$$$$$$       /$$$$$$
+#    | $$__  $$                                | $$                    | $$ /$$__  $$                | $$|__/                 /$$__  $$     /$$$_  $$
+#    | $$  \ $$  /$$$$$$   /$$$$$$   /$$$$$$$ /$$$$$$    /$$$$$$   /$$$$$$$| $$  \ $$ /$$   /$$  /$$$$$$$ /$$  /$$$$$$       |__/  \ $$    | $$$$\ $$
+#    | $$$$$$$  /$$__  $$ /$$__  $$ /$$_____/|_  $$_/   /$$__  $$ /$$__  $$| $$$$$$$$| $$  | $$ /$$__  $$| $$ /$$__  $$        /$$$$$$/    | $$ $$ $$
+#    | $$__  $$| $$  \ $$| $$  \ $$|  $$$$$$   | $$    | $$$$$$$$| $$  | $$| $$__  $$| $$  | $$| $$  | $$| $$| $$  \ $$       /$$____/     | $$\ $$$$
+#    | $$  \ $$| $$  | $$| $$  | $$ \____  $$  | $$ /$$| $$_____/| $$  | $$| $$  | $$| $$  | $$| $$  | $$| $$| $$  | $$      | $$          | $$ \ $$$
+#    | $$$$$$$/|  $$$$$$/|  $$$$$$/ /$$$$$$$/  |  $$$$/|  $$$$$$$|  $$$$$$$| $$  | $$|  $$$$$$/|  $$$$$$$| $$|  $$$$$$/      | $$$$$$$$ /$$|  $$$$$$/
+#    |_______/  \______/  \______/ |_______/    \___/   \_______/ \_______/|__/  |__/ \______/  \_______/|__/ \______/       |________/|__/ \______/
+#
+# BoostedAudio 2.0 - ProximityVoiceChat and Music | Made by SuperMax_8
+
 # Show debug messages, websocket connections and others, useful if you want to come on the discord for support
 debugMode: false
 
@@ -5,27 +16,26 @@ debugMode: false
 notification: true
 
 # If true the plugin will set to diffuser mode and will send data to the other instance of the plugin normally setuped on your bungee
+# Set to true if you are on bungee AND boostedaudio is setup on the bungee
 bungeecoord: false
 
 # Web client
 client-link: https://localhost:8080
-# Web Socket
-clientWebSocketLink: wss://localhost:8081
-
 # The self-host web server, useful to host the audio panel and audio files
 autoHost: true
 autoHostPort: 8080
+
+# Web Socket
+clientWebSocketLink: wss://localhost:8081
+webSocket:
+  webSocketPort: 8081
+  webSocketHostName: 0.0.0.0
 
 # SSL, ssl will be used for WebClient if enabled and websocket
 ssl:
   ssl: false
   keystorePassword: "YOUR_PASSWORD"
   keystoreFileName: "keystore.jks"
-
-# WebSocket
-webSocket:
-  webSocketPort: 8081
-  webSocketHostName: 0.0.0.0
 
 #VoiceChat
 voicechat:

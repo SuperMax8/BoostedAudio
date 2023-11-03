@@ -12,6 +12,7 @@ import fr.supermax_8.boostedaudio.core.pluginmessage.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
+import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
 import fr.supermax_8.boostedaudio.core.utils.configuration.LazyConfigUpdater;
@@ -121,6 +122,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         });
 
         ProxyServer.getInstance().getPluginManager().registerListener(this, this);
+        checkForUpdates();
     }
 
     private void loadConf() {
@@ -142,6 +144,23 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
 
     @Override
     public void onDisable() {
+    }
+
+    private void checkForUpdates() {
+        try {
+            if (!configuration.isNotification()) return;
+            BoostedAudioAPI.api.info("Checking for updates...");
+            new UpdateChecker(112747).getVersion(v -> {
+                if (v.equals(getPluginVersion())) return;
+                BoostedAudioAPI.api.info("§aNew version available : §6" + v + " §ayou are on §7" + getPluginVersion());
+            });
+
+        } catch (Exception ignored) {
+        }
+    }
+
+    private String getPluginVersion() {
+        return getDescription().getVersion();
     }
 
     public void registerPluginMessage(String channel) {
