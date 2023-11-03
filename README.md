@@ -12,7 +12,29 @@ Including:
 Creating/convert ssl:
 https://www.baeldung.com/convert-pem-to-jks
 
-Dev RoadMap:
+
+Dev RoadMap 2.0:
+----
+- [x] Multi Module setup
+- [x] Faire fonctionner la partie purement spigot voicechat en multi module
+- [x] BungeeCoord compa donc système de packet bungee
+- [x] Réimplementer le système de speaker et region audio
+- [x] Work sur l'API avec le système de packet bungee
+
+Mise à jour si j'ai la flemme:
+- [ ] Gestion sauvegarde memoire via cookie
+- [ ] Mute and ban system
+- [ ] Gérer les perms
+- [ ] Amelioration system audio via https://github.com/otalk/mediastream-gain
+
+To add MAJ RoadMap
+---
+- [ ] Système de cosmetique icon joueur ptdrrrrr
+- [ ] Systeme de pose rapide de speaker, avec système de tag
+- [ ] Auto Download de musique, youtube, soundcloud et lien en direct
+
+
+Dev RoadMap 1.0:
 ----
 - [x] Boutton mute user, et boutton de mute micro
 - [X] Connexion click/auto connect si mic ouvert
@@ -26,13 +48,4 @@ Dev RoadMap:
 - [x] Audio/speaker spacialisé
 - [x] Outils in game
 - [x] Rework de la connection websocket
-- [ ] Test de toutes les features avant sortie
-
-  
-MAJ RoadMap
----
-- [ ] Gestion sauvegarde memoire via cookie
-- [ ] Système de cosmetique icon joueur ptdrrrrr
-- [ ] Mute and ban system
-- [ ] Systeme de pose rapide de speaker, avec système de tag
-- [ ] Auto Download de musique, youtube, soundcloud et lien en direct
+- [x] Test de toutes les features avant sortie
