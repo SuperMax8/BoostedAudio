@@ -1,9 +1,9 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
-import fr.supermax_8.boostedaudio.core.websocket.PacketList;
+import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddPeerPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemovePeerPacket;

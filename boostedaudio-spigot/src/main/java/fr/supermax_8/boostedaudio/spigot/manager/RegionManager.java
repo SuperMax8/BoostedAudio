@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.manager;
 
-import fr.supermax_8.boostedaudio.api.User;
-import fr.supermax_8.boostedaudio.core.websocket.Audio;
+import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.user.Audio;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.codemc.worldguardwrapper.WorldGuardWrapper;

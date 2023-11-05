@@ -1,6 +1,6 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
-import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;

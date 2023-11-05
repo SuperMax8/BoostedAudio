@@ -5,6 +5,8 @@ import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.InternalAPI;
 
+import java.util.List;
+
 public interface BoostedAudioAPI {
 
 
@@ -23,6 +25,8 @@ public interface BoostedAudioAPI {
     BoostedAudioConfiguration getConfiguration();
 
     InternalAPI getInternalAPI();
+
+    List<String> getMultiServerSecrets();
 
     void info(String message);
 

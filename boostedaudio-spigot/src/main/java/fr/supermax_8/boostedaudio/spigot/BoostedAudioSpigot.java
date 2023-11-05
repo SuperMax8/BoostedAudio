@@ -2,18 +2,21 @@ package fr.supermax_8.boostedaudio.spigot;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
-import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.*;
-import fr.supermax_8.boostedaudio.core.pluginmessage.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
+import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
+import fr.supermax_8.boostedaudio.core.serverpacket.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.utils.DataVisualisationUtils;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
+import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserUser;
+import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserWebSocketClient;
 import fr.supermax_8.boostedaudio.spigot.manager.AudioManager;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.proximitychat.VoiceChatProcessor;
@@ -30,14 +33,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.wildfly.common.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Map;
+import java.util.StringJoiner;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
@@ -53,6 +59,8 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private HostRequester hostRequester;
     @Nullable
     private Map<UUID, User> usersOnServer;
+    @Nullable
+    private DiffuserWebSocketClient diffuserWebSocketClient;
 
     private VoiceChatProcessor voiceChatProcessor;
     private AudioManager audioManager;
@@ -109,7 +117,8 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             }, 0, 0);
 
         voiceChatProcessor = new VoiceChatProcessor();
-        voiceChatProcessor.getLayers().put("proximitychat", new VoiceLayer(true, 0, null, "proximitychat"));
+        if (configuration.isVoiceChatEnabled())
+            voiceChatProcessor.getLayers().put("proximitychat", new VoiceLayer(true, 0, null, "proximitychat"));
 
         Bukkit.getScheduler().runTaskLater(this, this::initMetrics, 20 * 60);
     }
@@ -182,6 +191,16 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         // Diffuser mode
         workingMode = "Diffuser";
 
+        try {
+            BoostedAudioAPI.getAPI().debug("Bungee websocket uri: " + configuration.getBungeeWebsocketLink());
+            diffuserWebSocketClient = new DiffuserWebSocketClient(new URI(configuration.getBungeeWebsocketLink()));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        Scheduler.runTaskAsync(() -> {
+            diffuserWebSocketClient.connect();
+        });
         hostRequester = new HostRequester();
         BoostedAudioAPIImpl.hostProvider = new HostProvider() {
             @Override
@@ -210,21 +229,17 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         }, 0, 0);
 
 
-        registerOutgoingPluginMessage("tick");
-        registerOutgoingPluginMessage("audiotoken");
-        registerIncomingPluginMessage("audiotoken", (channel, player, message) -> {
-            String msg = new String(message);
-            String[] split = msg.split(";", 2);
+        registerServerPacketListener("audiotoken", (message, serverId) -> {
+            String[] split = message.split(";", 2);
             OfflinePlayer player1 = Bukkit.getOfflinePlayer(UUID.fromString(split[0]));
             if (player1.isOnline()) AudioCommandSpigot.sendConnectMessage(player1.getPlayer(), split[1]);
         });
-        registerOutgoingPluginMessage("senduserpacket");
 
         Scheduler.runTaskTimerAsync(() -> {
             try {
                 VoiceChatResult result = voiceChatProcessor.process();
                 if (result == null) return;
-                sendPluginMessage("tick", BoostedAudioAPI.api.getGson().toJson(result));
+                sendServerPacket("tick", BoostedAudioAPI.api.getGson().toJson(result));
             } catch (Throwable e) {
                 System.out.println("Error while processing voice chat :");
                 e.printStackTrace();
@@ -279,29 +294,13 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     }
 
 
-    public static void sendPluginMessage(String channel, String value) {
-        Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-        while (players.isEmpty()) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            players = Bukkit.getOnlinePlayers();
-        }
-        players = Bukkit.getOnlinePlayers();
-        for (Player p : players) {
-            p.sendPluginMessage(instance, "boostedaudio:" + channel, value.getBytes());
-            break;
-        }
+    public static void sendServerPacket(String channel, String value) {
+        DiffuserWebSocketClient ws = getInstance().diffuserWebSocketClient;
+        if (ws.isOpen()) ws.send(channel + ";" + value);
     }
 
-    public static void registerIncomingPluginMessage(String channel, PluginMessageListener listener) {
-        Bukkit.getServer().getMessenger().registerIncomingPluginChannel(instance, "boostedaudio:" + channel, listener);
-    }
-
-    public static void registerOutgoingPluginMessage(String channel) {
-        Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(instance, "boostedaudio:" + channel);
+    public static void registerServerPacketListener(String channel, ServerPacketListener listener) {
+        getInstance().diffuserWebSocketClient.registerListener(channel, listener);
     }
 
 }

@@ -8,6 +8,7 @@
 #    |_______/  \______/  \______/ |_______/    \___/   \_______/ \_______/|__/  |__/ \______/  \_______/|__/ \______/       |________/|__/ \______/
 #
 # BoostedAudio 2.0 - ProximityVoiceChat and Music | Made by SuperMax_8
+# Wiki: https://supermax-8.gitbook.io/boostedaudio/
 
 # Show debug messages, websocket connections and others, useful if you want to come on the discord for support
 debugMode: false
@@ -18,6 +19,12 @@ notification: true
 # If true the plugin will set to diffuser mode and will send data to the other instance of the plugin normally setuped on your bungee
 # Set to true if you are on bungee AND boostedaudio is setup on the bungee
 bungeecoord: false
+bungeeWebsocketLink: wss://localhost:8081
+# If this is the spigot config: let it empty and a secret will be generated, put it in the bungee config same place
+# If this is the bungee config: put the secrets of the spigot servers here
+# You can also manually define the secret here (Use unique strong secret)
+bungeeSecrets:
+- ""
 
 # Web client
 client-link: https://localhost:8080
@@ -31,7 +38,8 @@ webSocket:
   webSocketPort: 8081
   webSocketHostName: 0.0.0.0
 
-# SSL, ssl will be used for WebClient if enabled and websocket
+# SSL, ssl will be used for WebClient if enabled, and websocket
+# Even ssl option is false the socket & autohost will still be https and wss with a self-signed certificate
 ssl:
   ssl: false
   keystorePassword: "YOUR_PASSWORD"

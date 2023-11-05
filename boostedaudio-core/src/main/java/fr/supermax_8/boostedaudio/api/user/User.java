@@ -1,7 +1,7 @@
-package fr.supermax_8.boostedaudio.api;
+package fr.supermax_8.boostedaudio.api.user;
 
-import fr.supermax_8.boostedaudio.core.websocket.Audio;
-import fr.supermax_8.boostedaudio.core.websocket.PacketList;
+import fr.supermax_8.boostedaudio.api.packet.Packet;
+import fr.supermax_8.boostedaudio.api.packet.PacketList;
 
 import java.util.Map;
 import java.util.Set;

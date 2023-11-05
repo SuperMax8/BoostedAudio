@@ -1,5 +1,7 @@
 package fr.supermax_8.boostedaudio.api;
 
+import fr.supermax_8.boostedaudio.api.user.User;
+
 import java.util.Map;
 import java.util.UUID;
 

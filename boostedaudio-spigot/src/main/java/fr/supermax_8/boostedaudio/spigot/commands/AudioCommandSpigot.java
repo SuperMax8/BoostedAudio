@@ -32,7 +32,7 @@ public class AudioCommandSpigot implements CommandExecutor {
     public static void sendConnectMessage(Player p) {
         if (BoostedAudioAPI.api.getConfiguration().isBungeecoord()) {
             BoostedAudioAPI.getAPI().debug("Sending bungeecord message to " + p.getName());
-            BoostedAudioSpigot.sendPluginMessage("audiotoken", p.getUniqueId().toString());
+            BoostedAudioSpigot.sendServerPacket("audiotoken", p.getUniqueId().toString());
         } else {
             UUID playerId = p.getUniqueId();
             String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.generateConnectionToken(playerId);

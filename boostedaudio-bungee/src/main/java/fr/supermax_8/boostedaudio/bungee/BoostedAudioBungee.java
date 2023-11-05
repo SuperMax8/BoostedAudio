@@ -4,11 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
-import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.bungee.utils.BungeeCrossConfiguration;
 import fr.supermax_8.boostedaudio.bungee.utils.BungeeCrossConfigurationSection;
 import fr.supermax_8.boostedaudio.core.*;
-import fr.supermax_8.boostedaudio.core.pluginmessage.UsersFromUuids;
+import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
+import fr.supermax_8.boostedaudio.core.serverpacket.ServerUser;
+import fr.supermax_8.boostedaudio.core.serverpacket.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
@@ -16,7 +18,8 @@ import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
 import fr.supermax_8.boostedaudio.core.utils.configuration.LazyConfigUpdater;
-import fr.supermax_8.boostedaudio.core.websocket.Audio;
+import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
+import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.ServerChangePacket;
 import net.md_5.bungee.api.ProxyServer;
@@ -28,15 +31,14 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.event.EventHandler;
-import net.md_5.bungee.event.EventPriority;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.function.BiConsumer;
 
 public final class BoostedAudioBungee extends Plugin implements Listener {
 
@@ -46,7 +48,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
     private BoostedAudioConfiguration configuration;
     private VoiceChatManager voiceChatManager;
 
-    private final HashMap<String, PluginMessageResponse> pluginMessageListeners = new HashMap<>();
+    private final HashMap<String, ServerPacketListener> pluginMessageListeners = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -83,23 +85,37 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         };
 
         host = new BoostedAudioHost(configuration);
+        AudioWebSocketServer.serverBungeeCheck = (s, webSocket) -> {
+            for (String secret : configuration.getBungeeSecrets()) {
+                if (secret.equals(s)) {
+                    UUID uuid = UUID.randomUUID();
+                    String name = getServerName(webSocket.getRemoteSocketAddress());
+                    ConnectionManager manager = AudioWebSocketServer.getInstance().manager;
+                    ServerUser serverUser = new ServerUser(secret, name, uuid, webSocket);
+                    manager.getServers().put(uuid, serverUser);
+                    manager.getSessionUsers().put(webSocket, Optional.of(serverUser));
+                    return true;
+                }
+            }
+            return false;
+        };
+
         voiceChatManager = new VoiceChatManager();
 
-        registerPluginMessage("fromproxy");
-        registerPluginMessage("tick", (message, sender, receiver) -> {
+        registerServerListener("tick", (message, serverid) -> {
             VoiceChatResult voiceChatResult = BoostedAudioAPI.api.getGson().fromJson(message, VoiceChatResult.class);
             voiceChatManager.processResult(voiceChatResult);
         });
-        registerPluginMessage("audiotoken", (message, sender, receiver) -> {
+        registerServerListener("audiotoken", (message, serverId) -> {
             UUID playerId = UUID.fromString(message);
             String audioToken = host.getWebSocketServer().manager.generateConnectionToken(playerId);
             if (audioToken == null) return;
-            sendPluginMessage(getServerOfSender(sender), "audiotoken",
+            sendServerPacket(serverId, "audiotoken",
                     playerId + ";" + audioToken
             );
             BoostedAudioAPI.getAPI().debug("Audio token sent to " + playerId);
         });
-        registerPluginMessage("usersfromuuids", (message, sender, receiver) -> {
+        registerServerListener("usersfromuuids", (message, serverId) -> {
             HashSet<String> uuids = new HashSet<>();
             Collections.addAll(uuids, message.split(";"));
             List<HostUser> requestedUsers = host.getWebSocketServer().manager.getUsers().entrySet().stream()
@@ -108,15 +124,15 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
                     .toList();
 
             Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-            sendPluginMessage(getServerOfSender(sender), "usersfromuuids", gson.toJson(new UsersFromUuids(requestedUsers)));
+            sendServerPacket(serverId, "usersfromuuids", gson.toJson(new UsersFromUuids(requestedUsers)));
         });
-        registerPluginMessage("senduserpacket", (message, sender, receiver) -> {
+        registerServerListener("senduserpacket", (message, serverId) -> {
             String[] split = message.split(";", 2);
             UUID uuid = UUID.fromString(split[0]);
             String packet = split[1];
             host.getWebSocketServer().manager.getUsers().get(uuid).sendPacket(packet);
         });
-        registerPluginMessage("closeuser", (message, sender, receiver) -> {
+        registerServerListener("closeuser", (message, serverId) -> {
             UUID uuid = UUID.fromString(message);
             host.getWebSocketServer().manager.getUsers().get(uuid).close();
         });
@@ -159,18 +175,23 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         }
     }
 
+    private String getServerName(InetSocketAddress address) {
+        for (ServerInfo info : ProxyServer.getInstance().getServersCopy().values()) {
+            if (info.getSocketAddress().equals(address)) return info.getName();
+        }
+        return null;
+    }
+
     private String getPluginVersion() {
         return getDescription().getVersion();
     }
 
-    public void registerPluginMessage(String channel) {
-        registerPluginMessage(channel, null);
+    public void registerServerListener(String channel) {
+        registerServerListener(channel, null);
     }
 
-    public void registerPluginMessage(String channel, PluginMessageResponse onReceive) {
-        String tag = "boostedaudio:" + channel;
-        if (onReceive != null) pluginMessageListeners.put(tag, onReceive);
-        ProxyServer.getInstance().registerChannel(tag);
+    public void registerServerListener(String channel, ServerPacketListener onReceive) {
+        if (onReceive != null) pluginMessageListeners.put(channel, onReceive);
     }
 
     @EventHandler
@@ -192,44 +213,8 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         user.waitUntil(500);
     }
 
-    @EventHandler
-    public void onPluginMessage(PluginMessageEvent e) {
-        try {
-            if (!e.getTag().startsWith("boostedaudio:")) return;
-            String message = new String(e.getData());
-            PluginMessageResponse response = pluginMessageListeners.get(e.getTag());
-            if (response != null) response.onResponse(message, e.getSender(), e.getReceiver());
-        } catch (Throwable ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    public static void sendPluginMessage(String server, String channel, String message) {
-        ProxyServer.getInstance().getServersCopy().get(server).sendData("boostedaudio:" + channel, message.getBytes());
-    }
-
-    private String getServerOfSender(Connection sender) {
-        SocketAddress address = sender.getSocketAddress();
-        for (Map.Entry<String, ServerInfo> entry : ProxyServer.getInstance().getServersCopy().entrySet()) {
-/*            for (ProxiedPlayer player : entry.getValue().getPlayers()) {
-                if (player.getSocketAddress().equals(address)) {
-                    System.out.println("PLAYERRRRRR");
-                    return entry.getKey();
-                }
-            }*/
-            if (entry.getValue().getSocketAddress().equals(address)) {
-                // System.out.println("SERVERRRRRR");
-                return entry.getKey();
-            }
-        }
-        System.out.println("Problem with sender : " + sender);
-        return null;
-    }
-
-    public interface PluginMessageResponse {
-
-        void onResponse(String message, Connection sender, Connection receiver);
-
+    public static void sendServerPacket(UUID server, String channel, String message) {
+        AudioWebSocketServer.getInstance().manager.getServers().get(server).getWebSocket().send(channel + ";" + message);
     }
 
     public static BoostedAudioBungee getInstance() {

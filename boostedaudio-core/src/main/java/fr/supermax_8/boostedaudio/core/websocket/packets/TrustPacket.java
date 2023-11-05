@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.core.websocket.packets;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.Packet;
+import fr.supermax_8.boostedaudio.api.packet.Packet;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.core.FreeVersionLimit;

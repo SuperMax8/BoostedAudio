@@ -1,8 +1,11 @@
 package fr.supermax_8.boostedaudio.core.websocket;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
+import fr.supermax_8.boostedaudio.core.serverpacket.ServerUser;
+import fr.supermax_8.boostedaudio.core.utils.Base64Utils;
+import fr.supermax_8.boostedaudio.core.websocket.packets.TrustPacket;
 import org.java_websocket.WebSocket;
 
 import java.security.SecureRandom;
@@ -29,7 +32,9 @@ public class ConnectionManager {
      */
     protected final ConcurrentHashMap<UUID, User> users = new ConcurrentHashMap<>();
 
-    protected final ConcurrentHashMap<WebSocket, Optional<HostUser>> sessionUsers = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<WebSocket, Optional<Object>> sessionUsers = new ConcurrentHashMap<>();
+
+    protected final ConcurrentHashMap<UUID, ServerUser> servers = new ConcurrentHashMap<>();
 
     public ConnectionManager() {
     }
@@ -43,17 +48,23 @@ public class ConnectionManager {
         return users;
     }
 
-    public ConcurrentHashMap<WebSocket, Optional<HostUser>> getSessionUsers() {
+    public ConcurrentHashMap<WebSocket, Optional<Object>> getSessionUsers() {
         return sessionUsers;
     }
 
+    public ConcurrentHashMap<UUID, ServerUser> getServers() {
+        return servers;
+    }
+
+    public ServerUser getServer(String serverName) {
+        for (ServerUser user : servers.values()) {
+            if (user.getName().equals(serverName)) return user;
+        }
+        return null;
+    }
 
     public String generateConnectionToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] tokenBytes = new byte[TOKEN_LENGTH];
-        random.nextBytes(tokenBytes);
-
-        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+        String token = Base64Utils.generateSecuredToken(TOKEN_LENGTH);
         if (playerTokens.containsValue(token)) {
             TOKEN_LENGTH++;
             return generateConnectionToken();

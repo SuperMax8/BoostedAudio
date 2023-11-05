@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.bungee;
 
+import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
@@ -22,8 +23,8 @@ public class AudioCommandBungee extends Command {
                 + "?t="
                 + BoostedAudioBungee.getInstance().getHost().getWebSocketServer().manager
                 .generateConnectionToken(player.getUniqueId());
-        BoostedAudioBungee.sendPluginMessage(
-                servername,
+        BoostedAudioBungee.sendServerPacket(
+                AudioWebSocketServer.getInstance().manager.getServer(servername).getServerId(),
                 "audiotoken",
                 player.getUniqueId().toString() + ";" + link
         );

@@ -15,7 +15,7 @@ public class BoostedAudioLoader {
 
     private static final String[] libsLink = {
             "https://repo.codemc.io/repository/maven-public/org/codemc/worldguardwrapper/worldguardwrapper/1.2.1-SNAPSHOT/worldguardwrapper-1.2.1-20230624.184959-2.jar",
-            "https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.5.0/Java-WebSocket-1.5.0.jar",
+            "https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.4.1/Java-WebSocket-1.4.1.jar",
             "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar",
             "https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.jar",
             "https://repo1.maven.org/maven2/net/bramp/ffmpeg/ffmpeg/0.7.0/ffmpeg-0.7.0.jar",
@@ -61,7 +61,7 @@ public class BoostedAudioLoader {
     }
 
     public static boolean isPremium() {
-        return true;
+        return false;
     }
 
 }

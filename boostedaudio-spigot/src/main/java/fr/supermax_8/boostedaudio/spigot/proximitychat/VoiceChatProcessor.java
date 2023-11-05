@@ -1,13 +1,12 @@
 package fr.supermax_8.boostedaudio.spigot.proximitychat;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.proximitychat.LayerInfo;
 import fr.supermax_8.boostedaudio.core.proximitychat.PlayerInfo;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
-import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.InternalUtils;
 import org.bukkit.Bukkit;
