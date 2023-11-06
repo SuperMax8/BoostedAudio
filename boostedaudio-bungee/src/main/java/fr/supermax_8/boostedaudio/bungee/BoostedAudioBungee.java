@@ -85,14 +85,12 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
 
         host = new BoostedAudioHost(configuration);
         AudioWebSocketServer.serverProxyCheck = (s, webSocket) -> {
-            System.out.println("serverProxyCheck Tick");
             try {
                 String[] split = s.split(";", 2);
                 String token = split[0];
                 String serverName = split[1];
                 if (serverName.equals("?")) {
                     sendServerNames();
-                    System.out.println("Server names sent");
                     return true;
                 }
 
