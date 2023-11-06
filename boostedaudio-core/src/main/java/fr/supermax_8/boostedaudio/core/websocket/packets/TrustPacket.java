@@ -1,6 +1,9 @@
 package fr.supermax_8.boostedaudio.core.websocket.packets;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.api.event.EventManager;
+import fr.supermax_8.boostedaudio.api.event.events.UserJoinEvent;
+import fr.supermax_8.boostedaudio.api.event.events.UserQuitEvent;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
@@ -44,6 +47,8 @@ public class TrustPacket implements Packet {
             newUser.sendPacket(new TrustPacket(null, new ServerInfo(
                     configuration.getMaxVoiceDistance(), configuration.getRolloffFactor(), configuration.getRefDistance(), configuration.getDistanceModel(), playerId.toString())
             ));
+            UserJoinEvent userJoinEvent = new UserJoinEvent(newUser);
+            EventManager.getInstance().callEvent(userJoinEvent);
 /*            RegionManager manager1 = BoostedAudioHost.getInstance().getAudioManager().getRegionManager();
             if (manager1 != null) manager1.getInfoMap().get(playerId).setLastRegions(new CopyOnWriteArrayList<>());*/
         } else {

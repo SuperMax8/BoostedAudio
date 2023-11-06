@@ -10,6 +10,9 @@ import java.util.List;
 
 public class PacketList {
 
+    private static String eheheheh = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+
+
     private final List<Packet> packets;
     private static final List<String> packageNameOfPackets = new ArrayList<>() {{
         add("fr.supermax_8.boostedaudio.core.websocket.packets");

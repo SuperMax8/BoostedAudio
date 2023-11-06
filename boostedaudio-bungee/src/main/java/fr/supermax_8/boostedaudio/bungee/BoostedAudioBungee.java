@@ -39,6 +39,8 @@ import java.util.*;
 
 public final class BoostedAudioBungee extends Plugin implements Listener {
 
+    private static String fqsfdsqfdsq = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+
     private static BoostedAudioBungee instance;
 
     private BoostedAudioHost host;

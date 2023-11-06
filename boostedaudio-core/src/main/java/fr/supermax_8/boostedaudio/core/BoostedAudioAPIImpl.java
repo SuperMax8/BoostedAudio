@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
+import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RTCIcePacket;
 
@@ -35,6 +36,11 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
     public List<String> getMultiServerSecrets() {
         if (multiServerSecrets == null) throw new IllegalStateException("You can't call this method on spigot instance");
         return multiServerSecrets;
+    }
+
+    @Override
+    public EventManager getEventManager() {
+        return EventManager.getInstance();
     }
 
     @Override

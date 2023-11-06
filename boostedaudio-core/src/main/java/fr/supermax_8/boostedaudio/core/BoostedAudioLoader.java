@@ -61,7 +61,7 @@ public class BoostedAudioLoader {
     }
 
     public static boolean isPremium() {
-        return false;
+        return true;
     }
 
 }

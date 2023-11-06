@@ -3,6 +3,8 @@ package fr.supermax_8.boostedaudio.core.websocket;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.api.event.EventManager;
+import fr.supermax_8.boostedaudio.api.event.events.UserQuitEvent;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.core.proximitychat.PeerConnection;
@@ -69,6 +71,9 @@ public class AudioWebSocketServer extends WebSocketServer {
                         new PeerConnection(realUser.getPlayerId(), usr.getPlayerId(), layerId).unLink();
                     }
                 }
+
+                UserQuitEvent userQuitEvent = new UserQuitEvent(realUser);
+                EventManager.getInstance().callEvent(userQuitEvent);
             } else if (obj instanceof ServerUser serverUser) {
                 manager.getServers().remove(serverUser.getServerId());
             }
@@ -90,11 +95,6 @@ public class AudioWebSocketServer extends WebSocketServer {
             packetList = gson.fromJson(message, PacketList.class);
         } catch (JsonSyntaxException e) {
             if (serverProxyCheck != null && serverProxyCheck.apply(message, client)) return;
-/*            try {
-                String[] split = message.split(";", 2);
-                serverPacketListeners.get(split[0]).onReceive(split[1], ((ServerUser) manager.getSessionUsers().get(client).get()).getServerId());
-            } catch (Exception ignored) {
-            }*/
             client.close();
             BoostedAudioAPI.api.debug("ERREUR RECEIVED MESSAGE");
             BoostedAudioAPI.api.debug(message);

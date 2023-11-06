@@ -50,6 +50,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Metrics {
 
+    private static String ifYouFindThatAndWantToRemoveItStopTryingToLeakMyPluginPlease = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+
     private final Plugin plugin;
 
     private final MetricsBase metricsBase;

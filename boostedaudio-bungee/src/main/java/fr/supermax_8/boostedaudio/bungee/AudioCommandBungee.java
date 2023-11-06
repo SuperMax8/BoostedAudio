@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class AudioCommandBungee extends Command {
 
+    private static String aaaaaaadqs = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
 
     public AudioCommandBungee(String name) {
         super(name);

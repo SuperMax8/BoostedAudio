@@ -2,6 +2,8 @@ package fr.supermax_8.boostedaudio.spigot;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
+import fr.supermax_8.boostedaudio.api.event.events.UserJoinEvent;
+import fr.supermax_8.boostedaudio.api.event.events.UserQuitEvent;
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.*;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
@@ -48,6 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
 
+    private static String a = "%%__RESOURCE__%% %%__USER__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
     private static BoostedAudioSpigot instance;
 
     @Nullable
@@ -117,7 +120,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                         e.printStackTrace();
                     }
                 }, 0, 0);
-        }, 40);
+        }, 1);
 
         voiceChatProcessor = new VoiceChatProcessor();
         if (configuration.isVoiceChatEnabled())
@@ -258,22 +261,24 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private void checkForUpdates() {
         try {
             if (!configuration.isNotification()) return;
-            BoostedAudioAPI.api.info("Checking for updates...");
-            new UpdateChecker(112747).getVersion(v -> {
-                if (v.equals(getPluginVersion())) return;
-                Scheduler.runTask(() -> {
+            Scheduler.runTaskTimerAsync(() -> {
+                new UpdateChecker(112747).getVersion(v -> {
+                    if (v.equals(getPluginVersion())) return;
                     BoostedAudioAPI.api.info("§aNew version available : §6" + v + " §ayou are on §7" + getPluginVersion());
-                    new TemporaryListener<PlayerJoinEvent>(PlayerJoinEvent.class, EventPriority.NORMAL, event -> {
-                        Player p = event.getPlayer();
-                        if (p.hasPermission("boostedaudio.admin")) {
-                            p.sendMessage("§2[BoostedAudio] §aNew version available : §e" + v + " §ayou are on §e" + getPluginVersion());
-                            return true;
-                        }
-                        return false;
-                    });
                 });
-            });
+            }, 0, 20 * 60 * 60);
 
+            new TemporaryListener<PlayerJoinEvent>(PlayerJoinEvent.class, EventPriority.NORMAL, event -> {
+                Player p = event.getPlayer();
+                if (p.hasPermission("boostedaudio.admin")) {
+                    new UpdateChecker(112747).getVersion(v -> {
+                        if (v.equals(getPluginVersion())) return;
+                        p.sendMessage("§2[BoostedAudio] §aNew version available : §e" + v + " §ayou are on §e" + getPluginVersion());
+                    });
+                    return true;
+                }
+                return false;
+            });
         } catch (Exception ignored) {
         }
     }

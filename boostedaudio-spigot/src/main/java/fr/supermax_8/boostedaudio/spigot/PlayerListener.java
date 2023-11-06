@@ -21,23 +21,21 @@ public class PlayerListener implements Listener {
         Scheduler.runTaskAsync(() -> {
             if (config.isSendOnConnect() && !config.isBungeecoord() && !BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId()))
                 AudioCommandSpigot.sendConnectMessage(p);
+            RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
+            if (regionManager != null) {
+                regionManager.getInfoMap().put(p.getUniqueId(), new RegionManager.RegionInfo());
+            }
         });
-
-        RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
-        if (regionManager != null) {
-            regionManager.getInfoMap().put(p.getUniqueId(), new RegionManager.RegionInfo());
-        }
     }
 
     @EventHandler
     public void quit(PlayerQuitEvent e) {
         Player p = e.getPlayer();
-        RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
-        if (regionManager != null) {
-            regionManager.getInfoMap().remove(p.getUniqueId());
-        }
-
         Scheduler.runTaskAsync(() -> {
+            RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
+            if (regionManager != null) {
+                regionManager.getInfoMap().remove(p.getUniqueId());
+            }
             BoostedAudioConfiguration config = BoostedAudioAPI.getAPI().getConfiguration();
             if (!config.isBungeecoord()) {
                 User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
