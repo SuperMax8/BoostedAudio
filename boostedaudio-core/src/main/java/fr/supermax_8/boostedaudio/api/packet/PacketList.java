@@ -12,8 +12,7 @@ public class PacketList {
 
     private final List<Packet> packets;
     private static final List<String> packageNameOfPackets = new ArrayList<>() {{
-        add("fr.supermax_8.boostedaudio.core.websocket.packets.client");
-        add("fr.supermax_8.boostedaudio.core.websocket.packets.server");
+        add("fr.supermax_8.boostedaudio.core.websocket.packets");
     }};
 
     public PacketList(List<Packet> packets) {

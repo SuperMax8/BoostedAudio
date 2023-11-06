@@ -61,6 +61,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private Map<UUID, User> usersOnServer;
     @Nullable
     private DiffuserWebSocketClient diffuserWebSocketClient;
+    private String bungeeServerName;
 
     private VoiceChatProcessor voiceChatProcessor;
     private AudioManager audioManager;
@@ -103,18 +104,20 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
 
         aroundManager = new AroundManager();
-        audioManager = new AudioManager();
+        Scheduler.runTaskLater(() -> {
+            audioManager = new AudioManager();
 
-        // Region manager
-        RegionManager regionManager = audioManager.getRegionManager();
-        if (regionManager != null)
-            Scheduler.runTaskTimerAsync(() -> {
-                try {
-                    regionManager.tick(BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer());
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-            }, 0, 0);
+            // Region manager
+            RegionManager regionManager = audioManager.getRegionManager();
+            if (regionManager != null)
+                Scheduler.runTaskTimerAsync(() -> {
+                    try {
+                        regionManager.tick(BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer());
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
+                }, 0, 0);
+        }, 40);
 
         voiceChatProcessor = new VoiceChatProcessor();
         if (configuration.isVoiceChatEnabled())
@@ -125,7 +128,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     @Override
     public void onDisable() {
-
+        if (diffuserWebSocketClient != null) diffuserWebSocketClient.close();
     }
 
     public static BoostedAudioSpigot getInstance() {
@@ -202,6 +205,10 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             diffuserWebSocketClient.connect();
         });
         hostRequester = new HostRequester();
+        Bukkit.getMessenger().registerIncomingPluginChannel(this, "boostedaudio:servername", (channel, player, message) -> {
+            bungeeServerName = new String(message);
+            BoostedAudioAPI.api.debug("Bungee server name received : " + bungeeServerName);
+        });
         BoostedAudioAPIImpl.hostProvider = new HostProvider() {
             @Override
             public Map<UUID, User> getUsersOnServer() {
@@ -277,6 +284,10 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     public AudioManager getAudioManager() {
         return audioManager;
+    }
+
+    public String getBungeeServerName() {
+        return bungeeServerName;
     }
 
     public String getPluginVersion() {

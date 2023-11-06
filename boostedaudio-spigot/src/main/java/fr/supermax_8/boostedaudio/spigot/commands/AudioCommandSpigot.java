@@ -16,6 +16,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class AudioCommandSpigot implements CommandExecutor {
 
@@ -30,15 +31,20 @@ public class AudioCommandSpigot implements CommandExecutor {
     }
 
     public static void sendConnectMessage(Player p) {
-        if (BoostedAudioAPI.api.getConfiguration().isBungeecoord()) {
-            BoostedAudioAPI.getAPI().debug("Sending bungeecord message to " + p.getName());
-            BoostedAudioSpigot.sendServerPacket("audiotoken", p.getUniqueId().toString());
-        } else {
-            UUID playerId = p.getUniqueId();
-            String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.generateConnectionToken(playerId);
-            if (token == null) return;
-            sendConnectMessage(p, token);
-        }
+        CompletableFuture.runAsync(() -> {
+            if (BoostedAudioAPI.api.getConfiguration().isBungeecoord()) {
+                BoostedAudioAPI.getAPI().debug("Sending bungeecord message to " + p.getName());
+                BoostedAudioSpigot.sendServerPacket("audiotoken", p.getUniqueId().toString());
+            } else {
+                UUID playerId = p.getUniqueId();
+                String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.generateConnectionToken(playerId);
+                if (token == null) return;
+                String link = BoostedAudioAPI.getAPI().getConfiguration().getClientLink()
+                        + "?t="
+                        + token;
+                sendConnectMessage(p, link);
+            }
+        });
     }
 
     public static void sendConnectMessage(Player p, String link) {
@@ -50,6 +56,7 @@ public class AudioCommandSpigot implements CommandExecutor {
         text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
         text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(configuration.getConnectionHoverMessage())).toString()).create()));
 
+        if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) System.out.println("Sending connection message to " + p.getName() + " : " + link);
         p.spigot().sendMessage(text);
     }
 

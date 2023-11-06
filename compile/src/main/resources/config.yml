@@ -19,6 +19,7 @@ notification: true
 # If true the plugin will set to diffuser mode and will send data to the other instance of the plugin normally setuped on your bungee
 # Set to true if you are on bungee AND boostedaudio is setup on the bungee
 bungeecoord: false
+# Use the same param as the clientWebSocketLink in the bungee config
 bungeeWebsocketLink: wss://localhost:8081
 # If this is the spigot config: let it empty and a secret will be generated, put it in the bungee config same place
 # If this is the bungee config: put the secrets of the spigot servers here

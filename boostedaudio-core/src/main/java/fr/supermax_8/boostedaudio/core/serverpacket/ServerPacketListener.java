@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public interface ServerPacketListener {
 
-    void onResponse(String message, UUID serverId);
+    void onReceive(String message, UUID serverId);
 
 }

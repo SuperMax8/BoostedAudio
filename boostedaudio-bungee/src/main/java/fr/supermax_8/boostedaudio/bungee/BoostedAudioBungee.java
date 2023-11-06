@@ -24,8 +24,6 @@ import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.ServerChangePacket;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.Connection;
-import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.api.event.*;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -36,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -60,6 +57,8 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         }
         CrossConfiguration.instancer = BungeeCrossConfiguration::new;
         CrossConfigurationSection.converter = o -> new BungeeCrossConfigurationSection((Configuration) o);
+
+        ProxyServer.getInstance().registerChannel("boostedaudio:servername");
 
         loadConf();
         BoostedAudioAPIImpl.configuration = configuration;
@@ -85,19 +84,40 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         };
 
         host = new BoostedAudioHost(configuration);
-        AudioWebSocketServer.serverBungeeCheck = (s, webSocket) -> {
-            for (String secret : configuration.getBungeeSecrets()) {
-                if (secret.equals(s)) {
-                    UUID uuid = UUID.randomUUID();
-                    String name = getServerName(webSocket.getRemoteSocketAddress());
-                    ConnectionManager manager = AudioWebSocketServer.getInstance().manager;
-                    ServerUser serverUser = new ServerUser(secret, name, uuid, webSocket);
-                    manager.getServers().put(uuid, serverUser);
-                    manager.getSessionUsers().put(webSocket, Optional.of(serverUser));
+        AudioWebSocketServer.serverProxyCheck = (s, webSocket) -> {
+            System.out.println("serverProxyCheck Tick");
+            try {
+                String[] split = s.split(";", 2);
+                String token = split[0];
+                String serverName = split[1];
+                if (serverName.equals("?")) {
+                    sendServerNames();
+                    System.out.println("Server names sent");
                     return true;
                 }
+
+                for (String secret : configuration.getBungeeSecrets()) {
+                    if (secret.equals(token)) {
+                        UUID uuid = UUID.randomUUID();
+                        ConnectionManager manager = AudioWebSocketServer.getInstance().manager;
+                        ServerUser serverUser = new ServerUser(secret, serverName, uuid, webSocket);
+                        manager.getServers().put(uuid, serverUser);
+                        manager.getSessionUsers().put(webSocket, Optional.of(serverUser));
+                        System.out.println("Server connected : " + serverName);
+                        return true;
+                    }
+                }
+            } catch (Exception e) {
             }
             return false;
+        };
+
+        AudioWebSocketServer.proxyConsumer = (message, serverUser) -> {
+            String[] split = message.split(";", 2);
+            ServerPacketListener listener = pluginMessageListeners.get(split[0]);
+            if (listener == null) return;
+            listener.onReceive(split[1], serverUser.getServerId());
+            /*System.out.println("Received message from server " + serverUser.getServerId() + " : " + message);*/
         };
 
         voiceChatManager = new VoiceChatManager();
@@ -141,6 +161,12 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         checkForUpdates();
     }
 
+    private void sendServerNames() {
+        for (ServerInfo info : ProxyServer.getInstance().getServersCopy().values()) {
+            info.sendData("boostedaudio:servername", info.getName().getBytes());
+        }
+    }
+
     private void loadConf() {
         getDataFolder().mkdirs();
         File configFile = new File(getDataFolder(), "config.yml");
@@ -173,13 +199,6 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
 
         } catch (Exception ignored) {
         }
-    }
-
-    private String getServerName(InetSocketAddress address) {
-        for (ServerInfo info : ProxyServer.getInstance().getServersCopy().values()) {
-            if (info.getSocketAddress().equals(address)) return info.getName();
-        }
-        return null;
     }
 
     private String getPluginVersion() {

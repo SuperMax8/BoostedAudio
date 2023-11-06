@@ -15,6 +15,7 @@ import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class AudioWebSocketServer extends WebSocketServer {
@@ -24,9 +25,8 @@ public class AudioWebSocketServer extends WebSocketServer {
     public final ConnectionManager manager = new ConnectionManager();
     private boolean isOpen = false;
     private static final Gson gson = BoostedAudioAPI.api.getGson();
-    public static BiFunction<String, WebSocket, Boolean> serverBungeeCheck;
-    private final HashMap<String, ServerPacketListener> serverPacketListeners = new HashMap<>();
-
+    public static BiFunction<String, WebSocket, Boolean> serverProxyCheck;
+    public static BiConsumer<String, ServerUser> proxyConsumer;
 
     public AudioWebSocketServer(InetSocketAddress address) {
         super(address);
@@ -79,16 +79,22 @@ public class AudioWebSocketServer extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket client, String message) {
+        Optional<Object> user = manager.getSessionUsers().get(client);
+        if (user.isPresent() && user.get() instanceof ServerUser serverUser) {
+            proxyConsumer.accept(message, serverUser);
+            return;
+        }
+
         PacketList packetList;
         try {
             packetList = gson.fromJson(message, PacketList.class);
         } catch (JsonSyntaxException e) {
-            if (serverBungeeCheck != null && serverBungeeCheck.apply(message, client)) return;
-            try {
+            if (serverProxyCheck != null && serverProxyCheck.apply(message, client)) return;
+/*            try {
                 String[] split = message.split(";", 2);
-                serverPacketListeners.get(split[0]).onResponse(split[1], ((ServerUser) manager.getSessionUsers().get(client).get()).getServerId());
+                serverPacketListeners.get(split[0]).onReceive(split[1], ((ServerUser) manager.getSessionUsers().get(client).get()).getServerId());
             } catch (Exception ignored) {
-            }
+            }*/
             client.close();
             BoostedAudioAPI.api.debug("ERREUR RECEIVED MESSAGE");
             BoostedAudioAPI.api.debug(message);
@@ -99,7 +105,7 @@ public class AudioWebSocketServer extends WebSocketServer {
             return;
         }
 
-        Optional<Object> user = manager.getSessionUsers().get(client);
+
         if (user.isPresent()) {
             Object obj = user.get();
             if (obj instanceof HostUser hostUser) {
@@ -133,10 +139,6 @@ public class AudioWebSocketServer extends WebSocketServer {
 
     public boolean isOpen() {
         return isOpen;
-    }
-
-    public HashMap<String, ServerPacketListener> getServerPacketListeners() {
-        return serverPacketListeners;
     }
 
     public static AudioWebSocketServer getInstance() {

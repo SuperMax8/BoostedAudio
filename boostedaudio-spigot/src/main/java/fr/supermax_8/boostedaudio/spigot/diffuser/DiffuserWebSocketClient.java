@@ -2,17 +2,13 @@ package fr.supermax_8.boostedaudio.spigot.diffuser;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import javax.net.ssl.*;
-import java.io.File;
-import java.io.FileInputStream;
 import java.net.URI;
-import java.nio.file.Paths;
-import java.security.AlgorithmConstraints;
-import java.security.AlgorithmParameterGenerator;
-import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -20,22 +16,15 @@ import java.util.concurrent.CompletableFuture;
 
 public class DiffuserWebSocketClient extends WebSocketClient {
 
-    private static final int MAX_RECONNECT_ATTEMPTS = 3;
-    private int currentReconnectAttempts = 0;
-
     private final HashMap<String, ServerPacketListener> listeners = new HashMap<>();
+
+    private boolean connected = false;
+
+    private boolean closed = false;
 
     public DiffuserWebSocketClient(URI serverUri) {
         super(serverUri);
-        /*setSocketFactory(SSLSocketFactory.getDefault());*/
         try {
-// load up the key store
-/*            String STORETYPE = "JKS";
-            String KEYSTORE = Paths.get("src", "test", "java", "org", "java_websocket", "keystore.jks")
-                    .toString();
-            String STOREPASSWORD = "storepassword";
-            String KEYPASSWORD = "keypassword";*/
-
             TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
                         public X509Certificate[] getAcceptedIssuers() {
@@ -54,18 +43,30 @@ public class DiffuserWebSocketClient extends WebSocketClient {
             sslContext.init(null, trustAllCerts, new SecureRandom());
 
             setSocketFactory(sslContext.getSocketFactory());
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("WebSocket Init...");
     }
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        System.out.println("Connected to the WebSocket!");
-        currentReconnectAttempts = 0;
-        send(BoostedAudioAPI.getAPI().getConfiguration().getBungeeSecrets().get(0));
+        BoostedAudioAPI.api.info("Connected to the WebSocket!");
+        Scheduler.runTaskLaterAsync(() -> {
+            String serverName = BoostedAudioSpigot.getInstance().getBungeeServerName();
+            if (serverName == null) super.send(BoostedAudioAPI.getAPI().getConfiguration().getBungeeSecrets().get(0) + ";?");
+            while (serverName == null && !closed) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                serverName = BoostedAudioSpigot.getInstance().getBungeeServerName();
+            }
+            if (closed) return;
+            super.send(BoostedAudioAPI.getAPI().getConfiguration().getBungeeSecrets().get(0) + ";" + serverName);
+            BoostedAudioAPI.getAPI().debug("Sending bungee token verif !");
+            connected = true;
+        }, 20);
     }
 
     @Override
@@ -76,23 +77,22 @@ public class DiffuserWebSocketClient extends WebSocketClient {
             System.out.println("Plugin is update ? Received a message from the server, but there was no listener for it. Message: " + message);
             return;
         }
-        listener.onResponse(split[1], null);
+        listener.onReceive(split[1], null);
     }
 
     @Override
     public void onClose(int i, String s, boolean b) {
-        System.out.println("Connection closed");
-        if (currentReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-            System.out.println("Attempting to reconnect...");
-            try {
-                currentReconnectAttempts++;
-                CompletableFuture.runAsync(this::reconnect);
-            } catch (Exception e) {
-                if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) e.printStackTrace();
-            }
-        } else {
-            System.out.println("Maximum reconnection attempts reached. Exiting.");
-            // Add your desired logic here for handling the maximum reconnection attempts
+        if (closed) return;
+        BoostedAudioAPI.api.debug("Connection closed, Attempting to reconnect in 5s...");
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            CompletableFuture.runAsync(this::reconnect);
+        } catch (Exception e) {
+            if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) e.printStackTrace();
         }
     }
 
@@ -101,12 +101,24 @@ public class DiffuserWebSocketClient extends WebSocketClient {
         if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) e.printStackTrace();
     }
 
+    @Override
+    public void send(String text) {
+        if (connected)
+            super.send(text);
+    }
+
     public HashMap<String, ServerPacketListener> getListeners() {
         return listeners;
     }
 
     public void registerListener(String channel, ServerPacketListener listener) {
         listeners.put(channel, listener);
+    }
+
+    @Override
+    public void close() {
+        closed = true;
+        super.close();
     }
 
 }
