@@ -14,6 +14,8 @@ import java.util.function.Consumer;
 
 public class ChatEditor implements Listener {
 
+    private static String thisStringDoNotExist = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+
     private final Player p;
     private final Consumer<String> c;
     private final JavaPlugin instance;

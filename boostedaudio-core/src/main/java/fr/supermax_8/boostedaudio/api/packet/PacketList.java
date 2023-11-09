@@ -1,17 +1,21 @@
-package fr.supermax_8.boostedaudio.core.websocket;
+package fr.supermax_8.boostedaudio.api.packet;
 
 import com.google.gson.*;
-import fr.supermax_8.boostedaudio.api.Packet;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 public class PacketList {
 
+    private static String eheheheh = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+
+
     private final List<Packet> packets;
+    private static final List<String> packageNameOfPackets = new ArrayList<>() {{
+        add("fr.supermax_8.boostedaudio.core.websocket.packets");
+    }};
 
     public PacketList(List<Packet> packets) {
         this.packets = packets;
@@ -21,14 +25,13 @@ public class PacketList {
         this.packets = Arrays.asList(packets);
     }
 
-    public PacketList() {
-        this.packets = new LinkedList<>();
-    }
-
     public List<Packet> getPackets() {
         return packets;
     }
 
+    public static List<String> getPackageNameOfPackets() {
+        return packageNameOfPackets;
+    }
 
     public static class Adapter implements JsonSerializer<PacketList>, JsonDeserializer<PacketList> {
 
@@ -62,12 +65,14 @@ public class PacketList {
         }
 
         private Class<? extends Packet> getPacketClass(String className) {
-            try {
-                String fullClassName = "fr.supermax_8.boostedaudio.core.websocket.packets." + className;
-                return Class.forName(fullClassName).asSubclass(Packet.class);
-            } catch (ClassNotFoundException e) {
-                throw new JsonParseException("Unable to find Packet class: " + className);
+            for (String packageName : packageNameOfPackets) {
+                try {
+                    String fullClassName = packageName + "." + className;
+                    return Class.forName(fullClassName).asSubclass(Packet.class);
+                } catch (ClassNotFoundException ignored) {
+                }
             }
+            throw new JsonParseException("Unable to find Packet class: " + className + " Did you use packageNameOfPackets ?");
         }
 
     }

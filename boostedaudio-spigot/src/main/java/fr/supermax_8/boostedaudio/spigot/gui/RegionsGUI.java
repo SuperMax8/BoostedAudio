@@ -1,6 +1,6 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
-import fr.supermax_8.boostedaudio.core.websocket.Audio;
+import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;

@@ -232,10 +232,12 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     <p id="userCount" class="text-slate-200">0</p>
                 </div>
 
+                <!--Mute Info-->
+                <p id="muteUser" class="text-red-500 text-center p-10 text-5xl italic hidden">{you-are-mute}</p>
+
                 <div id="users" class="overflow-auto
         sm:max-h-[5rem] md:max-h-[20rem] 2xl:sm:max-h-[30rem]
          min-h-0 bg-gray-700/40 p-2 rounded-lg bg-scroll grid gap-4 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 drop-shadow-lg">
-                    <!--User-->
                     <div id="user"
                          class="user flex items-center bg-gray-800 p-4 rounded-lg focus:outline-none focus:ring hover:ring duration-300">
                         <img src="" alt="User 1" class="logo w-12 h-12 rounded-lg mr-4">
@@ -317,10 +319,12 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
     let rolloffFactor;
     let refDistance;
     let distanceModel;
-
+    let muted = false;
 
     // HTML elements
     const users = document.getElementById('users');
+    const muteUser = document.getElementById('muteUser');
+
     const voice = document.getElementById('voiceVolume');
     const ambient = document.getElementById('ambientVolume');
     const microphoneSelect = document.getElementById('microphoneSelect');
@@ -671,6 +675,15 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     audio.currentTime = 0;
                 })
                 audioMap.clear()
+                break
+            case "MutePacket":
+                const mute = packet.mute;
+                muted = mute;
+                if (mute) {
+                    muteUser.classList.remove("hidden")
+                } else {
+                    muteUser.classList.add("hidden")
+                }
                 break
             default:
                 break;

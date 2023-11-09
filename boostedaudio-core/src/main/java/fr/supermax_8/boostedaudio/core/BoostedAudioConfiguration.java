@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.core;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.proximitychat.LayerInfo;
+import fr.supermax_8.boostedaudio.core.utils.Base64Utils;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
@@ -22,6 +23,8 @@ public class BoostedAudioConfiguration {
 
     private boolean debugMode;
     private boolean bungeecoord;
+    private List<String> bungeeSecrets;
+    private String bungeeWebsocketLink;
     private String clientLink;
     private boolean autoHost;
     private int autoHostPort;
@@ -64,6 +67,8 @@ public class BoostedAudioConfiguration {
         debugMode = (boolean) config.get("debugMode");
 
         bungeecoord = (boolean) config.get("bungeecoord", false);
+        bungeeWebsocketLink = (String) config.get("bungeeWebsocketLink", "wss://localhost:8081");
+        bungeeSecrets = (List<String>) config.get("bungeeSecrets");
 
         clientLink = (String) config.get("client-link", "http://localhost:8080");
         clientWebSocketLink = (String) config.get("clientWebSocketLink", "ws://localhost:8081");
@@ -122,6 +127,13 @@ public class BoostedAudioConfiguration {
             BoostedAudioAPI.api.info("The clientConfig has been updated, new parameters have been added !");
         }
 
+        if (bungeeSecrets.isEmpty() || bungeeSecrets.get(0).isEmpty()) {
+            bungeeSecrets.clear();
+            bungeeSecrets.add(Base64Utils.generateSecuredToken(16));
+            config.set("bungeeSecrets", bungeeSecrets);
+            config.save(configFile);
+        }
+
         if (isDebugMode()) showConfiguration();
     }
 
@@ -157,6 +169,14 @@ public class BoostedAudioConfiguration {
     public boolean isDebugMode() {
         if (debugMode) System.out.println("DebugMode: ");
         return debugMode;
+    }
+
+    public List<String> getBungeeSecrets() {
+        return bungeeSecrets;
+    }
+
+    public String getBungeeWebsocketLink() {
+        return bungeeWebsocketLink;
     }
 
     public File getDataFolder() {

@@ -2,7 +2,7 @@ package fr.supermax_8.boostedaudio.spigot.manager;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
-import fr.supermax_8.boostedaudio.core.websocket.Audio;
+import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;

@@ -1,9 +1,12 @@
 package fr.supermax_8.boostedaudio.api;
 
 import com.google.gson.Gson;
+import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.InternalAPI;
+
+import java.util.List;
 
 public interface BoostedAudioAPI {
 
@@ -23,6 +26,10 @@ public interface BoostedAudioAPI {
     BoostedAudioConfiguration getConfiguration();
 
     InternalAPI getInternalAPI();
+
+    List<String> getMultiServerSecrets();
+
+    EventManager getEventManager();
 
     void info(String message);
 

@@ -1,6 +1,6 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
-import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
@@ -13,12 +13,22 @@ import java.util.stream.Collectors;
 // Host Only
 public class VoiceChatManager {
 
+    private static final HashMap<UUID, MuteUser> mutedUsers = new HashMap<>();
 
     public VoiceChatManager() {
 
     }
 
     public void processResult(VoiceChatResult result) {
+        Iterator<Map.Entry<UUID, MuteUser>> iterator = mutedUsers.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, MuteUser> entry = iterator.next();
+            if (!entry.getValue().isMuted()) {
+                iterator.remove();
+                User user = AudioWebSocketServer.getInstance().manager.getUsers().get(entry.getKey());
+                user.setMuted(false, 0);
+            }
+        }
         for (LayerInfo layerInfo : result.getLayers()) processLayer(layerInfo);
     }
 
@@ -54,9 +64,20 @@ public class VoiceChatManager {
         for (Map.Entry<UUID, PlayerInfo> entry : layerInfo.getPlayersInfo().entrySet()) {
             HostUser user = (HostUser) users.get(entry.getKey());
             PlayerInfo playerInfo = entry.getValue();
+            Set<UUID> oldPeersOfUser = user.getRemotePeers(layerInfo.getLayerId());
+
+            if (playerInfo.isMuted()) {
+                if (oldPeersOfUser != null) {
+                    for (UUID peer : oldPeersOfUser) {
+                        User peerUsr = users.get(peer);
+                        if (peerUsr != null)
+                            toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId()));
+                    }
+                }
+                continue;
+            }
 
             List<UUID> newPeersOfUser = playerInfo.getPeers();
-            Set<UUID> oldPeersOfUser = user.getRemotePeers(layerInfo.getLayerId());
 
             if (newPeersOfUser == null || oldPeersOfUser == null) continue;
 
@@ -115,5 +136,29 @@ public class VoiceChatManager {
         user.sendPacket(updatePacket);
     }
 
+
+    public static class MuteUser {
+
+        private long muteEnd;
+        private UUID playerId;
+
+        public MuteUser(UUID playerId, long muteEnd) {
+            this.playerId = playerId;
+            this.muteEnd = muteEnd;
+        }
+
+        public boolean isMuted() {
+            return System.currentTimeMillis() < muteEnd;
+        }
+
+        public UUID getPlayerId() {
+            return playerId;
+        }
+
+    }
+
+    public static HashMap<UUID, MuteUser> getMutedUsers() {
+        return mutedUsers;
+    }
 
 }

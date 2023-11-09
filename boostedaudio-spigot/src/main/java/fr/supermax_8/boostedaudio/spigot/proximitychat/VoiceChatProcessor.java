@@ -1,13 +1,12 @@
 package fr.supermax_8.boostedaudio.spigot.proximitychat;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.proximitychat.LayerInfo;
 import fr.supermax_8.boostedaudio.core.proximitychat.PlayerInfo;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
-import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.InternalUtils;
 import org.bukkit.Bukkit;
@@ -65,7 +64,7 @@ public class VoiceChatProcessor {
         for (User user : userOnServer.values()) {
             UUID userId = user.getPlayerId();
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(userId);
-            // Kick from pannel if offline
+            // Kick from panel if offline
             if (!offlinePlayer.isOnline()) {
                 continue;
             }
@@ -80,13 +79,13 @@ public class VoiceChatProcessor {
             // Put result
             if (layer.isAudioSpatialized()) {
                 List<UUID> globalPeersOfUser = peers.get(userId);
-                PlayerInfo playerInfo = new PlayerInfo(pLoc);
+                PlayerInfo playerInfo = new PlayerInfo(pLoc, user.isMuted());
                 result.put(userId, playerInfo);
                 for (UUID peer : globalPeersOfUser) {
                     if (playersInside.contains(peer))
                         playerInfo.getPeers().add(peer);
                 }
-            } else result.put(userId, new PlayerInfo(playersInside.stream().toList(), pLoc));
+            } else result.put(userId, new PlayerInfo(playersInside.stream().toList(), pLoc, user.isMuted()));
         }
 
         return new LayerInfo(result, layer.getId());

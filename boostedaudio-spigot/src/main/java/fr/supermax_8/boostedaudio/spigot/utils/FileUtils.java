@@ -21,7 +21,7 @@ public class FileUtils {
             ffprobe = new FFprobe(ffmpegDir.listFiles((d, s) -> s.contains("ffprobe"))[0].getAbsolutePath());
         } catch (Exception e) {
             if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) {
-                System.out.println("You don't have ffmpeg installed");
+                System.out.println("You don't have ffmpeg installed, THIS ERROR COULD BE SAFELY IGNORED IF YOU DON'T USE THE ADJUSTGAIN FEATURE, THE ERROR APPEAR ONLY BECAUSE OF DEBUG MODE");
                 e.printStackTrace();
             }
         }

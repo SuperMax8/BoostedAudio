@@ -11,17 +11,17 @@ public class PlayerInfo {
 
     private final List<UUID> peers;
     private final SerializableLocation location;
+    private final boolean muted;
 
-
-    public PlayerInfo(SerializableLocation location) {
-        this(new LinkedList<>(), location);
+    public PlayerInfo(SerializableLocation location, boolean muted) {
+        this(new LinkedList<>(), location, muted);
     }
 
-    public PlayerInfo(List<UUID> peers, SerializableLocation location) {
+    public PlayerInfo(List<UUID> peers, SerializableLocation location, boolean muted) {
         this.peers = peers;
         this.location = location;
+        this.muted = muted;
     }
-
 
 
     public SerializableLocation getLocation() {
@@ -33,5 +33,8 @@ public class PlayerInfo {
         return peers;
     }
 
+    public boolean isMuted() {
+        return muted;
+    }
 
 }

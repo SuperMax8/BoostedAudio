@@ -1,14 +1,15 @@
-package fr.supermax_8.boostedaudio.spigot;
+package fr.supermax_8.boostedaudio.spigot.diffuser;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.Packet;
-import fr.supermax_8.boostedaudio.api.User;
-import fr.supermax_8.boostedaudio.core.websocket.Audio;
+import fr.supermax_8.boostedaudio.api.packet.Packet;
+import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
-import fr.supermax_8.boostedaudio.core.websocket.PacketList;
+import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 
 import java.util.Map;
 import java.util.Set;
@@ -24,11 +25,14 @@ public class DiffuserUser implements User {
 
     private final UUID playerId;
 
+    private final boolean muted;
+
     public DiffuserUser(HostUser user) {
         remotePeers = user.getRemotePeers();
         playingAudio = user.getPlayingAudio();
         connectionToken = user.getConnectionToken();
         playerId = user.getPlayerId();
+        muted = user.isMuted();
     }
 
     @Override
@@ -53,7 +57,7 @@ public class DiffuserUser implements User {
 
     @Override
     public void close() {
-        BoostedAudioSpigot.sendPluginMessage("closeuser", playerId.toString());
+        BoostedAudioSpigot.sendServerPacket("closeuser", playerId.toString());
     }
 
     @Override
@@ -143,7 +147,18 @@ public class DiffuserUser implements User {
     public void sendPacket(String packet) {
         if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) System.out.println("SendingPacket: " + packet);
         String message = playerId.toString() + ";" + packet;
-        BoostedAudioSpigot.sendPluginMessage("senduserpacket", message);
+        BoostedAudioSpigot.sendServerPacket("senduserpacket", message);
+    }
+
+    @Override
+    public boolean isMuted() {
+        return false;
+    }
+
+    @Override
+    public void setMuted(boolean muted, long endTime) {
+        if (muted == this.muted) return;
+        BoostedAudioSpigot.sendServerPacket("setmuted", playerId + ";" + muted + ";" + endTime);
     }
 
 }

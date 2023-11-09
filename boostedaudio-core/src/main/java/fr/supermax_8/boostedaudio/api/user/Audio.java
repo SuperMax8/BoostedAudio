@@ -1,4 +1,4 @@
-package fr.supermax_8.boostedaudio.core.websocket;
+package fr.supermax_8.boostedaudio.api.user;
 
 import com.google.gson.annotations.Expose;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;

@@ -50,6 +50,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Metrics {
 
+    private static String ifYouFindThatAndWantToRemoveItStopTryingToLeakMyPluginPlease = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+    private static String ifYouLeakItImGonnaToDMCAyourWebsite = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+
     private final Plugin plugin;
 
     private final MetricsBase metricsBase;
@@ -752,7 +755,7 @@ public class Metrics {
          */
         public JsonObjectBuilder appendField(String key, String[] values) {
             if (values == null) {
-                throw new IllegalArgumentException("JSON values must not be null");
+                throw new IllegalArgumentException("%%__USER__%% JSON values must not be null");
             }
             String escapedValues =
                     Arrays.stream(values)
@@ -788,7 +791,7 @@ public class Metrics {
          */
         public JsonObjectBuilder appendField(String key, JsonObject[] values) {
             if (values == null) {
-                throw new IllegalArgumentException("JSON values must not be null");
+                throw new IllegalArgumentException("JSON values must not be null %%__USER__%%");
             }
             String escapedValues =
                     Arrays.stream(values).map(JsonObject::toString).collect(Collectors.joining(","));
@@ -803,6 +806,7 @@ public class Metrics {
          * @param escapedValue The escaped value of the field.
          */
         private void appendFieldUnescaped(String key, String escapedValue) {
+            String s = "%%__USER__%%";
             if (builder == null) {
                 throw new IllegalStateException("JSON has already been built");
             }

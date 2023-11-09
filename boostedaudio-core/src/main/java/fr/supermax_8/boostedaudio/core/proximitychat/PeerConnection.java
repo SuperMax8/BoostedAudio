@@ -1,9 +1,12 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.event.EventManager;
+import fr.supermax_8.boostedaudio.api.event.events.VoiceChatLinkEvent;
+import fr.supermax_8.boostedaudio.api.event.events.VoiceChatUnlinkEvent;
+import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
-import fr.supermax_8.boostedaudio.core.websocket.PacketList;
+import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddPeerPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemovePeerPacket;
@@ -34,6 +37,8 @@ public class PeerConnection {
         AddPeerPacket peerPacket = new AddPeerPacket(layerId, new AddPeerPacket.RTCDescription("", "createoffer"), usr1.getPlayerId(), usr2.getPlayerId(), BoostedAudioAPI.getAPI().getInternalAPI().getUsername(usr1.getPlayerId()));
 
         usr2.sendPacket(peerPacket);
+        VoiceChatLinkEvent voiceChatEvent = new VoiceChatLinkEvent(layerId, usr1, usr2);
+        EventManager.getInstance().callEvent(voiceChatEvent);
         BoostedAudioAPI.api.debug("Sending peer packet to " + usr2.getPlayerId() + " : " + peerPacket);
     }
 
@@ -49,6 +54,8 @@ public class PeerConnection {
             usr2.getRemotePeers(layerId).remove(id1);
             usr2.sendPacket(new PacketList(new RemovePeerPacket(layerId, id1)));
         }
+        VoiceChatUnlinkEvent voiceChatEvent = new VoiceChatUnlinkEvent(layerId, usr1, usr2);
+        EventManager.getInstance().callEvent(voiceChatEvent);
         BoostedAudioAPI.api.debug("Sending unlinkPeer packet to " + usr2.getPlayerId());
     }
 
