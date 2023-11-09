@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.core;
 
+import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.jarloader.JarDependency;
 import fr.supermax_8.jarloader.JarLoader;
 
@@ -31,7 +32,7 @@ public class BoostedAudioLoader {
     };
 
     public static void loadExternalLibs(File dataFolder) throws IOException {
-        System.out.println("Loading external libs");
+        BoostedAudioAPI.getAPI().info("Loading external libs");
         long ts = System.currentTimeMillis();
         File libs = new File(dataFolder, "libs");
         libs.mkdirs();
@@ -42,13 +43,13 @@ public class BoostedAudioLoader {
             JarDependency dependency = new JarDependency(AIO.toPath());
             JarLoader.load(dependency, loader);
             long ts2 = System.currentTimeMillis();
-            System.out.println("Libs loaded in " + (ts2 - ts) + " ms");
+            BoostedAudioAPI.getAPI().info("Libs loaded in " + (ts2 - ts) + " ms");
             return;
         }
 
-        System.out.println("If you have problems loading libs, you can download them directly and put it in plugins/BoostedAudio/libs");
+        BoostedAudioAPI.getAPI().info("If you have problems loading libs, you can download them directly and put it in plugins/BoostedAudio/libs");
         for (String link : libsLink) {
-            System.out.println(link);
+            BoostedAudioAPI.getAPI().info(link);
             File lib = new File(libs, link.substring(link.lastIndexOf('/') + 1));
             Path libsPath = Paths.get(lib.getAbsolutePath());
 
@@ -57,7 +58,7 @@ public class BoostedAudioLoader {
             JarLoader.load(dependency, loader);
         }
         long ts2 = System.currentTimeMillis();
-        System.out.println("Libs loaded in " + (ts2 - ts) + " ms");
+        BoostedAudioAPI.getAPI().info("Libs loaded in " + (ts2 - ts) + " ms");
     }
 
 }

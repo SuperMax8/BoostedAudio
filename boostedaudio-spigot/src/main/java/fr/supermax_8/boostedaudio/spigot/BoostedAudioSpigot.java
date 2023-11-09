@@ -77,10 +77,13 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         instance = this;
         usersOnServer = new ConcurrentHashMap<>();
 
+        BoostedAudioAPIImpl.sendMessage = s -> Bukkit.getConsoleSender().sendMessage(s);
+
         CrossConfiguration.instancer = SpigotCrossConfiguration::new;
         CrossConfigurationSection.converter = o -> new SpigotCrossConfigurationSection((ConfigurationSection) o);
         configuration = new BoostedAudioConfiguration(new File(getDataFolder(), "config.yml"));
         BoostedAudioAPIImpl.configuration = configuration;
+
         if (!configuration.isBungeecoord()) getCommand("audio").setExecutor(new AudioCommandSpigot());
         getCommand("boostedaudio").setExecutor(new BoostedAudioCommand());
 
@@ -193,7 +196,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                 VoiceChatResult result = voiceChatProcessor.process();
                 voiceChatManager.processResult(result);
             } catch (Throwable e) {
-                System.out.println("Error while processing voice chat :");
+                BoostedAudioAPI.getAPI().info("Error while processing voice chat :");
                 e.printStackTrace();
             }
         }, 0, 0);
@@ -257,7 +260,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                 if (result == null) return;
                 sendServerPacket("tick", BoostedAudioAPI.api.getGson().toJson(result));
             } catch (Throwable e) {
-                System.out.println("Error while processing voice chat :");
+                BoostedAudioAPI.getAPI().info("Error while processing voice chat :");
                 e.printStackTrace();
             }
         }, 0, 0);

@@ -150,12 +150,12 @@ public class BoostedAudioConfiguration {
         Class<?> classs = this.getClass();
         Field[] fields = classs.getDeclaredFields();
 
-        System.out.println("Instance of class " + classs.getName());
+        BoostedAudioAPI.getAPI().info("Instance of class " + classs.getName());
         for (Field field : fields) {
             field.setAccessible(true);
             try {
                 Object value = field.get(this);
-                System.out.println(field.getName() + ": " + value);
+                BoostedAudioAPI.getAPI().info(field.getName() + ": " + value);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -167,7 +167,6 @@ public class BoostedAudioConfiguration {
     }
 
     public boolean isDebugMode() {
-        if (debugMode) System.out.println("DebugMode: ");
         return debugMode;
     }
 

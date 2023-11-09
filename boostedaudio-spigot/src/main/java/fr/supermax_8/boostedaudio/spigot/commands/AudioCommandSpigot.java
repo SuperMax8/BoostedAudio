@@ -56,7 +56,7 @@ public class AudioCommandSpigot implements CommandExecutor {
         text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
         text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(configuration.getConnectionHoverMessage())).toString()).create()));
 
-        if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) System.out.println("Sending connection message to " + p.getName() + " : " + link);
+        if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) BoostedAudioAPI.getAPI().info("Sending connection message to " + p.getName() + " : " + link);
         p.spigot().sendMessage(text);
     }
 

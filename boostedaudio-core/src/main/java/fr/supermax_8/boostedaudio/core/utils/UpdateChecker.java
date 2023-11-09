@@ -1,5 +1,7 @@
 package fr.supermax_8.boostedaudio.core.utils;
 
+import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -22,7 +24,7 @@ public class UpdateChecker {
                     consumer.accept(scanner.next());
                 }
             } catch (IOException exception) {
-                System.out.println("Unable to check for updates: " + exception.getMessage());
+                BoostedAudioAPI.getAPI().info("Unable to check for updates: " + exception.getMessage());
             }
         });
     }

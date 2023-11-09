@@ -74,7 +74,7 @@ public class DiffuserWebSocketClient extends WebSocketClient {
         String[] split = message.split(";", 2);
         ServerPacketListener listener = listeners.get(split[0]);
         if (listener == null) {
-            System.out.println("Plugin is update ? Received a message from the server, but there was no listener for it. Message: " + message);
+            BoostedAudioAPI.getAPI().info("Plugin is update ? Received a message from the server, but there was no listener for it. Message: " + message);
             return;
         }
         listener.onReceive(split[1], null);

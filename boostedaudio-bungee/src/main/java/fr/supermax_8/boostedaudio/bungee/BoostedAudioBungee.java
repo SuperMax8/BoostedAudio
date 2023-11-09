@@ -53,6 +53,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
+        BoostedAudioAPIImpl.sendMessage = s -> ProxyServer.getInstance().getConsole().sendMessage(s);
         try {
             BoostedAudioLoader.loadExternalLibs(getDataFolder());
         } catch (Exception e) {
@@ -104,7 +105,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
                         ServerUser serverUser = new ServerUser(secret, serverName, uuid, webSocket);
                         manager.getServers().put(uuid, serverUser);
                         manager.getSessionUsers().put(webSocket, Optional.of(serverUser));
-                        System.out.println("Server connected : " + serverName);
+                        BoostedAudioAPI.getAPI().info("Server connected : " + serverName);
                         return true;
                     }
                 }
@@ -118,7 +119,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
             ServerPacketListener listener = pluginMessageListeners.get(split[0]);
             if (listener == null) return;
             listener.onReceive(split[1], serverUser.getServerId());
-            /*System.out.println("Received message from server " + serverUser.getServerId() + " : " + message);*/
+            /*BoostedAudioAPI.getAPI().info("Received message from server " + serverUser.getServerId() + " : " + message);*/
         };
 
         voiceChatManager = new VoiceChatManager();

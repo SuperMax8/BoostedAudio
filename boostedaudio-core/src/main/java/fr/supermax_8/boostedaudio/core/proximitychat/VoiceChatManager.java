@@ -53,9 +53,9 @@ public class VoiceChatManager {
 
         toLink.forEach(PeerConnection::link);
         toUnLink.forEach(PeerConnection::unLink);
-/*        System.out.println(layerInfo.getLayerId());
-        System.out.println("toLink: " + toLink.size());
-        System.out.println("toUnLink: " + toUnLink.size());*/
+/*        BoostedAudioAPI.getAPI().info(layerInfo.getLayerId());
+        BoostedAudioAPI.getAPI().info("toLink: " + toLink.size());
+        BoostedAudioAPI.getAPI().info("toUnLink: " + toUnLink.size());*/
     }
 
     private void fillLinkUnlink(Set<PeerConnection> toLink, Set<PeerConnection> toUnLink, LayerInfo layerInfo) {
