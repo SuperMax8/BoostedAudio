@@ -25,11 +25,14 @@ public class DiffuserUser implements User {
 
     private final UUID playerId;
 
+    private final boolean muted;
+
     public DiffuserUser(HostUser user) {
         remotePeers = user.getRemotePeers();
         playingAudio = user.getPlayingAudio();
         connectionToken = user.getConnectionToken();
         playerId = user.getPlayerId();
+        muted = user.isMuted();
     }
 
     @Override
@@ -145,6 +148,17 @@ public class DiffuserUser implements User {
         if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) System.out.println("SendingPacket: " + packet);
         String message = playerId.toString() + ";" + packet;
         BoostedAudioSpigot.sendServerPacket("senduserpacket", message);
+    }
+
+    @Override
+    public boolean isMuted() {
+        return false;
+    }
+
+    @Override
+    public void setMuted(boolean muted, long endTime) {
+        if (muted == this.muted) return;
+        BoostedAudioSpigot.sendServerPacket("setmuted", playerId + ";" + muted + ";" + endTime);
     }
 
 }

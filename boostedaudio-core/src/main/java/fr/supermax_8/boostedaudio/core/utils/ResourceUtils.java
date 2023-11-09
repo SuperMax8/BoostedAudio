@@ -43,7 +43,7 @@ public class ResourceUtils {
     public static InputStream getResourceAsStream(String resourcePath) {
         InputStream inputStream = ResourceUtils.class.getClassLoader().getResourceAsStream(resourcePath);
         if (inputStream == null) {
-            System.out.println("The specified resource was not found: " + resourcePath);
+            System.out.println("%%__USER__%% The specified resource was not found: " + resourcePath);
             return null;
         }
         return inputStream;

@@ -1,17 +1,20 @@
 package fr.supermax_8.boostedaudio.core.websocket;
 
 import com.google.gson.annotations.Expose;
-import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
-import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
+import fr.supermax_8.boostedaudio.api.user.Audio;
+import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
+import fr.supermax_8.boostedaudio.core.websocket.packets.MutePacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
 import org.java_websocket.WebSocket;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class HostUser implements User {
 
@@ -27,6 +30,8 @@ public class HostUser implements User {
     private final UUID playerId;
 
     private long waitUntil = 0;
+
+    private boolean muted = false;
 
     public HostUser(WebSocket session, String connectionToken, UUID playerId) {
         this.session = session;
@@ -157,6 +162,22 @@ public class HostUser implements User {
     @Override
     public void sendPacket(String packet) {
         if (session.isOpen()) session.send(packet);
+    }
+
+    @Override
+    public boolean isMuted() {
+        return muted;
+    }
+
+    @Override
+    public void setMuted(boolean muted, long endTime) {
+        if (this.muted == muted) return;
+        this.muted = muted;
+        sendPacket(new MutePacket(muted));
+        if (muted)
+            VoiceChatManager.getMutedUsers().put(playerId, new VoiceChatManager.MuteUser(playerId, endTime));
+        else
+            VoiceChatManager.getMutedUsers().remove(playerId);
     }
 
     private void waitUntil() {

@@ -96,7 +96,7 @@ public class BoostedAudioHost {
 
         if (index.exists()) {
             List<String> placeholders;
-            if (BoostedAudioLoader.isPremium()) placeholders = configuration.getClientConfig();
+            if (Limiter.isPremium()) placeholders = configuration.getClientConfig();
             else {
                 Reader reader = new InputStreamReader(ResourceUtils.getResourceAsStream("config.yml"));
                 CrossConfiguration fc = CrossConfiguration.newConfig().load(reader);

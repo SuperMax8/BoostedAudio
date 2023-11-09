@@ -60,8 +60,4 @@ public class BoostedAudioLoader {
         System.out.println("Libs loaded in " + (ts2 - ts) + " ms");
     }
 
-    public static boolean isPremium() {
-        return true;
-    }
-
 }

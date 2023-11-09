@@ -101,6 +101,7 @@ clientConfig:
   - "{click-to-connect}=Click on the page to connect"
   - "{sidebar-content}=Sidebar Content"
   - "{userList}=User List"
+  - "{you-are-mute}=You have been muted by the server"
   - "{search-placeholder}=Search..."
   - "{user-count-label}=Players you can hear:"
 

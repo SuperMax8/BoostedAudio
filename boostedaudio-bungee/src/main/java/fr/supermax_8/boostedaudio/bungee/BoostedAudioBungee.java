@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public final class BoostedAudioBungee extends Plugin implements Listener {
 
@@ -156,6 +157,12 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
             UUID uuid = UUID.fromString(message);
             host.getWebSocketServer().manager.getUsers().get(uuid).close();
         });
+        registerServerListener("setmuted", (message, serverId) -> {
+            String[] split = message.split(";", 3);
+
+            UUID uuid = UUID.fromString(split[0]);
+            host.getWebSocketServer().manager.getUsers().get(uuid).setMuted(Boolean.parseBoolean(split[1]), Long.parseLong(split[2]));
+        });
 
         ProxyServer.getInstance().getPluginManager().registerListener(this, this);
         checkForUpdates();
@@ -215,21 +222,24 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
 
     @EventHandler
     public void onDisconnect(PlayerDisconnectEvent e) {
-        User user = host.getWebSocketServer().manager.getUsers().get(e.getPlayer().getUniqueId());
-        if (user != null) user.close();
+        CompletableFuture.runAsync(() -> {
+            User user = host.getWebSocketServer().manager.getUsers().get(e.getPlayer().getUniqueId());
+            if (user != null) user.close();
+        });
     }
 
     @EventHandler
     public void onSwitchServ(ServerConnectedEvent e) {
-        //System.out.println("SWITCH SERVER");
-        HostUser user = (HostUser) host.getWebSocketServer().manager.getUsers().get(e.getPlayer().getUniqueId());
-        if (user == null) {
-            if (configuration.isSendOnConnect())
-                AudioCommandBungee.sendConnectMessage(e.getPlayer(), e.getServer().getInfo().getName());
-            return;
-        }
-        user.sendPacket(new ServerChangePacket(e.getServer().getInfo().getName()));
-        user.waitUntil(500);
+        CompletableFuture.runAsync(() -> {
+            HostUser user = (HostUser) host.getWebSocketServer().manager.getUsers().get(e.getPlayer().getUniqueId());
+            if (user == null) {
+                if (configuration.isSendOnConnect())
+                    AudioCommandBungee.sendConnectMessage(e.getPlayer(), e.getServer().getInfo().getName());
+                return;
+            }
+            user.sendPacket(new ServerChangePacket(e.getServer().getInfo().getName()));
+            user.waitUntil(500);
+        });
     }
 
     public static void sendServerPacket(UUID server, String channel, String message) {

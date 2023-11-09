@@ -62,4 +62,6 @@ public class Scheduler {
         scheduler.runTaskLaterAsynchronously(main, run, delay);
     }
 
+    private static String s = "%%__USER__%%";
+
 }

@@ -11,6 +11,7 @@ import java.lang.reflect.Type;
 import java.util.UUID;
 
 public class RTCIcePacket implements Packet {
+    private static String s = "%%__USER__%%";
     private final String layerId;
     private final String type;
     private final String candidate;

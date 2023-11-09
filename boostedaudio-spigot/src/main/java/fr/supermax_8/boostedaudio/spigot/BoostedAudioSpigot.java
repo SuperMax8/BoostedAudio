@@ -108,7 +108,13 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
         aroundManager = new AroundManager();
         Scheduler.runTaskLater(() -> {
-            audioManager = new AudioManager();
+            try {
+                audioManager = new AudioManager();
+                BoostedAudioAPI.getAPI().debug("Audio manager loaded");
+            } catch (Throwable e) {
+                e.printStackTrace();
+                BoostedAudioAPI.getAPI().info("Audio manager NOT LOADED. You certainly have problems in you data files with old worlds deleted");
+            }
 
             // Region manager
             RegionManager regionManager = audioManager.getRegionManager();
@@ -120,7 +126,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                         e.printStackTrace();
                     }
                 }, 0, 0);
-        }, 1);
+        }, 0);
 
         voiceChatProcessor = new VoiceChatProcessor();
         if (configuration.isVoiceChatEnabled())
@@ -147,7 +153,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                 host.getWebSocketServer().manager.getUsers().size()));
         metrics.addCustomChart(new Metrics.SimplePie("nbspeakers", () -> DataVisualisationUtils.intMetricToEzReadString(BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager().speakers.size())));
         metrics.addCustomChart(new Metrics.SimplePie("workingmode", () -> workingMode));
-        metrics.addCustomChart(new Metrics.SimplePie("ispremium", () -> String.valueOf(BoostedAudioLoader.isPremium())));
+        metrics.addCustomChart(new Metrics.SimplePie("ispremium", () -> String.valueOf(Limiter.isPremium())));
         metrics.addCustomChart(new Metrics.SimplePie("nbregions", () -> {
             try {
                 return DataVisualisationUtils.intMetricToEzReadString(audioManager.getRegionManager().getAudioRegions().size());
