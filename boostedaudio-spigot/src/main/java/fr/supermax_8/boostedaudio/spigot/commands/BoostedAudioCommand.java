@@ -15,6 +15,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -181,15 +182,31 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] args) {
+        List<String> completions;
+        String arg;
         switch (args.length) {
             case 1 -> {
-                return List.of("help", "edit", "userlist", "mute", "unmute", "play", "playradius", "stop", "stopradius");
+                arg = args[0];
+                completions = Arrays.asList("help", "edit", "userlist", "mute", "unmute", "play", "playradius", "stop", "stopradius");
             }
             case 2 -> {
-                return List.of();
+                arg = args[1];
+                switch (args[0]) {
+                    case "mute", "unmute" -> completions = Bukkit.getOnlinePlayers().stream().map(p -> p.getName()).toList();
+                    default -> completions = new ArrayList<>();
+                }
+            }
+            default -> {
+                arg = "";
+                completions = new ArrayList<>();
             }
         }
-        return null;
+
+        List<String> finalList = new ArrayList<>();
+        StringUtil.copyPartialMatches(arg, completions, finalList);
+
+        Collections.sort(finalList);
+        return finalList;
     }
 
 
