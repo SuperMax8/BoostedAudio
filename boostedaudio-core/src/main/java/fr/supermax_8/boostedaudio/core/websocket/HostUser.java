@@ -180,6 +180,14 @@ public class HostUser implements User {
             VoiceChatManager.getMutedUsers().remove(playerId);
     }
 
+    public void checkMute() {
+        VoiceChatManager.MuteUser usr = VoiceChatManager.getMutedUsers().get(playerId);
+        if (usr != null) {
+            muted = true;
+            sendPacket(new MutePacket(true));
+        }
+    }
+
     private void waitUntil() {
         while (waitUntil > System.currentTimeMillis()) {
             try {

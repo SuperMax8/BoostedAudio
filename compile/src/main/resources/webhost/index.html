@@ -436,6 +436,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
         switch (type) {
             case "AddPeerPacket":
+                if (muted) return
                 from = packet.from;
                 to = packet.to;
                 layerId = packet.layerId;
@@ -680,7 +681,12 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 const mute = packet.mute;
                 muted = mute;
                 if (mute) {
-                    muteUser.classList.remove("hidden")
+                    muteUser.classList.remove("hidden");
+                    for (let value of peerConnections.values()) {
+                        for (let pc of value.values()) {
+                            closePeerConnection(pc);
+                        }
+                    }
                 } else {
                     muteUser.classList.add("hidden")
                 }

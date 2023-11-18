@@ -39,6 +39,7 @@ public class TrustPacket implements Packet {
                 }
             }
 
+            newUser.checkMute();
             manager.getUsers().put(playerId, newUser);
             manager.getSessionUsers().put(user.getSession(), Optional.of(newUser));
             BoostedAudioAPI.api.debug("New trusted: " + playerId);

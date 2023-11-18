@@ -27,8 +27,10 @@ public class VoiceChatManager {
                 iterator.remove();
                 User user = AudioWebSocketServer.getInstance().manager.getUsers().get(entry.getKey());
                 user.setMuted(false, 0);
+                user.getRemotePeers().clear();
             }
         }
+
         for (LayerInfo layerInfo : result.getLayers()) processLayer(layerInfo);
     }
 
