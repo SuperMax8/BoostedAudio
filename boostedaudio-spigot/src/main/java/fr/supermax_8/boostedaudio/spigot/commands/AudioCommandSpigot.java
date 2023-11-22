@@ -5,6 +5,7 @@ import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.core.utils.MessageUtils;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import fr.supermax_8.boostedaudio.spigot.utils.qrcode.QrCodeGenerator;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -32,17 +33,19 @@ public class AudioCommandSpigot implements CommandExecutor {
 
     public static void sendConnectMessage(Player p) {
         CompletableFuture.runAsync(() -> {
-            if (BoostedAudioAPI.api.getConfiguration().isBungeecoord()) {
+            BoostedAudioConfiguration config = BoostedAudioAPI.api.getConfiguration();
+            if (config.isBungeecoord()) {
                 BoostedAudioAPI.getAPI().debug("Sending bungeecord message to " + p.getName());
                 BoostedAudioSpigot.sendServerPacket("audiotoken", p.getUniqueId().toString());
             } else {
                 UUID playerId = p.getUniqueId();
                 String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.generateConnectionToken(playerId);
                 if (token == null) return;
-                String link = BoostedAudioAPI.getAPI().getConfiguration().getClientLink()
+                String link = config.getClientLink()
                         + "?t="
                         + token;
                 sendConnectMessage(p, link);
+                if (config.isSendQRcodeOnConnect()) QrCodeGenerator.sendMap(link, p);
             }
         });
     }
@@ -56,7 +59,8 @@ public class AudioCommandSpigot implements CommandExecutor {
         text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
         text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(configuration.getConnectionHoverMessage())).toString()).create()));
 
-        if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) BoostedAudioAPI.getAPI().info("Sending connection message to " + p.getName() + " : " + link);
+        if (BoostedAudioAPI.api.getConfiguration().isDebugMode())
+            BoostedAudioAPI.getAPI().info("Sending connection message to " + p.getName() + " : " + link);
         p.spigot().sendMessage(text);
     }
 

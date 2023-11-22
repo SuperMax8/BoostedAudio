@@ -20,6 +20,9 @@ public class BoostedAudioLoader {
             "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar",
             "https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.jar",
             "https://repo1.maven.org/maven2/net/bramp/ffmpeg/ffmpeg/0.7.0/ffmpeg-0.7.0.jar",
+            // QR Code
+            "https://repo1.maven.org/maven2/com/google/zxing/core/3.5.2/core-3.5.2.jar",
+            "https://repo1.maven.org/maven2/com/google/zxing/javase/3.5.2/javase-3.5.2.jar",
 /*            "https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.76/bcprov-jdk18on-1.76.jar",
             "https://repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.76/bcpkix-jdk18on-1.76.jar",*/
             // UnderTow

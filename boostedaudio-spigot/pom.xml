@@ -16,7 +16,7 @@
     <parent>
         <groupId>fr.supermax_8.boostedaudio</groupId>
         <artifactId>BoostedAudio</artifactId>
-        <version>2.3.3</version>
+        <version>2.4.0</version>
     </parent>
 
     <build>
@@ -64,6 +64,10 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>lukasalt-repo</id>
+            <url>https://repo.lukasa.lt/repository/maven-public/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -84,6 +88,11 @@
             <artifactId>boostedaudio-core</artifactId>
             <version>${project.parent.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.comphenix.packetwrapper</groupId>
+            <artifactId>PacketWrapper</artifactId>
+            <version>1.20-2.2.1</version>
         </dependency>
     </dependencies>
 </project>

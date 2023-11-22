@@ -13,17 +13,20 @@ import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
 import org.java_websocket.WebSocket;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HostUser implements User {
 
     private final WebSocket session;
 
     @Expose
-    private final Map<String, Set<UUID>> remotePeers = new HashMap<>();
+    private final Map<String, Set<UUID>> remotePeers = new ConcurrentHashMap<>();
     @Expose
-    private final Map<UUID, Audio> playingAudio = new HashMap<>();
+    private final Map<UUID, Audio> playingAudio = new ConcurrentHashMap<>();
     @Expose
     private final String connectionToken;
     @Expose

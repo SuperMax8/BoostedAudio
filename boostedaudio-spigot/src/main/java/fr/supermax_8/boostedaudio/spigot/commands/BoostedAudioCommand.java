@@ -8,10 +8,7 @@ import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.gui.BoostedAudioGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -40,11 +37,19 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 }
                 case "play" -> {
                     String link = args[1];
-                    Player p = Bukkit.getPlayer(args[2]);
-                    int fade = Integer.parseInt(args[3]);
-                    try {
-                        BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).playAudio(link, fade);
-                    } catch (Exception e) {
+                    int fade;
+                    if (args.length == 4) {
+                        Player p = Bukkit.getPlayer(args[2]);
+                        fade = Integer.parseInt(args[3]);
+                        try {
+                            BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).playAudio(link, fade);
+                        } catch (Exception e) {
+                        }
+                    } else {
+                        fade = Integer.parseInt(args[3]);
+                        BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().forEach(((uuid, user) -> {
+                            user.playAudio(link, fade);
+                        }));
                     }
                 }
                 case "playradius" -> {
@@ -56,7 +61,11 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                         link = args[1];
                         radius = Integer.parseInt(args[2]);
                         fade = Integer.parseInt(args[3]);
-                        loc = ((Player) sender).getLocation();
+                        if (sender instanceof Player p)
+                            loc = p.getLocation();
+                        else if (sender instanceof BlockCommandSender blockCommandSender)
+                            loc = blockCommandSender.getBlock().getLocation();
+                        else loc = null;
                     } else {
                         String world = args[1];
                         int x = Integer.parseInt(args[2]);
@@ -79,10 +88,16 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 }
                 case "stop" -> {
                     String link = args[1];
-                    Player p = Bukkit.getPlayer(args[2]);
-                    try {
-                        BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).stopAudio(link);
-                    } catch (Exception e) {
+                    if (args.length == 3) {
+                        Player p = Bukkit.getPlayer(args[2]);
+                        try {
+                            BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).stopAudio(link);
+                        } catch (Exception e) {
+                        }
+                    } else {
+                        BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().forEach(((uuid, user) -> {
+                            user.stopAudio(link);
+                        }));
                     }
                 }
                 case "userlist" -> {
@@ -129,7 +144,11 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     if (args.length == 3) {
                         link = args[1];
                         radius = Integer.parseInt(args[2]);
-                        loc = ((Player) sender).getLocation();
+                        if (sender instanceof Player p)
+                            loc = p.getLocation();
+                        else if (sender instanceof BlockCommandSender blockCommandSender)
+                            loc = blockCommandSender.getBlock().getLocation();
+                        else loc = null;
                     } else {
                         String world = args[1];
                         int x = Integer.parseInt(args[2]);
@@ -172,11 +191,13 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 "§7/boostedaudio unmute <Player> §8UnMute a player in proximity chat",
                 "",
                 "§7/boostedaudio play <AudioLink> <Player> <Fade> §8- Play a sound for a player if he's connected",
-                "§7/boostedaudio playradius <AudioLink> <Radius> <Fade> §8- Play a sound for a players if connected in radius at your location",
-                "§7/boostedaudio playradius <world> <x> <y> <z> <AudioLink> <Radius> <Fade> §8- Play a sound for a players if connected in radius at a location",
+                "§7/boostedaudio play <AudioLink> <Fade> §8- Play a sound for all players on the server",
+                "§7/boostedaudio playradius <AudioLink> <Radius> <Fade> §8- Play a sound for a players if connected in radius at your location/location of the command block",
+                "§7/boostedaudio playradius <world> <x> <y> <z> <AudioLink> <Radius> <Fade> §8- Play a sound for players if connected in radius at a location",
                 "§7/boostedaudio stop <AudioLink> <Player> §8- Stop a sound for a player if he's connected",
-                "§7/boostedaudio stopradius <AudioLink> <Radius> §8- Stop a sound for a players if connected in radius",
-                "§7/boostedaudio stopradius <world> <x> <y> <z> <AudioLink> <Radius> §8- Stop a sound for a players if connected in radius at a location",
+                "§7/boostedaudio stop <AudioLink> §8- Stop a sound for all players on the server",
+                "§7/boostedaudio stopradius <AudioLink> <Radius> §8- Stop a sound for a player if connected in radius at your location/location of the command block",
+                "§7/boostedaudio stopradius <world> <x> <y> <z> <AudioLink> <Radius> §8- Stop a sound for players if connected in radius at a location",
         });
     }
 
@@ -192,7 +213,8 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
             case 2 -> {
                 arg = args[1];
                 switch (args[0]) {
-                    case "mute", "unmute" -> completions = Bukkit.getOnlinePlayers().stream().map(p -> p.getName()).toList();
+                    case "mute", "unmute" ->
+                            completions = Bukkit.getOnlinePlayers().stream().map(p -> p.getName()).toList();
                     default -> completions = new ArrayList<>();
                 }
             }

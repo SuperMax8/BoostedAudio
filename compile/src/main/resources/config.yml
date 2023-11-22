@@ -69,16 +69,22 @@ sendOnConnect: true
 # Delay of the connection message in tick when the player connects
 sendOnConnectDelay: 30
 
-# Don't use if you are not sure
-# If this is true it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
-# this property allows you to fully customize the client by modifying the code of the client
-customClient: false
+# Send a packet map in the second hand
+sendQRcodeOnConnect: true
 
 # Messages
 # If you want to add the generated url in the message for example geyser compatibility you can add the placeholder {link} in the message
 # connectionMessage: "§6Join the audio client by clicking here! Link: {link}"
 connectionMessage: "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"
+
+# QRcode map item name
+qrCodeTitle: "§6Scan me to connect to the audio"
+
+# Don't use if you are not sure
+# If this is true it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
+# this property allows you to fully customize the client by modifying the code of the client
+customClient: false
 
 # WORKS ONLY WITH THE PREMIUM VERSION
 # Custom placeholder in the client html, if you custom the client you even can add new placeholder if you need it,

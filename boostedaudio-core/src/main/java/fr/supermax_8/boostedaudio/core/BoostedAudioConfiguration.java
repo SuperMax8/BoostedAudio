@@ -47,6 +47,9 @@ public class BoostedAudioConfiguration {
     private String clientWebSocketLink;
     private boolean notification;
 
+    private boolean sendQRcodeOnConnect;
+    private String qrCodeTitle;
+
     public BoostedAudioConfiguration(File configFile) {
         load(configFile);
         BoostedAudioAPI.api.info("Configuratuion loaded");
@@ -99,6 +102,9 @@ public class BoostedAudioConfiguration {
 
         sendOnConnect = (boolean) config.get("sendOnConnect", true);
         sendOnConnectDelay = (int) config.get("sendOnConnectDelay", 30);
+
+        sendQRcodeOnConnect = (boolean) config.get("sendQRcodeOnConnect", true);
+        qrCodeTitle = (String) config.get("qrCodeTitle", "qrCode");
 
         customClient = (boolean) config.get("customClient", false);
 
@@ -160,6 +166,14 @@ public class BoostedAudioConfiguration {
                 e.printStackTrace();
             }
         }
+    }
+
+    public String getQrCodeTitle() {
+        return qrCodeTitle;
+    }
+
+    public boolean isSendQRcodeOnConnect() {
+        return sendQRcodeOnConnect;
     }
 
     public List<String> getClientConfig() {

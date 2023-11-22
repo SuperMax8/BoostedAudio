@@ -6,7 +6,7 @@
 
     <groupId>fr.supermax_8.boostedaudio</groupId>
     <artifactId>BoostedAudio</artifactId>
-    <version>2.3.3</version>
+    <version>2.4.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>boostedaudio-core</module>
@@ -70,6 +70,18 @@
             <groupId>net.bramp.ffmpeg</groupId>
             <artifactId>ffmpeg</artifactId>
             <version>0.7.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.2</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
