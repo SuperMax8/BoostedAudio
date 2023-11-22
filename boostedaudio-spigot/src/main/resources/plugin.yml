@@ -8,6 +8,7 @@ description: Realtime music and proximity voice chat
 website: https://www.spigotmc.org/resources/boostedaudio-%E2%9C%A8proximity-voice-chat-and-music.112942/
 softdepend:
   - WorldGuard
+  - ProtocolLib
 commands:
   audio:
     aliases:

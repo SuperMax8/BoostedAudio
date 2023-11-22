@@ -65,8 +65,8 @@
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
         <repository>
-            <id>lukasalt-repo</id>
-            <url>https://repo.lukasa.lt/repository/maven-public/</url>
+            <id>dmulloy2-repo</id>
+            <url>https://repo.dmulloy2.net/repository/public/</url>
         </repository>
     </repositories>
 
@@ -90,9 +90,10 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.comphenix.packetwrapper</groupId>
-            <artifactId>PacketWrapper</artifactId>
-            <version>1.20-2.2.1</version>
+            <groupId>com.comphenix.protocol</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>5.1.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

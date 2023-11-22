@@ -1,6 +1,8 @@
 package fr.supermax_8.boostedaudio.spigot.utils;
 
-import com.comphenix.packetwrapper.wrappers.play.clientbound.WrapperPlayServerSetSlot;
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -22,12 +24,17 @@ public class ItemUtils {
     }
 
     public static void sendHandPacket(final Player player, final ItemStack mapiiitem) {
-        final WrapperPlayServerSetSlot slotPacket = new WrapperPlayServerSetSlot();
+        int slot = XMaterial.getVersion() > 8 ? 45 : player.getInventory().getHeldItemSlot();
+        PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.SET_SLOT);
+        packet.getIntegers().write(XMaterial.getVersion() >= 19 ? 2 : 1, slot);
+        packet.getItemModifier().write(0, mapiiitem);
 
-        if (XMaterial.getVersion() > 8) slotPacket.setSlot(45);
-        else slotPacket.setSlot(player.getInventory().getHeldItemSlot());
-        slotPacket.setItemStack(mapiiitem);
-        slotPacket.sendPacket(player);
+        try {
+            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 
