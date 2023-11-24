@@ -901,8 +901,9 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             });
         }
 
-        userThing()
+        userThing();
 
+        updateEveryVolume();
         return pc;
     }
 
@@ -987,24 +988,30 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         }
     }
 
+    function updateEveryVolume() {
+        peerConnections.forEach((layerMap, layerId) => {
+            layerMap.forEach((peerObj, id) => {
+                peerObj.gain.gain.value = peerObj.gainValue * voiceVolume;
+            });
+        })
+
+        audioMap.forEach((audioObj, id) => {
+            audioObj.audio.volume = ambientVolume;
+        })
+    }
+
     async function setupAudioSystem() {
         voice.value = 100;
         voice.addEventListener('input', function () {
             voiceVolume = parseFloat(this.value) / 100;
-            peerConnections.forEach((layerMap, layerId) => {
-                layerMap.forEach((peerObj, id) => {
-                    peerObj.gain.gain.value = peerObj.gainValue * voiceVolume;
-                });
-            })
+            updateEveryVolume()
         });
 
 
         ambient.value = 66.6;
         ambient.addEventListener('input', function () {
             ambientVolume = parseFloat(this.value) / 100;
-            audioMap.forEach((audioObj, id) => {
-                audioObj.audio.volume = ambientVolume;
-            })
+            updateEveryVolume()
         });
 
         microphoneSelect.addEventListener("change", async () => {
