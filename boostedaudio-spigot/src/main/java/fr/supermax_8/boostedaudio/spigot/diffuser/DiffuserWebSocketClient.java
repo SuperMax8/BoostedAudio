@@ -50,7 +50,7 @@ public class DiffuserWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        BoostedAudioAPI.api.info("Connected to the WebSocket!");
+        BoostedAudioAPI.api.info("Diffuser connected to the bungee WebSocket!");
         Scheduler.runTaskLaterAsync(() -> {
             String serverName = BoostedAudioSpigot.getInstance().getBungeeServerName();
             if (serverName == null) super.send(BoostedAudioAPI.getAPI().getConfiguration().getBungeeSecrets().get(0) + ";?");

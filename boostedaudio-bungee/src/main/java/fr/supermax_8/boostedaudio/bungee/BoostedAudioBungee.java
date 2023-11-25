@@ -89,6 +89,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
 
         host = new BoostedAudioHost(configuration);
         AudioWebSocketServer.serverProxyCheck = (s, webSocket) -> {
+            BoostedAudioAPI.getAPI().debug("Try to connect " + webSocket.getRemoteSocketAddress() + " " + s);
             try {
                 String[] split = s.split(";", 2);
                 String token = split[0];
@@ -109,6 +110,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
                         return true;
                     }
                 }
+                BoostedAudioAPI.getAPI().info("WRONG BUNGEE SECRET : " + serverName + " " + webSocket.getRemoteSocketAddress().toString());
             } catch (Exception e) {
             }
             return false;
