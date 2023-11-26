@@ -99,13 +99,14 @@ clientConfig:
 
   # Images
   - "{bg-img}=https://i.imgur.com/6MelMqC.jpg"
+  - "{bg-opacity}=80"
   # Messages
   - "{title}=BoostedAudio" # You can put html image here to set a logo
 # - "{title}=<img src="your_logo.png">"
+  - "{page-title}=BoostedAudio Client"
   - "{ambient-volume}=Ambient Volume"
   - "{voice-volume}=Voice Volume"
   - "{click-to-connect}=Click on the page to connect"
-  - "{sidebar-content}=Sidebar Content"
   - "{userList}=User List"
   - "{you-are-mute}=You have been muted by the server"
   - "{search-placeholder}=Search..."
@@ -116,7 +117,3 @@ clientConfig:
   - "{settings-label}=Parameters of the audio client"
   - "{settings-microphone-device-label}=Microphone Device"
   - "{settings-close-button-label}=Close Settings"
-
-  # Texts for Audio Control Buttons and Labels
-  - "{ambient-volume-label}=Ambient Volume"
-  - "{voice-volume-label}=Voice Volume"

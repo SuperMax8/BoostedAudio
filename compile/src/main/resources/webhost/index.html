@@ -19,7 +19,7 @@
             }
         }
     </script>
-    <title>BoostedAudio</title>
+    <title>{page-title}</title>
 </head>
 <body class="flex h-screen w-screen bg-[url({bg-img})] bg-no-repeat bg-cover">
 
@@ -75,7 +75,7 @@
 </script>
 
 <div class="w-full h-full
-bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
+bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary/{bg-opacity}">
     <!--Connection-->
     <div id="connection"
          class="z-50 fixed bg-gray-800/60 left-0 w-full h-full flex justify-center items-center text-slate-200">
@@ -121,7 +121,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
          class="z-50 fixed top-0 left-0 w-full h-full bg-gray-800/50 flex justify-center items-center hidden text-slate-200">
         <!--Params-->
         <div id="params"
-             class="bg-main p-4 rounded-lg w-2/3 h-fit grid gap-5 drop-shadow-lg ring ring-2 hover:ring-accent duration-300">
+             class="bg-main p-4 rounded-lg w-2/3 h-fit grid gap-5 drop-shadow-lg ring ring-primary ring-2 hover:ring-accent duration-300">
             <div class="text-center">
                 <h1 class="text-xl font-bold">{settings-title}</h1>
                 <label class="text-sm text-slate-400">{settings-label}</label>
@@ -129,7 +129,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             <div id="microphoneSelectDiv" class="w-full h-10">
                 <label class="block text-m font-medium mb-2">{settings-microphone-device-label}</label>
                 <select id="microphoneSelect"
-                        class="w-full h-full bg-primary rounded focus:outline-none focus:ring hover:ring duration-300">
+                        class="w-full h-full bg-primary rounded focus:outline-none focus:ring focus:ring-accent hover:ring hover:ring-accent duration-300">
                 </select>
             </div>
             <div class="mt-5"></div>
@@ -151,12 +151,12 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     <!--Ambient Volume-->
                     <div id="ambient" class="w-1/3 pr-4 grid grid-cols-1">
                         <label class="block text-sm font-medium mb-2">{ambient-volume}</label>
-                        <input id="ambientVolume" type="range" class="w-full ring-slate-800" min="0" max="100">
+                        <input id="ambientVolume" type="range" class="accent-accent w-full ring-slate-800" min="0" max="100">
                     </div>
                     <!--Voice Volume-->
                     <div id="voice" class="w-1/3 pr-4 grid grid-cols-1">
                         <label class="block text-sm font-medium mb-2">{voice-volume}</label>
-                        <input id="voiceVolume" type="range" class="w-full ring-slate-800" min="0" max="150">
+                        <input id="voiceVolume" type="range" class="accent-accent w-full ring-slate-800" min="0" max="150">
                     </div>
 
                     <!--MuteButton-->
@@ -202,7 +202,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 <!--Search-->
                 <div id="searchDiv" class="p-1 w-1/5 mb-4 relative">
                     <input id="search" type="text"
-                           class="w-full px-4 py-2 ring focus:ring-accent hover:ring-accent duration-300 bg-secondary text-gray-300 border-none rounded-full focus:outline-none"
+                           class="w-full px-4 py-2 ring ring-primary focus:ring-accent hover:ring-accent duration-300 bg-secondary text-gray-300 border-none rounded-full focus:outline-none"
                            placeholder="{search-placeholder}" maxlength="20">
                     <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
                         <svg id="search-logo" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300"
@@ -235,9 +235,10 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 <!--Mute Info-->
                 <p id="muteUser" class="text-red-500 text-center p-10 text-5xl italic hidden">{you-are-mute}</p>
 
+                <!--Users-->
                 <div id="users" class="overflow-auto
         sm:max-h-[5rem] md:max-h-[20rem] 2xl:sm:max-h-[30rem]
-         min-h-0 bg-gray-700/40 p-2 rounded-lg bg-scroll grid gap-4 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 drop-shadow-lg">
+         min-h-0 bg-primary p-2 rounded-lg bg-scroll grid gap-4 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 drop-shadow-lg">
                     <div id="user"
                          class="user flex items-center bg-gray-800 p-4 rounded-lg focus:outline-none focus:ring hover:ring duration-300">
                         <img src="" alt="User 1" class="logo w-12 h-12 rounded-lg mr-4">
