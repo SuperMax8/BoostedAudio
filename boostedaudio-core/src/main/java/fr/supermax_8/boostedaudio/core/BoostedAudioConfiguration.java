@@ -1,12 +1,12 @@
 package fr.supermax_8.boostedaudio.core;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.core.proximitychat.LayerInfo;
 import fr.supermax_8.boostedaudio.core.utils.Base64Utils;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
 import fr.supermax_8.boostedaudio.core.utils.configuration.LazyConfigUpdater;
+import lombok.Getter;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -15,9 +15,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Getter
 public class BoostedAudioConfiguration {
 
-    private String data = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+    private static String data = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
 
     private File dataFolder;
 
@@ -49,6 +50,9 @@ public class BoostedAudioConfiguration {
 
     private boolean sendQRcodeOnConnect;
     private String qrCodeTitle;
+    private String connectedSymbol;
+    private String mutedSymbol;
+    private String notconnectedSymbol;
 
     public BoostedAudioConfiguration(File configFile) {
         load(configFile);
@@ -140,6 +144,10 @@ public class BoostedAudioConfiguration {
             config.save(configFile);
         }
 
+        connectedSymbol = config.getString("connectedSymbol");
+        mutedSymbol = config.getString("mutedSymbol");
+        notconnectedSymbol = config.getString("notconnectedSymbol");
+
         if (isDebugMode()) showConfiguration();
     }
 
@@ -168,116 +176,5 @@ public class BoostedAudioConfiguration {
         }
     }
 
-    public String getQrCodeTitle() {
-        return qrCodeTitle;
-    }
-
-    public boolean isSendQRcodeOnConnect() {
-        return sendQRcodeOnConnect;
-    }
-
-    public List<String> getClientConfig() {
-        return clientConfig;
-    }
-
-    public boolean isDebugMode() {
-        return debugMode;
-    }
-
-    public List<String> getBungeeSecrets() {
-        return bungeeSecrets;
-    }
-
-    public String getBungeeWebsocketLink() {
-        return bungeeWebsocketLink;
-    }
-
-    public File getDataFolder() {
-        return dataFolder;
-    }
-
-    public boolean isBungeecoord() {
-        return bungeecoord;
-    }
-
-    public String getClientLink() {
-        return clientLink;
-    }
-
-    public boolean isAutoHost() {
-        return autoHost;
-    }
-
-    public int getAutoHostPort() {
-        return autoHostPort;
-    }
-
-    public boolean isSsl() {
-        return ssl;
-    }
-
-    public String getKeystorePassword() {
-        return keystorePassword;
-    }
-
-    public String getKeystoreFileName() {
-        return keystoreFileName;
-    }
-
-    public int getWebSocketPort() {
-        return webSocketPort;
-    }
-
-    public String getWebSocketHostName() {
-        return webSocketHostName;
-    }
-
-    public boolean isNotification() {
-        return notification;
-    }
-
-    public String getClientWebSocketLink() {
-        return clientWebSocketLink;
-    }
-
-    public boolean isVoiceChatEnabled() {
-        return voiceChatEnabled;
-    }
-
-    public float getMaxVoiceDistance() {
-        return maxVoiceDistance;
-    }
-
-    public String getDistanceModel() {
-        return distanceModel;
-    }
-
-    public float getRefDistance() {
-        return refDistance;
-    }
-
-    public float getRolloffFactor() {
-        return rolloffFactor;
-    }
-
-    public boolean isSendOnConnect() {
-        return sendOnConnect;
-    }
-
-    public int getSendOnConnectDelay() {
-        return sendOnConnectDelay;
-    }
-
-    public boolean isCustomClient() {
-        return customClient;
-    }
-
-    public String getConnectionMessage() {
-        return connectionMessage;
-    }
-
-    public String getConnectionHoverMessage() {
-        return connectionHoverMessage;
-    }
 
 }

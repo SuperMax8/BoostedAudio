@@ -17,13 +17,17 @@ public class FileUtils {
     static {
         File ffmpegDir = new File(BoostedAudioSpigot.getInstance().getDataFolder(), "ffmpeg");
         try {
-            ffmpeg = new FFmpeg(ffmpegDir.listFiles((d, s) -> s.contains("ffmpeg"))[0].getAbsolutePath());
-            ffprobe = new FFprobe(ffmpegDir.listFiles((d, s) -> s.contains("ffprobe"))[0].getAbsolutePath());
-        } catch (Exception e) {
-            if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) {
-                BoostedAudioAPI.getAPI().info("You don't have ffmpeg installed, THIS ERROR COULD BE SAFELY IGNORED IF YOU DON'T USE THE ADJUSTGAIN FEATURE, THE ERROR APPEAR ONLY BECAUSE OF DEBUG MODE");
+            String ffmpegPath = ffmpegDir.listFiles((d, s) -> s.contains("ffmpeg"))[0].getAbsolutePath();
+            String ffmprobe = ffmpegDir.listFiles((d, s) -> s.contains("ffprobe"))[0].getAbsolutePath();
+            try {
+                ffmpeg = new FFmpeg(ffmpegPath);
+                ffprobe = new FFprobe(ffmprobe);
+            } catch (Exception e) {
+                BoostedAudioAPI.getAPI().info("§cError with ffmpeg files");
                 e.printStackTrace();
             }
+        } catch (Exception e) {
+            BoostedAudioAPI.getAPI().debug("You don't have ffmpeg installed");
         }
     }
 

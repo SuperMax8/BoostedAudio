@@ -2,8 +2,6 @@ package fr.supermax_8.boostedaudio.spigot;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
-import fr.supermax_8.boostedaudio.api.event.events.UserJoinEvent;
-import fr.supermax_8.boostedaudio.api.event.events.UserQuitEvent;
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.*;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
@@ -20,6 +18,7 @@ import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserUser;
 import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserWebSocketClient;
 import fr.supermax_8.boostedaudio.spigot.manager.AudioManager;
+import fr.supermax_8.boostedaudio.spigot.manager.PlaceHoldersManager;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.proximitychat.VoiceChatProcessor;
 import fr.supermax_8.boostedaudio.spigot.utils.AroundManager;
@@ -110,6 +109,11 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
 
         aroundManager = new AroundManager();
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceHolderAPI")) {
+            new PlaceHoldersManager().register();
+            BoostedAudioAPI.getAPI().info("Placeholders loaded successfully");
+        } else BoostedAudioAPI.getAPI().info("PlaceholderAPI is not on the server");
+
         Scheduler.runTaskLater(() -> {
             try {
                 audioManager = new AudioManager();

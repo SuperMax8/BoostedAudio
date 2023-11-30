@@ -81,6 +81,11 @@ connectionHoverMessage: "Click here"
 # QRcode map item name
 qrCodeTitle: "§6Scan me to connect to the audio"
 
+# BoostedAudio placeholders from PlaceHolderAPI config
+connectedSymbol: "🔊"
+mutedSymbol: "🔇"
+notconnectedSymbol: ""
+
 # Don't use if you are not sure
 # If this is true it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
 # this property allows you to fully customize the client by modifying the code of the client
