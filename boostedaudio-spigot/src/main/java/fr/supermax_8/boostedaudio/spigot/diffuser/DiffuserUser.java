@@ -152,7 +152,7 @@ public class DiffuserUser implements User {
 
     @Override
     public boolean isMuted() {
-        return false;
+        return muted;
     }
 
     @Override

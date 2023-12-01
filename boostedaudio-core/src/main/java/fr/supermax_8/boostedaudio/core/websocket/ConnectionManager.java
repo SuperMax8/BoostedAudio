@@ -6,6 +6,7 @@ import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerUser;
 import fr.supermax_8.boostedaudio.core.utils.Base64Utils;
 import fr.supermax_8.boostedaudio.core.websocket.packets.TrustPacket;
+import lombok.Getter;
 import org.java_websocket.WebSocket;
 
 import java.security.SecureRandom;
@@ -23,6 +24,7 @@ public class ConnectionManager {
      * UUID: Minecraft player uuid
      * String: token
      */
+    @Getter
     protected final ConcurrentHashMap<UUID, String> playerTokens = new ConcurrentHashMap<>();
 
     /**
@@ -30,31 +32,18 @@ public class ConnectionManager {
      * String: The token gave by the server in game
      * Session: The websocket session
      */
+    @Getter
     protected final ConcurrentHashMap<UUID, User> users = new ConcurrentHashMap<>();
 
+    @Getter
     protected final ConcurrentHashMap<WebSocket, Optional<Object>> sessionUsers = new ConcurrentHashMap<>();
 
+    @Getter
     protected final ConcurrentHashMap<UUID, ServerUser> servers = new ConcurrentHashMap<>();
 
     public ConnectionManager() {
     }
 
-
-    public ConcurrentHashMap<UUID, String> getPlayerTokens() {
-        return playerTokens;
-    }
-
-    public ConcurrentHashMap<UUID, User> getUsers() {
-        return users;
-    }
-
-    public ConcurrentHashMap<WebSocket, Optional<Object>> getSessionUsers() {
-        return sessionUsers;
-    }
-
-    public ConcurrentHashMap<UUID, ServerUser> getServers() {
-        return servers;
-    }
 
     public ServerUser getServer(String serverName) {
         for (ServerUser user : servers.values()) {

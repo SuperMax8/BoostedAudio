@@ -82,8 +82,8 @@ connectionHoverMessage: "Click here"
 qrCodeTitle: "§6Scan me to connect to the audio"
 
 # BoostedAudio placeholders from PlaceHolderAPI config
-connectedSymbol: "🔊"
-mutedSymbol: "🔇"
+connectedSymbol: "§f🔊"
+mutedSymbol: "§c🔇"
 notconnectedSymbol: ""
 
 # Don't use if you are not sure
@@ -96,18 +96,13 @@ customClient: false
 # inside placeholder you can use html directly (if the placeholder target is not a tag parameter)
 # if you want more customization with like images or things
 clientConfig:
-  # Custom Colors
   - "{mainColor}=#262c3c"
   - "{primaryColor}=#202433"
   - "{secondaryColor}=#205295"
   - "{accentColor}=#4797de"
-
-  # Images
   - "{bg-img}=https://i.imgur.com/6MelMqC.jpg"
   - "{bg-opacity}=80"
-  # Messages
-  - "{title}=BoostedAudio" # You can put html image here to set a logo
-# - "{title}=<img src="your_logo.png">"
+  - "{title}=BoostedAudio"
   - "{page-title}=BoostedAudio Client"
   - "{ambient-volume}=Ambient Volume"
   - "{voice-volume}=Voice Volume"
@@ -116,8 +111,6 @@ clientConfig:
   - "{you-are-mute}=You have been muted by the server"
   - "{search-placeholder}=Search..."
   - "{user-count-label}=Players you can hear:"
-
-  # Texts for Settings
   - "{settings-title}=Settings"
   - "{settings-label}=Parameters of the audio client"
   - "{settings-microphone-device-label}=Microphone Device"

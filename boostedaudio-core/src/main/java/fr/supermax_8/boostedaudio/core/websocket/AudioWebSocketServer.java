@@ -11,6 +11,7 @@ import fr.supermax_8.boostedaudio.core.proximitychat.PeerConnection;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.TrustPacket;
+import lombok.Getter;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -22,6 +23,7 @@ import java.util.function.BiFunction;
 
 public class AudioWebSocketServer extends WebSocketServer {
 
+    @Getter
     private static AudioWebSocketServer instance;
 
     public final ConnectionManager manager = new ConnectionManager();
@@ -139,10 +141,6 @@ public class AudioWebSocketServer extends WebSocketServer {
 
     public boolean isOpen() {
         return isOpen;
-    }
-
-    public static AudioWebSocketServer getInstance() {
-        return instance;
     }
 
 

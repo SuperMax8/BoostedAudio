@@ -91,6 +91,11 @@
             <artifactId>boostedaudio-bungee</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>fr.supermax_8.boostedaudio</groupId>
+            <artifactId>boostedaudio-velocity</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

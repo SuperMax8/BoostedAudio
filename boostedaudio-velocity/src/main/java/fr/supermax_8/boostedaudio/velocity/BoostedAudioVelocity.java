@@ -1,18 +1,31 @@
-package fr.supermax_8.boostedaudio.bungee;
+package fr.supermax_8.boostedaudio.velocity;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.inject.Inject;
+import com.velocitypowered.api.command.BrigadierCommand;
+import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandMeta;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
+import com.velocitypowered.api.event.player.ServerConnectedEvent;
+import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
+import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
+import com.velocitypowered.api.proxy.server.ServerInfo;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
 import fr.supermax_8.boostedaudio.api.user.User;
-import fr.supermax_8.boostedaudio.bungee.utils.BungeeCrossConfiguration;
-import fr.supermax_8.boostedaudio.bungee.utils.BungeeCrossConfigurationSection;
 import fr.supermax_8.boostedaudio.core.*;
+import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
+import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerUser;
 import fr.supermax_8.boostedaudio.core.serverpacket.UsersFromUuids;
-import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
-import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
@@ -23,28 +36,35 @@ import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.ServerChangePacket;
 import lombok.Getter;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.event.*;
-import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.event.EventHandler;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public final class BoostedAudioBungee extends Plugin implements Listener {
+import static fr.supermax_8.boostedaudio.core.utils.ResourceUtils.getResourceAsStream;
+
+@Plugin(
+        id = "boostedaudio",
+        name = "BoostedAudioVelocity",
+        version = "${project.version}",
+        description = "Velocity implementation of BoostedAudio, proximitychat and music plugin",
+        authors = {"SuperMax_8"}
+)
+public class BoostedAudioVelocity {
 
     private static String fqsfdsqfdsq = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+    private static final String version = "${project.version}";
+    private Logger logger;
+    private final ProxyServer server;
+    private final Path dataDirectory;
 
     @Getter
-    private static BoostedAudioBungee instance;
+    private static BoostedAudioVelocity instance;
 
     @Getter
     private BoostedAudioHost host;
@@ -54,20 +74,31 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
 
     private final HashMap<String, ServerPacketListener> pluginMessageListeners = new HashMap<>();
 
-    @Override
-    public void onEnable() {
+    private final MinecraftChannelIdentifier serverNameChannel = MinecraftChannelIdentifier.from("boostedaudio:servername");
+
+    @Inject
+    public BoostedAudioVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+        this.server = server;
+        this.logger = logger;
+        this.dataDirectory = dataDirectory;
+        logger.info("Initializing");
+    }
+
+    @Subscribe
+    public void onProxyInitialization(ProxyInitializeEvent event) {
+        logger.info("Initializing...");
         instance = this;
-        BoostedAudioAPIImpl.sendMessage = s -> ProxyServer.getInstance().getConsole().sendMessage(s);
+        BoostedAudioAPIImpl.sendMessage = s -> logger.info(s);
         try {
-            BoostedAudioLoader.loadExternalLibs(getDataFolder());
+            dataDirectory.toFile().mkdirs();
+            BoostedAudioLoader.loadExternalLibs(dataDirectory.toFile());
         } catch (Exception e) {
             e.printStackTrace();
         }
+//        CrossConfiguration.instancer = BungeeCrossConfiguration::new;
+//        CrossConfigurationSection.converter = o -> new BungeeCrossConfigurationSection((Configuration) o);
 
-        /*        CrossConfiguration.instancer = BungeeCrossConfiguration::new;
-        CrossConfigurationSection.converter = o -> new BungeeCrossConfigurationSection((Configuration) o);*/
-
-        ProxyServer.getInstance().registerChannel("boostedaudio:servername");
+        server.getChannelRegistrar().register(serverNameChannel);
 
         loadConf();
         BoostedAudioAPIImpl.configuration = configuration;
@@ -83,12 +114,16 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
             }
         };
 
-        getProxy().getPluginManager().registerCommand(this, new AudioCommandBungee("audio"));
+        CommandManager commandManager = server.getCommandManager();
+        CommandMeta commandMeta = commandManager.metaBuilder("audio")
+                .plugin(this)
+                .build();
+        commandManager.register(commandMeta, new AudioCommandVelocity());
 
         BoostedAudioAPIImpl.internalAPI = new InternalAPI() {
             @Override
             public String getUsername(UUID uuid) {
-                return ProxyServer.getInstance().getPlayer(uuid).getName();
+                return server.getPlayer(uuid).get().getUsername();
             }
         };
 
@@ -115,7 +150,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
                         return true;
                     }
                 }
-                BoostedAudioAPI.getAPI().info("WRONG BUNGEE SECRET : " + serverName + " " + webSocket.getRemoteSocketAddress().toString());
+                BoostedAudioAPI.getAPI().info("WRONG MULTISERV SECRET : " + serverName + " " + webSocket.getRemoteSocketAddress().toString());
             } catch (Exception e) {
             }
             return false;
@@ -172,19 +207,17 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
             host.getWebSocketServer().manager.getUsers().get(uuid).setMuted(Boolean.parseBoolean(split[1]), Long.parseLong(split[2]));
         });
 
-        ProxyServer.getInstance().getPluginManager().registerListener(this, this);
         checkForUpdates();
     }
 
     private void sendServerNames() {
-        for (ServerInfo info : ProxyServer.getInstance().getServersCopy().values()) {
-            info.sendData("boostedaudio:servername", info.getName().getBytes());
+        for (RegisteredServer server : server.getAllServers()) {
+            server.sendPluginMessage(serverNameChannel, server.getServerInfo().getName().getBytes());
         }
     }
 
     private void loadConf() {
-        getDataFolder().mkdirs();
-        File configFile = new File(getDataFolder(), "config.yml");
+        File configFile = new File(dataDirectory.toFile(), "config.yml");
 /*        if (!configFile.exists()) try (InputStream in = getResourceAsStream("config.yml")) {
             Files.copy(in, configFile.toPath());
         } catch (IOException e) {
@@ -192,15 +225,10 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         }
         try {
             //ConfigUpdater.update(this::getResourceAsStream, "config.yml", new File(getDataFolder(), "config.yml"));
-            LazyConfigUpdater.update(CrossConfiguration.newConfig().load(configFile), ResourceUtils.getResourceAsStream("config.yml"), configFile);
+            LazyConfigUpdater.update(CrossConfiguration.newConfig().load(configFile), getResourceAsStream("config.yml"), configFile);
         } catch (Exception ignored) {
         }*/
         configuration = new BoostedAudioConfiguration(configFile);
-    }
-
-
-    @Override
-    public void onDisable() {
     }
 
     private void checkForUpdates() {
@@ -217,7 +245,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
     }
 
     private String getPluginVersion() {
-        return getDescription().getVersion();
+        return version;
     }
 
     public void registerServerListener(String channel) {
@@ -228,24 +256,24 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         if (onReceive != null) pluginMessageListeners.put(channel, onReceive);
     }
 
-    @EventHandler
-    public void onDisconnect(PlayerDisconnectEvent e) {
+    @Subscribe
+    public void onDisconnect(DisconnectEvent e) {
         CompletableFuture.runAsync(() -> {
             User user = host.getWebSocketServer().manager.getUsers().get(e.getPlayer().getUniqueId());
             if (user != null) user.close();
         });
     }
 
-    @EventHandler
+    @Subscribe
     public void onSwitchServ(ServerConnectedEvent e) {
         CompletableFuture.runAsync(() -> {
             HostUser user = (HostUser) host.getWebSocketServer().manager.getUsers().get(e.getPlayer().getUniqueId());
             if (user == null) {
                 if (configuration.isSendOnConnect())
-                    AudioCommandBungee.sendConnectMessage(e.getPlayer(), e.getServer().getInfo().getName());
+                    AudioCommandVelocity.sendConnectMessage(e.getPlayer(), e.getServer().getServerInfo().getName());
                 return;
             }
-            user.sendPacket(new ServerChangePacket(e.getServer().getInfo().getName()));
+            user.sendPacket(new ServerChangePacket(e.getServer().getServerInfo().getName()));
             user.waitUntil(500);
         });
     }
@@ -253,5 +281,6 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
     public static void sendServerPacket(UUID server, String channel, String message) {
         AudioWebSocketServer.getInstance().manager.getServers().get(server).getWebSocket().send(channel + ";" + message);
     }
+
 
 }

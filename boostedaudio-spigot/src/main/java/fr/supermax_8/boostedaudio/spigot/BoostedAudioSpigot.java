@@ -27,6 +27,7 @@ import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
 import fr.supermax_8.boostedaudio.spigot.utils.TemporaryListener;
 import fr.supermax_8.boostedaudio.spigot.utils.configuration.SpigotCrossConfiguration;
 import fr.supermax_8.boostedaudio.spigot.utils.configuration.SpigotCrossConfigurationSection;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
@@ -50,6 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class BoostedAudioSpigot extends JavaPlugin {
 
     private static String a = "%%__RESOURCE__%% %%__USER__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+    @Getter
     private static BoostedAudioSpigot instance;
 
     @Nullable
@@ -63,10 +65,13 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private Map<UUID, User> usersOnServer;
     @Nullable
     private DiffuserWebSocketClient diffuserWebSocketClient;
+    @Getter
     private String bungeeServerName;
 
     private VoiceChatProcessor voiceChatProcessor;
+    @Getter
     private AudioManager audioManager;
+    @Getter
     private AroundManager aroundManager;
     private BoostedAudioConfiguration configuration;
     private String workingMode = "";
@@ -109,6 +114,8 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
 
         aroundManager = new AroundManager();
+
+        // Placeholders
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceHolderAPI")) {
             new PlaceHoldersManager().register();
             BoostedAudioAPI.getAPI().info("Placeholders loaded successfully");
@@ -145,10 +152,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     @Override
     public void onDisable() {
         if (diffuserWebSocketClient != null) diffuserWebSocketClient.close();
-    }
-
-    public static BoostedAudioSpigot getInstance() {
-        return instance;
     }
 
     private void initMetrics() {
@@ -294,18 +297,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             });
         } catch (Exception ignored) {
         }
-    }
-
-    public AroundManager getAroundManager() {
-        return aroundManager;
-    }
-
-    public AudioManager getAudioManager() {
-        return audioManager;
-    }
-
-    public String getBungeeServerName() {
-        return bungeeServerName;
     }
 
     public String getPluginVersion() {

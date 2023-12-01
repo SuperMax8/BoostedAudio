@@ -1,5 +1,10 @@
 package fr.supermax_8.boostedaudio.core;
 
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.Base64Utils;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
@@ -9,6 +14,7 @@ import fr.supermax_8.boostedaudio.core.utils.configuration.LazyConfigUpdater;
 import lombok.Getter;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -55,54 +61,56 @@ public class BoostedAudioConfiguration {
     private String notconnectedSymbol;
 
     public BoostedAudioConfiguration(File configFile) {
-        load(configFile);
-        BoostedAudioAPI.api.info("Configuratuion loaded");
+        try {
+            load(configFile);
+            BoostedAudioAPI.api.info("Configuratuion loaded");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private void load(File configFile) {
+    private void load(File configFile) throws IOException {
         dataFolder = configFile.getParentFile();
         try {
             // ConfigUpdater.update(ResourceUtils::getResourceAsStream, "config.yml", configFile);
-            LazyConfigUpdater.update(CrossConfiguration.newConfig().load(configFile), ResourceUtils.getResourceAsStream("config.yml"), configFile);
+            //LazyConfigUpdater.update(CrossConfiguration.newConfig().load(configFile), ResourceUtils.getResourceAsStream("config.yml"), configFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        CrossConfiguration config = CrossConfiguration.newConfig().load(configFile);
+        YamlDocument config = YamlDocument.create(
+                configFile,
+                ResourceUtils.getResourceAsStream("config.yml"),
+                GeneralSettings.builder().build(),
+                LoaderSettings.builder().setAutoUpdate(true).build(),
+                DumperSettings.builder().build(),
+                UpdaterSettings.builder().build()
+        );
 
         notification = (boolean) config.get("notification", true);
         debugMode = (boolean) config.get("debugMode");
 
         bungeecoord = (boolean) config.get("bungeecoord", false);
         bungeeWebsocketLink = (String) config.get("bungeeWebsocketLink", "wss://localhost:8081");
-        bungeeSecrets = (List<String>) config.get("bungeeSecrets");
+        bungeeSecrets = config.getStringList("bungeeSecrets");
 
         clientLink = (String) config.get("client-link", "http://localhost:8080");
         clientWebSocketLink = (String) config.get("clientWebSocketLink", "ws://localhost:8081");
         autoHost = (boolean) config.get("autoHost", true);
         autoHostPort = (int) config.get("autoHostPort", 8080);
 
-        CrossConfigurationSection sslSection = config.getConfigurationSection("ssl");
-        if (sslSection != null) {
-            ssl = (boolean) sslSection.get("ssl", false);
-            keystorePassword = (String) sslSection.get("keystorePassword", "YOUR_PASSWORD");
-            keystoreFileName = (String) sslSection.get("keystoreFileName", "keystore.jks");
-        }
+        ssl = (boolean) config.get("ssl.ssl", false);
+        keystorePassword = (String) config.get("ssl.keystorePassword", "YOUR_PASSWORD");
+        keystoreFileName = (String) config.get("ssl.keystoreFileName", "keystore.jks");
 
-        CrossConfigurationSection webSocketSection = config.getConfigurationSection("webSocket");
-        if (webSocketSection != null) {
-            webSocketPort = (int) webSocketSection.get("webSocketPort", 8081);
-            webSocketHostName = (String) webSocketSection.get("webSocketHostName", "localhost");
-        }
+        webSocketPort = (int) config.get("webSocket.webSocketPort", 8081);
+        webSocketHostName = (String) config.get("webSocket.webSocketHostName", "localhost");
 
-        CrossConfigurationSection voiceChatSection = config.getConfigurationSection("voicechat");
-        if (voiceChatSection != null) {
-            voiceChatEnabled = (boolean) voiceChatSection.get("voicechat", true);
-            maxVoiceDistance = ((Number) voiceChatSection.get("maxVoiceDistance", 30)).floatValue();
-            distanceModel = (String) voiceChatSection.get("distanceModel", "exponential");
-            refDistance = ((Number) voiceChatSection.get("refDistance", 4)).floatValue();
-            rolloffFactor = ((Number) voiceChatSection.get("rolloffFactor", 1)).floatValue();
-        }
+        voiceChatEnabled = (boolean) config.get("voicechat.voicechat", true);
+        maxVoiceDistance = ((Number) config.get("voicechat.maxVoiceDistance", 30)).floatValue();
+        distanceModel = (String) config.get("voicechat.distanceModel", "exponential");
+        refDistance = ((Number) config.get("voicechat.refDistance", 4)).floatValue();
+        rolloffFactor = ((Number) config.get("voicechat.rolloffFactor", 1)).floatValue();
 
         sendOnConnect = (boolean) config.get("sendOnConnect", true);
         sendOnConnectDelay = (int) config.get("sendOnConnectDelay", 30);
@@ -115,11 +123,14 @@ public class BoostedAudioConfiguration {
         connectionMessage = (String) config.get("connectionMessage", "§6Join the audio client by clicking here!");
         connectionHoverMessage = (String) config.get("connectionHoverMessage", "Click here");
 
-        clientConfig = (List<String>) config.get("clientConfig");
+        connectedSymbol = config.getString("connectedSymbol");
+        mutedSymbol = config.getString("mutedSymbol");
+        notconnectedSymbol = config.getString("notconnectedSymbol");
 
-        Map<String, String> defaultParams = convertConfigList((List<String>) CrossConfiguration.newConfig()
-                .load(new InputStreamReader(ResourceUtils.getResourceAsStream("config.yml")))
-                .get("clientConfig"));
+        clientConfig = config.getStringList("clientConfig");
+
+        Map<String, String> defaultParams = convertConfigList(YamlDocument.create(ResourceUtils.getResourceAsStream("config.yml"))
+                .getStringList("clientConfig"));
         Map<String, String> params = convertConfigList(clientConfig);
 
         boolean updated = false;
@@ -131,9 +142,12 @@ public class BoostedAudioConfiguration {
                 updated = true;
             }
         }
+
+        boolean modified = false;
+
         if (updated) {
             config.set("clientConfig", clientConfig);
-            config.save(configFile);
+            modified = true;
             BoostedAudioAPI.api.info("The clientConfig has been updated, new parameters have been added !");
         }
 
@@ -141,12 +155,10 @@ public class BoostedAudioConfiguration {
             bungeeSecrets.clear();
             bungeeSecrets.add(Base64Utils.generateSecuredToken(16));
             config.set("bungeeSecrets", bungeeSecrets);
-            config.save(configFile);
+            modified = true;
         }
 
-        connectedSymbol = config.getString("connectedSymbol");
-        mutedSymbol = config.getString("mutedSymbol");
-        notconnectedSymbol = config.getString("notconnectedSymbol");
+        if (modified) config.save();
 
         if (isDebugMode()) showConfiguration();
     }
