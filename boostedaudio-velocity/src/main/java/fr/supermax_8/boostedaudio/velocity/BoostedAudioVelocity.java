@@ -3,20 +3,17 @@ package fr.supermax_8.boostedaudio.velocity;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.Inject;
-import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
+import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
-import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import com.velocitypowered.api.proxy.server.ServerInfo;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
 import fr.supermax_8.boostedaudio.api.user.User;
@@ -26,11 +23,7 @@ import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerUser;
 import fr.supermax_8.boostedaudio.core.serverpacket.UsersFromUuids;
-import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
-import fr.supermax_8.boostedaudio.core.utils.configuration.LazyConfigUpdater;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
@@ -39,26 +32,21 @@ import lombok.Getter;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static fr.supermax_8.boostedaudio.core.utils.ResourceUtils.getResourceAsStream;
-
 @Plugin(
         id = "boostedaudio",
         name = "BoostedAudioVelocity",
-        version = "${project.version}",
+        version = "2.6.0",
         description = "Velocity implementation of BoostedAudio, proximitychat and music plugin",
         authors = {"SuperMax_8"}
 )
 public class BoostedAudioVelocity {
 
     private static String fqsfdsqfdsq = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
-    private static final String version = "${project.version}";
+    private static final String version = "2.6.0";
     private Logger logger;
     private final ProxyServer server;
     private final Path dataDirectory;
@@ -76,12 +64,16 @@ public class BoostedAudioVelocity {
 
     private final MinecraftChannelIdentifier serverNameChannel = MinecraftChannelIdentifier.from("boostedaudio:servername");
 
+    static {
+        System.out.println("[BoostedAudioVelocity INIT]");
+    }
+
     @Inject
     public BoostedAudioVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+        logger.info("Initializing");
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
-        logger.info("Initializing");
     }
 
     @Subscribe
@@ -95,8 +87,6 @@ public class BoostedAudioVelocity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        CrossConfiguration.instancer = BungeeCrossConfiguration::new;
-//        CrossConfigurationSection.converter = o -> new BungeeCrossConfigurationSection((Configuration) o);
 
         server.getChannelRegistrar().register(serverNameChannel);
 
@@ -211,6 +201,7 @@ public class BoostedAudioVelocity {
     }
 
     private void sendServerNames() {
+        BoostedAudioAPI.getAPI().debug("Sending server names");
         for (RegisteredServer server : server.getAllServers()) {
             server.sendPluginMessage(serverNameChannel, server.getServerInfo().getName().getBytes());
         }

@@ -213,16 +213,41 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         // Diffuser mode
         workingMode = "Diffuser";
 
-        try {
-            BoostedAudioAPI.getAPI().debug("Bungee websocket uri: " + configuration.getBungeeWebsocketLink());
-            diffuserWebSocketClient = new DiffuserWebSocketClient(new URI(configuration.getBungeeWebsocketLink()));
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        Scheduler.runTaskTimerAsync(t -> {
+            if (Bukkit.getOnlinePlayers().isEmpty()) return;
 
-        Scheduler.runTaskAsync(() -> {
-            diffuserWebSocketClient.connect();
-        });
+            // Init DiffuserWebSocketClient when a player is online to avoid pluginChannel problems
+            try {
+                BoostedAudioAPI.getAPI().debug("Bungee websocket uri: " + configuration.getBungeeWebsocketLink());
+                diffuserWebSocketClient = new DiffuserWebSocketClient(new URI(configuration.getBungeeWebsocketLink()));
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+            Scheduler.runTaskAsync(() -> diffuserWebSocketClient.connect());
+
+            registerServerPacketListener("audiotoken", (message, serverId) -> {
+                String[] split = message.split(";", 2);
+                OfflinePlayer player1 = Bukkit.getOfflinePlayer(UUID.fromString(split[0]));
+                if (player1.isOnline()) AudioCommandSpigot.sendConnectMessage(player1.getPlayer(), split[1]);
+            });
+
+            Scheduler.runTaskTimerAsync(() -> {
+                try {
+                    StringJoiner joiner = new StringJoiner(";");
+                    Bukkit.getOnlinePlayers().forEach(player -> joiner.add(player.getUniqueId().toString()));
+                    hostRequester.request("usersfromuuids", joiner.toString(), (UsersFromUuids usersFromUuids) -> {
+                        Map<UUID, User> map = new ConcurrentHashMap<>();
+                        usersFromUuids.getUsers().forEach(user -> map.put(user.getPlayerId(), new DiffuserUser(user)));
+                        usersOnServer = map;
+                    }, UsersFromUuids.class);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }, 0, 0);
+
+            t.cancel();
+        }, 0, 0);
+
         hostRequester = new HostRequester();
         Bukkit.getMessenger().registerIncomingPluginChannel(this, "boostedaudio:servername", (channel, player, message) -> {
             bungeeServerName = new String(message);
@@ -239,27 +264,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             public void waitUntilPluginSetup() {
             }
         };
-
-        Scheduler.runTaskTimerAsync(() -> {
-            try {
-                StringJoiner joiner = new StringJoiner(";");
-                Bukkit.getOnlinePlayers().forEach(player -> joiner.add(player.getUniqueId().toString()));
-                hostRequester.request("usersfromuuids", joiner.toString(), (UsersFromUuids usersFromUuids) -> {
-                    Map<UUID, User> map = new ConcurrentHashMap<>();
-                    usersFromUuids.getUsers().forEach(user -> map.put(user.getPlayerId(), new DiffuserUser(user)));
-                    usersOnServer = map;
-                }, UsersFromUuids.class);
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }, 0, 0);
-
-
-        registerServerPacketListener("audiotoken", (message, serverId) -> {
-            String[] split = message.split(";", 2);
-            OfflinePlayer player1 = Bukkit.getOfflinePlayer(UUID.fromString(split[0]));
-            if (player1.isOnline()) AudioCommandSpigot.sendConnectMessage(player1.getPlayer(), split[1]);
-        });
 
         Scheduler.runTaskTimerAsync(() -> {
             try {
@@ -316,7 +320,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     public static void sendServerPacket(String channel, String value) {
         DiffuserWebSocketClient ws = getInstance().diffuserWebSocketClient;
-        if (ws.isOpen()) ws.send(channel + ";" + value);
+        if (ws != null && ws.isOpen()) ws.send(channel + ";" + value);
     }
 
     public static void registerServerPacketListener(String channel, ServerPacketListener listener) {

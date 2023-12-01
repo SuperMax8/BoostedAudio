@@ -4,6 +4,8 @@ import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
+import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -13,14 +15,18 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class DiffuserWebSocketClient extends WebSocketClient {
 
+    private static final int RETRY_INTERVAL = 2500;
+
+    @Getter
     private final HashMap<String, ServerPacketListener> listeners = new HashMap<>();
 
     private boolean connected = false;
 
-    private boolean closed = false;
+    private boolean end = false;
 
     public DiffuserWebSocketClient(URI serverUri) {
         super(serverUri);
@@ -50,23 +56,32 @@ public class DiffuserWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        BoostedAudioAPI.api.info("Diffuser connected to the bungee WebSocket!");
-        Scheduler.runTaskLaterAsync(() -> {
+        BoostedAudioAPI.api.info("Diffuser connected to the bungee WebSocket, still not auth!");
+        Scheduler.runTaskAsync(() -> {
             String serverName = BoostedAudioSpigot.getInstance().getBungeeServerName();
-            if (serverName == null) super.send(BoostedAudioAPI.getAPI().getConfiguration().getBungeeSecrets().get(0) + ";?");
-            while (serverName == null && !closed) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+            if (serverName == null) {
+                while (Bukkit.getOnlinePlayers().isEmpty()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-                serverName = BoostedAudioSpigot.getInstance().getBungeeServerName();
+                BoostedAudioAPI.getAPI().debug("Sending server name request");
+                super.send(BoostedAudioAPI.getAPI().getConfiguration().getBungeeSecrets().get(0) + ";?");
+                while (serverName == null && !end) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    serverName = BoostedAudioSpigot.getInstance().getBungeeServerName();
+                }
             }
-            if (closed) return;
             super.send(BoostedAudioAPI.getAPI().getConfiguration().getBungeeSecrets().get(0) + ";" + serverName);
-            BoostedAudioAPI.getAPI().debug("Sending bungee token verif !");
+            BoostedAudioAPI.getAPI().debug("Sending bungee token verif, should be auth!");
             connected = true;
-        }, 20);
+        });
     }
 
     @Override
@@ -74,7 +89,7 @@ public class DiffuserWebSocketClient extends WebSocketClient {
         String[] split = message.split(";", 2);
         ServerPacketListener listener = listeners.get(split[0]);
         if (listener == null) {
-            BoostedAudioAPI.getAPI().info("Plugin is update ? Received a message from the server, but there was no listener for it. Message: " + message);
+            BoostedAudioAPI.getAPI().info("Is plugin updated ? Received a message from the server, but there was no listener for it. Message: " + message);
             return;
         }
         listener.onReceive(split[1], null);
@@ -82,10 +97,11 @@ public class DiffuserWebSocketClient extends WebSocketClient {
 
     @Override
     public void onClose(int i, String s, boolean b) {
-        if (closed) return;
-        BoostedAudioAPI.api.debug("Connection closed, Attempting to reconnect in 5s...");
+        connected = false;
+        if (end) return;
+        BoostedAudioAPI.api.debug("Connection closed, Attempting to reconnect in " + TimeUnit.MILLISECONDS.toSeconds(RETRY_INTERVAL) + "s...");
         try {
-            Thread.sleep(5000);
+            Thread.sleep(RETRY_INTERVAL);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -107,18 +123,13 @@ public class DiffuserWebSocketClient extends WebSocketClient {
             super.send(text);
     }
 
-    public HashMap<String, ServerPacketListener> getListeners() {
-        return listeners;
-    }
-
     public void registerListener(String channel, ServerPacketListener listener) {
         listeners.put(channel, listener);
     }
 
-    @Override
-    public void close() {
-        closed = true;
-        super.close();
+    public void end() {
+        end = true;
+        close();
     }
 
 }

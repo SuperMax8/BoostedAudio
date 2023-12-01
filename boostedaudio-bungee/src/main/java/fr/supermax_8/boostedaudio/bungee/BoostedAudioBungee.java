@@ -5,19 +5,13 @@ import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
 import fr.supermax_8.boostedaudio.api.user.User;
-import fr.supermax_8.boostedaudio.bungee.utils.BungeeCrossConfiguration;
-import fr.supermax_8.boostedaudio.bungee.utils.BungeeCrossConfigurationSection;
 import fr.supermax_8.boostedaudio.core.*;
+import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
+import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
 import fr.supermax_8.boostedaudio.core.serverpacket.ServerUser;
 import fr.supermax_8.boostedaudio.core.serverpacket.UsersFromUuids;
-import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
-import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
-import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
-import fr.supermax_8.boostedaudio.core.utils.configuration.LazyConfigUpdater;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
@@ -25,17 +19,13 @@ import fr.supermax_8.boostedaudio.core.websocket.packets.ServerChangePacket;
 import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.event.*;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.ServerConnectedEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.event.EventHandler;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -177,6 +167,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
     }
 
     private void sendServerNames() {
+        BoostedAudioAPI.getAPI().debug("Sending server names");
         for (ServerInfo info : ProxyServer.getInstance().getServersCopy().values()) {
             info.sendData("boostedaudio:servername", info.getName().getBytes());
         }
