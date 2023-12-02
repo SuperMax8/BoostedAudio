@@ -41,6 +41,7 @@ public class BoostedAudioLoader {
         libs.mkdirs();
 
         URLClassLoader loader = (URLClassLoader) BoostedAudioLoader.class.getClassLoader();
+
         File AIO = new File(libs, "AIO.jar");
         if (AIO.exists()) {
             JarDependency dependency = new JarDependency(AIO.toPath());
@@ -62,6 +63,41 @@ public class BoostedAudioLoader {
         }
         long ts2 = System.currentTimeMillis();
         BoostedAudioAPI.getAPI().info("Libs loaded in " + (ts2 - ts) + " ms");
+    }
+
+    public static long loadLibs(File dataFolder) {
+        long ts = System.currentTimeMillis();
+        try {
+            File libs = new File(dataFolder, "libs");
+            libs.mkdirs();
+
+            URLClassLoader loader = (URLClassLoader) BoostedAudioLoader.class.getClassLoader();
+
+            // Load the AIO
+            File AIO = new File(libs, "AIO.jar");
+            if (AIO.exists()) {
+                JarDependency dependency = new JarDependency(AIO.toPath());
+                JarLoader.load(dependency, loader);
+                long ts2 = System.currentTimeMillis();
+                return ts2 - ts;
+            }
+
+            // Classic libs loading
+            for (String link : libsLink) {
+                System.out.println("Loading " + link);
+                //BoostedAudioAPI.getAPI().info(link);
+                File lib = new File(libs, link.substring(link.lastIndexOf('/') + 1));
+                Path libsPath = Paths.get(lib.getAbsolutePath());
+
+                JarDependency dependency = new JarDependency(link, libsPath);
+                JarLoader.downloadIfNotExists(dependency);
+                JarLoader.load(dependency, loader);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        long ts2 = System.currentTimeMillis();
+        return ts2 - ts;
     }
 
 }

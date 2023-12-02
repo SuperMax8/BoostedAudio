@@ -7,10 +7,12 @@ import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
+import fr.supermax_8.boostedaudio.core.serverpacket.ServerUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.MutePacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
+import lombok.Getter;
 import org.java_websocket.WebSocket;
 
 import java.util.HashSet;
@@ -21,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class HostUser implements User {
 
+    @Getter
     private final WebSocket session;
 
     @Expose
@@ -51,10 +54,6 @@ public class HostUser implements User {
         return remotePeers;
     }
 
-    public WebSocket getSession() {
-        return session;
-    }
-
     @Override
     public String getConnectionToken() {
         return connectionToken;
@@ -82,7 +81,7 @@ public class HostUser implements User {
 
     @Override
     public Audio playAudio(String link, int fade) {
-        return playAudio(link, null, fade, fade, false);
+        return playAudio(link, fade, fade);
     }
 
     @Override

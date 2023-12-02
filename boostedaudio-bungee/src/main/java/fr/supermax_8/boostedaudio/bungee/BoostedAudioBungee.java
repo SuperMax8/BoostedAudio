@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
+import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.*;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
@@ -160,6 +161,29 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
 
             UUID uuid = UUID.fromString(split[0]);
             host.getWebSocketServer().manager.getUsers().get(uuid).setMuted(Boolean.parseBoolean(split[1]), Long.parseLong(split[2]));
+        });
+
+
+        registerServerListener("playaudio", (message, serverId) -> {
+            String[] split = message.split(";", 2);
+
+            UUID uuid = UUID.fromString(split[0]);
+            Audio audio = BoostedAudioAPI.getAPI().getGson().fromJson(split[1], Audio.class);
+            host.getWebSocketServer().manager.getUsers().get(uuid).playAudio(audio);
+        });
+        registerServerListener("removeaudio", (message, serverId) -> {
+            String[] split = message.split(";", 2);
+
+            UUID uuid = UUID.fromString(split[0]);
+            Audio audio = BoostedAudioAPI.getAPI().getGson().fromJson(split[1], Audio.class);
+            host.getWebSocketServer().manager.getUsers().get(uuid).stopAudio(audio);
+        });
+        registerServerListener("pauseaudio", (message, serverId) -> {
+            String[] split = message.split(";", 2);
+
+            UUID uuid = UUID.fromString(split[0]);
+            Audio audio = BoostedAudioAPI.getAPI().getGson().fromJson(split[1], Audio.class);
+            host.getWebSocketServer().manager.getUsers().get(uuid).pauseAudio(audio);
         });
 
         ProxyServer.getInstance().getPluginManager().registerListener(this, this);

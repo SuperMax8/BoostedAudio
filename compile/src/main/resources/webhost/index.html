@@ -151,12 +151,14 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                     <!--Ambient Volume-->
                     <div id="ambient" class="w-1/3 pr-4 grid grid-cols-1">
                         <label class="block text-sm font-medium mb-2">{ambient-volume}</label>
-                        <input id="ambientVolume" type="range" class="accent-accent w-full ring-slate-800" min="0" max="100">
+                        <input id="ambientVolume" type="range" class="accent-accent w-full ring-slate-800" min="0"
+                               max="100">
                     </div>
                     <!--Voice Volume-->
                     <div id="voice" class="w-1/3 pr-4 grid grid-cols-1">
                         <label class="block text-sm font-medium mb-2">{voice-volume}</label>
-                        <input id="voiceVolume" type="range" class="accent-accent w-full ring-slate-800" min="0" max="150">
+                        <input id="voiceVolume" type="range" class="accent-accent w-full ring-slate-800" min="0"
+                               max="150">
                     </div>
 
                     <!--MuteButton-->
@@ -593,9 +595,8 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                     audioSource.connect(panner);
                     panner.connect(gainNode);
                     gainNode.connect(audioContext.destination);
-                } else {
+                } else
                     audio = new Audio(link)
-                }
 
                 console.log("Playing " + id, " url", link)
                 audio.play()

@@ -85,9 +85,9 @@ public class DiffuserUser implements User {
 
     @Override
     public void playAudio(Audio audio) {
-        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
-        playingAudio.put(audio.getId(), audio);
-        sendPacket(packet);
+        BoostedAudioSpigot.sendServerPacket("playaudio",
+                playerId + ";" + BoostedAudioAPI.getAPI().getGson().toJson(audio)
+        );
     }
 
     @Override
@@ -107,8 +107,9 @@ public class DiffuserUser implements User {
 
     @Override
     public void pauseAudio(Audio audio) {
-        PausePlayAudioPacket packet = new PausePlayAudioPacket(audio.getId(), audio.getFadeOut());
-        sendPacket(packet);
+        BoostedAudioSpigot.sendServerPacket("pauseaudio",
+                playerId + ";" + BoostedAudioAPI.getAPI().getGson().toJson(audio)
+        );
     }
 
     @Override
@@ -128,8 +129,9 @@ public class DiffuserUser implements User {
 
     @Override
     public void stopAudio(Audio audio) {
-        RemoveAudioPacket packet = new RemoveAudioPacket(audio.getId(), audio.getFadeOut());
-        sendPacket(packet);
+        BoostedAudioSpigot.sendServerPacket("removeaudio",
+                playerId + ";" + BoostedAudioAPI.getAPI().getGson().toJson(audio)
+        );
     }
 
     @Override

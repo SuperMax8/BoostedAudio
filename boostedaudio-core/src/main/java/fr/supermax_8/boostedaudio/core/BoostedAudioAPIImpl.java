@@ -7,6 +7,7 @@ import fr.supermax_8.boostedaudio.api.HostProvider;
 import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RTCIcePacket;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -18,6 +19,7 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
             .registerTypeAdapter(RTCIcePacket.class, new RTCIcePacket.Adapter())
             .create();
 
+    @Getter
     private static final BoostedAudioAPIImpl api = new BoostedAudioAPIImpl();
 
     public static BoostedAudioConfiguration configuration;
@@ -25,10 +27,6 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
     public static InternalAPI internalAPI;
     public static List<String> multiServerSecrets;
     public static Consumer<String> sendMessage;
-
-    public static BoostedAudioAPIImpl getApi() {
-        return api;
-    }
 
     public InternalAPI getInternalAPI() {
         return internalAPI;
