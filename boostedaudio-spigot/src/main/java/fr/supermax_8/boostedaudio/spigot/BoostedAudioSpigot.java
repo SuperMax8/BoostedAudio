@@ -213,6 +213,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         // Diffuser mode
         workingMode = "Diffuser";
 
+        // Init
         Scheduler.runTaskTimerAsync(t -> {
             if (Bukkit.getOnlinePlayers().isEmpty()) return;
 
@@ -221,8 +222,9 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                 BoostedAudioAPI.getAPI().debug("Bungee websocket uri: " + configuration.getBungeeWebsocketLink());
                 diffuserWebSocketClient = new DiffuserWebSocketClient(new URI(configuration.getBungeeWebsocketLink()));
             } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
+
             Scheduler.runTaskAsync(() -> diffuserWebSocketClient.connect());
 
             registerServerPacketListener("audiotoken", (message, serverId) -> {
@@ -247,6 +249,10 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
             t.cancel();
         }, 0, 0);
+
+
+
+
 
         hostRequester = new HostRequester();
         Bukkit.getMessenger().registerIncomingPluginChannel(this, "boostedaudio:servername", (channel, player, message) -> {

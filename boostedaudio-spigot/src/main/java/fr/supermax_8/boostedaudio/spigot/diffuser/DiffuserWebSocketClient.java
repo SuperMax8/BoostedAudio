@@ -30,6 +30,7 @@ public class DiffuserWebSocketClient extends WebSocketClient {
 
     public DiffuserWebSocketClient(URI serverUri) {
         super(serverUri);
+        BoostedAudioAPI.api.info("DiffuserWebSocketClient init...");
         try {
             TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
@@ -100,16 +101,18 @@ public class DiffuserWebSocketClient extends WebSocketClient {
         connected = false;
         if (end) return;
         BoostedAudioAPI.api.debug("Connection closed, Attempting to reconnect in " + TimeUnit.MILLISECONDS.toSeconds(RETRY_INTERVAL) + "s...");
-        try {
-            Thread.sleep(RETRY_INTERVAL);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            CompletableFuture.runAsync(this::reconnect);
-        } catch (Exception e) {
-            if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) e.printStackTrace();
-        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(RETRY_INTERVAL);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
+                CompletableFuture.runAsync(this::reconnect);
+            } catch (Exception e) {
+                if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) e.printStackTrace();
+            }
+        });
     }
 
     @Override
