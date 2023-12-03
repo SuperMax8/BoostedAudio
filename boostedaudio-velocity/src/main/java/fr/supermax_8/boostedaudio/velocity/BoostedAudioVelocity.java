@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 public class BoostedAudioVelocity {
 
     private static String fqsfdsqfdsq = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
-    private static final String version = "2.6.1";
+    private static final String version = "2.6.2";
     private Logger logger;
     private final ProxyServer server;
     private final Path dataDirectory;

@@ -22,8 +22,9 @@ public class DiffuserWebSocketClient extends WebSocketClient {
     private static final int RETRY_INTERVAL = 2500;
 
     @Getter
-    private final HashMap<String, ServerPacketListener> listeners = new HashMap<>();
+    private final static HashMap<String, ServerPacketListener> listeners = new HashMap<>();
 
+    @Getter
     private boolean connected = false;
 
     private boolean end = false;
@@ -99,20 +100,7 @@ public class DiffuserWebSocketClient extends WebSocketClient {
     @Override
     public void onClose(int i, String s, boolean b) {
         connected = false;
-        if (end) return;
-        BoostedAudioAPI.api.debug("Connection closed, Attempting to reconnect in " + TimeUnit.MILLISECONDS.toSeconds(RETRY_INTERVAL) + "s...");
-        CompletableFuture.runAsync(() -> {
-            try {
-                Thread.sleep(RETRY_INTERVAL);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            try {
-                CompletableFuture.runAsync(this::reconnect);
-            } catch (Exception e) {
-                if (BoostedAudioAPI.api.getConfiguration().isDebugMode()) e.printStackTrace();
-            }
-        });
+        BoostedAudioAPI.api.debug("Diffuser connection closed");
     }
 
     @Override
@@ -126,7 +114,7 @@ public class DiffuserWebSocketClient extends WebSocketClient {
             super.send(text);
     }
 
-    public void registerListener(String channel, ServerPacketListener listener) {
+    public static void registerListener(String channel, ServerPacketListener listener) {
         listeners.put(channel, listener);
     }
 

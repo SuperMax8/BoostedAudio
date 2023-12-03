@@ -46,6 +46,7 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
@@ -218,14 +219,21 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             if (Bukkit.getOnlinePlayers().isEmpty()) return;
 
             // Init DiffuserWebSocketClient when a player is online to avoid pluginChannel problems
-            try {
-                BoostedAudioAPI.getAPI().debug("Bungee websocket uri: " + configuration.getBungeeWebsocketLink());
-                diffuserWebSocketClient = new DiffuserWebSocketClient(new URI(configuration.getBungeeWebsocketLink()));
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
+            BoostedAudioAPI.getAPI().debug("Bungee websocket uri: " + configuration.getBungeeWebsocketLink());
 
-            Scheduler.runTaskAsync(() -> diffuserWebSocketClient.connect());
+            Scheduler.runTaskTimer(task -> {
+                if (diffuserWebSocketClient != null && diffuserWebSocketClient.isConnected()) return;
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        if (diffuserWebSocketClient != null) diffuserWebSocketClient.close();
+                        BoostedAudioAPI.getAPI().debug("Diffuser try to connect...");
+                        diffuserWebSocketClient = new DiffuserWebSocketClient(new URI(configuration.getBungeeWebsocketLink()));
+                        diffuserWebSocketClient.connect();
+                    } catch (URISyntaxException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }, 0, 40);
 
             registerServerPacketListener("audiotoken", (message, serverId) -> {
                 String[] split = message.split(";", 2);
@@ -249,9 +257,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
             t.cancel();
         }, 0, 0);
-
-
-
 
 
         hostRequester = new HostRequester();
@@ -330,7 +335,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     }
 
     public static void registerServerPacketListener(String channel, ServerPacketListener listener) {
-        getInstance().diffuserWebSocketClient.registerListener(channel, listener);
+        DiffuserWebSocketClient.registerListener(channel, listener);
     }
 
 }
