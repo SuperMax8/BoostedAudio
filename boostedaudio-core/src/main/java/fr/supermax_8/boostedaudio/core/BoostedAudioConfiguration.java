@@ -8,14 +8,10 @@ import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.Base64Utils;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
-import fr.supermax_8.boostedaudio.core.utils.configuration.LazyConfigUpdater;
 import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;

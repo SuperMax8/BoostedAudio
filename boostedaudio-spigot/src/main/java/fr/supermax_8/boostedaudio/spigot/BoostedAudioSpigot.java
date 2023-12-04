@@ -11,8 +11,6 @@ import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
 import fr.supermax_8.boostedaudio.core.serverpacket.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.utils.DataVisualisationUtils;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfigurationSection;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserUser;
@@ -25,12 +23,9 @@ import fr.supermax_8.boostedaudio.spigot.utils.AroundManager;
 import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
 import fr.supermax_8.boostedaudio.spigot.utils.TemporaryListener;
-import fr.supermax_8.boostedaudio.spigot.utils.configuration.SpigotCrossConfiguration;
-import fr.supermax_8.boostedaudio.spigot.utils.configuration.SpigotCrossConfigurationSection;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -84,8 +79,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
         BoostedAudioAPIImpl.sendMessage = s -> Bukkit.getConsoleSender().sendMessage(s);
 
-        CrossConfiguration.instancer = SpigotCrossConfiguration::new;
-        CrossConfigurationSection.converter = o -> new SpigotCrossConfigurationSection((ConfigurationSection) o);
         configuration = new BoostedAudioConfiguration(new File(getDataFolder(), "config.yml"));
         BoostedAudioAPIImpl.configuration = configuration;
 

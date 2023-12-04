@@ -1,9 +1,9 @@
 package fr.supermax_8.boostedaudio.core;
 
+import dev.dejvokep.boostedyaml.YamlDocument;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.FileUtils;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
@@ -98,9 +98,7 @@ public class BoostedAudioHost {
             List<String> placeholders;
             if (Limiter.isPremium()) placeholders = configuration.getClientConfig();
             else {
-                Reader reader = new InputStreamReader(ResourceUtils.getResourceAsStream("config.yml"));
-                CrossConfiguration fc = CrossConfiguration.newConfig().load(reader);
-                placeholders = (List<String>) fc.get("clientConfig");
+                placeholders = YamlDocument.create(ResourceUtils.getResourceAsStream("config.yml")).getStringList("clientConfig");
             }
 
             placeholders.forEach(s -> {
