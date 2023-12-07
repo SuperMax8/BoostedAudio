@@ -9,6 +9,7 @@ import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
+import lombok.Getter;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 import org.xnio.Options;
 
@@ -27,16 +28,26 @@ import java.util.concurrent.CompletableFuture;
 
 public class BoostedAudioHost {
 
+    /**
+     * You can use it only if execute on a host server
+     *
+     * @return the instance of the host or null if on a diffuser server
+     */
+    @Getter
     private static BoostedAudioHost instance;
 
 
     private final BoostedAudioConfiguration configuration;
+    @Getter
     private AudioWebSocketServer webSocketServer;
     private Undertow webServer;
     private SSLContext sslContext;
     private SSLContext dummySslContext;
+    @Getter
     private File webserver;
+    @Getter
     private File audioDir;
+    @Getter
     private boolean sucessfulSetup = false;
 
     public BoostedAudioHost(BoostedAudioConfiguration configuration) {
@@ -57,18 +68,6 @@ public class BoostedAudioHost {
         });
 
         BoostedAudioAPI.api.info("Plugin loaded");
-    }
-
-    public AudioWebSocketServer getWebSocketServer() {
-        return webSocketServer;
-    }
-
-    public File getAudioDir() {
-        return audioDir;
-    }
-
-    public File getWebserver() {
-        return webserver;
     }
 
     private void startServers() throws IOException {
@@ -224,19 +223,6 @@ public class BoostedAudioHost {
             e.printStackTrace();
             return null;
         }
-    }
-
-    public boolean isSucessfulSetup() {
-        return sucessfulSetup;
-    }
-
-    /**
-     * You can use it only if execute on a host server
-     *
-     * @return the instance of the host or null if on a diffuser server
-     */
-    public static BoostedAudioHost getInstance() {
-        return instance;
     }
 
 

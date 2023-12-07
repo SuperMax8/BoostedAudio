@@ -1,25 +1,20 @@
-package fr.supermax_8.boostedaudio.spigot.diffuser;
+package fr.supermax_8.boostedaudio.core.multiserv;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.core.serverpacket.ServerPacketListener;
-import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
-import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import javax.net.ssl.*;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.net.URI;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 public class DiffuserWebSocketClient extends WebSocketClient {
-
-    private static final int RETRY_INTERVAL = 2500;
 
     @Getter
     private final static HashMap<String, ServerPacketListener> listeners = new HashMap<>();
@@ -59,28 +54,9 @@ public class DiffuserWebSocketClient extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
         BoostedAudioAPI.api.info("Diffuser connected to the bungee WebSocket, still not auth!");
-        Scheduler.runTaskAsync(() -> {
-            String serverName = BoostedAudioSpigot.getInstance().getBungeeServerName();
-            if (serverName == null) {
-                while (Bukkit.getOnlinePlayers().isEmpty()) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                BoostedAudioAPI.getAPI().debug("Sending server name request");
-                super.send(BoostedAudioAPI.getAPI().getConfiguration().getBungeeSecrets().get(0) + ";?");
-                while (serverName == null && !end) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    serverName = BoostedAudioSpigot.getInstance().getBungeeServerName();
-                }
-            }
-            super.send(BoostedAudioAPI.getAPI().getConfiguration().getBungeeSecrets().get(0) + ";" + serverName);
+        CompletableFuture.runAsync(() -> {
+            String serverName = BoostedAudioAPI.getAPI().getConfiguration().getProxyServerName();
+            super.send(BoostedAudioAPI.getAPI().getConfiguration().getSecrets().get(0) + ";" + serverName);
             BoostedAudioAPI.getAPI().debug("Sending bungee token verif, should be auth!");
             connected = true;
         });

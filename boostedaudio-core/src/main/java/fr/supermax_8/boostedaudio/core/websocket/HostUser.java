@@ -7,7 +7,6 @@ import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
-import fr.supermax_8.boostedaudio.core.serverpacket.ServerUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.MutePacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;

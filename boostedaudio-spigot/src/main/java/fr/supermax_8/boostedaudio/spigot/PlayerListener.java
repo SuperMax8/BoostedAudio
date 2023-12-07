@@ -18,24 +18,14 @@ public class PlayerListener implements Listener {
     public void join(PlayerJoinEvent e) {
         Player p = e.getPlayer();
         BoostedAudioConfiguration config = BoostedAudioAPI.getAPI().getConfiguration();
-        if (config.isSendOnConnect() && !config.isBungeecoord()) Scheduler.runTaskLaterAsync(() -> {
+        if (config.isSendOnConnect()) Scheduler.runTaskLaterAsync(() -> {
             if (!BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId()))
                 AudioCommandSpigot.sendConnectMessage(p);
         }, BoostedAudioAPI.getAPI().getConfiguration().getSendOnConnectDelay());
 
         RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
-        if (regionManager != null) {
+        if (regionManager != null)
             regionManager.getInfoMap().put(p.getUniqueId(), new RegionManager.RegionInfo());
-        }
-/*        try {
-        } catch (Exception ex) {
-            Scheduler.runTaskLaterAsync(() -> {
-                RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
-                if (regionManager != null) {
-                    regionManager.getInfoMap().put(p.getUniqueId(), new RegionManager.RegionInfo());
-                }
-            }, 2);
-        }*/
     }
 
     @EventHandler
@@ -47,7 +37,7 @@ public class PlayerListener implements Listener {
                 regionManager.getInfoMap().remove(p.getUniqueId());
             }
             BoostedAudioConfiguration config = BoostedAudioAPI.getAPI().getConfiguration();
-            if (!config.isBungeecoord()) {
+            if (!config.isDiffuser()) {
                 User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
                 if (user != null) user.close();
             }

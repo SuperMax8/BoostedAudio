@@ -25,9 +25,9 @@ public class BoostedAudioConfiguration {
     private File dataFolder;
 
     private boolean debugMode;
-    private boolean bungeecoord;
-    private List<String> bungeeSecrets;
-    private String bungeeWebsocketLink;
+    private boolean diffuser;
+    private List<String> secrets;
+    private String mainProxyWebsocketLink;
     private String clientLink;
     private boolean autoHost;
     private int autoHostPort;
@@ -55,6 +55,7 @@ public class BoostedAudioConfiguration {
     private String connectedSymbol;
     private String mutedSymbol;
     private String notconnectedSymbol;
+    private String proxyServerName;
 
     public BoostedAudioConfiguration(File configFile) {
         try {
@@ -86,12 +87,13 @@ public class BoostedAudioConfiguration {
         notification = (boolean) config.get("notification", true);
         debugMode = (boolean) config.get("debugMode");
 
-        bungeecoord = (boolean) config.get("bungeecoord", false);
-        bungeeWebsocketLink = (String) config.get("bungeeWebsocketLink", "wss://localhost:8081");
-        bungeeSecrets = config.getStringList("bungeeSecrets");
+        diffuser = config.getBoolean("diffuser", false);
+        mainProxyWebsocketLink = (String) config.get("mainProxyWebsocketLink");
+        secrets = config.getStringList("secrets");
+        proxyServerName = config.getString("proxyServerName");
 
-        clientLink = (String) config.get("client-link", "http://localhost:8080");
-        clientWebSocketLink = (String) config.get("clientWebSocketLink", "ws://localhost:8081");
+        clientLink = (String) config.get("client-link");
+        clientWebSocketLink = (String) config.get("clientWebSocketLink");
         autoHost = (boolean) config.get("autoHost", true);
         autoHostPort = (int) config.get("autoHostPort", 8080);
 
@@ -147,10 +149,10 @@ public class BoostedAudioConfiguration {
             BoostedAudioAPI.api.info("The clientConfig has been updated, new parameters have been added !");
         }
 
-        if (bungeeSecrets.isEmpty() || bungeeSecrets.get(0).isEmpty()) {
-            bungeeSecrets.clear();
-            bungeeSecrets.add(Base64Utils.generateSecuredToken(16));
-            config.set("bungeeSecrets", bungeeSecrets);
+        if (secrets.isEmpty() || secrets.get(0).isEmpty()) {
+            secrets.clear();
+            secrets.add(Base64Utils.generateSecuredToken(16));
+            config.set("secrets", secrets);
             modified = true;
         }
 

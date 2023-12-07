@@ -34,10 +34,11 @@ public class AudioCommandSpigot implements CommandExecutor {
     public static void sendConnectMessage(Player p) {
         CompletableFuture.runAsync(() -> {
             BoostedAudioConfiguration config = BoostedAudioAPI.api.getConfiguration();
-            if (config.isBungeecoord()) {
-                BoostedAudioAPI.getAPI().debug("Sending bungeecord message to " + p.getName());
+            if (config.isDiffuser()) {
+                BoostedAudioAPI.getAPI().debug("Sending audioTokenRequest for " + p.getName());
                 BoostedAudioSpigot.sendServerPacket("audiotoken", p.getUniqueId().toString());
             } else {
+                BoostedAudioAPI.getAPI().debug("Host audioTokenRequest for " + p.getName());
                 UUID playerId = p.getUniqueId();
                 String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.generateConnectionToken(playerId);
                 if (token == null) return;
@@ -45,24 +46,23 @@ public class AudioCommandSpigot implements CommandExecutor {
                         + "?t="
                         + token;
                 sendConnectMessage(p, link);
-                if (config.isSendQRcodeOnConnect()) QrCodeGenerator.sendMap(link, p);
             }
         });
     }
 
     public static void sendConnectMessage(Player p, String link) {
-        BoostedAudioConfiguration configuration = BoostedAudioAPI.api.getConfiguration();
+        BoostedAudioConfiguration config = BoostedAudioAPI.api.getConfiguration();
 
-        TextComponent text = MessageUtils.colorFormatToTextComponent(new StringBuilder(configuration.getConnectionMessage().replace("{link}", link)));
+        TextComponent text = MessageUtils.colorFormatToTextComponent(new StringBuilder(config.getConnectionMessage().replace("{link}", link)));
         text.setColor(ChatColor.GOLD);
 
         text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
-        text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(configuration.getConnectionHoverMessage())).toString()).create()));
+        text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(config.getConnectionHoverMessage())).toString()).create()));
 
         if (BoostedAudioAPI.api.getConfiguration().isDebugMode())
-            BoostedAudioAPI.getAPI().info("Sending connection message to " + p.getName() + " : " + link);
+            BoostedAudioAPI.getAPI().debug("Sending connection message to " + p.getName() + " : " + link);
         p.spigot().sendMessage(text);
+        if (config.isSendQRcodeOnConnect()) QrCodeGenerator.sendMap(link, p);
     }
-
 
 }

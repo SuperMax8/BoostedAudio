@@ -1,4 +1,4 @@
-package fr.supermax_8.boostedaudio.core.serverpacket;
+package fr.supermax_8.boostedaudio.core.multiserv;
 
 import com.google.gson.annotations.Expose;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
