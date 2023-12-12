@@ -13,6 +13,7 @@ public interface HostProvider {
      */
     Map<UUID, User> getUsersOnServer();
 
+
     void waitUntilPluginSetup();
 
 }

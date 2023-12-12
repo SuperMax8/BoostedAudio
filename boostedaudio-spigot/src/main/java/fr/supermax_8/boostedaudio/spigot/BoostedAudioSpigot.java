@@ -12,6 +12,7 @@ import fr.supermax_8.boostedaudio.core.multiserv.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.utils.DataVisualisationUtils;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
+import fr.supermax_8.boostedaudio.spigot.commands.AudioQRcodeCommand;
 import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserUser;
 import fr.supermax_8.boostedaudio.core.multiserv.DiffuserWebSocketClient;
@@ -62,6 +63,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     @Nullable
     private DiffuserWebSocketClient diffuserWebSocketClient;
 
+    @Getter
     private VoiceChatProcessor voiceChatProcessor;
     @Getter
     private AudioManager audioManager;
@@ -82,6 +84,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
         getCommand("audio").setExecutor(new AudioCommandSpigot());
         getCommand("boostedaudio").setExecutor(new BoostedAudioCommand());
+        getCommand("audioqrcode").setExecutor(new AudioQRcodeCommand());
 
         checkForUpdates();
 

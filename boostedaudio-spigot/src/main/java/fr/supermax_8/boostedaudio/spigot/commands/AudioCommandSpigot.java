@@ -51,6 +51,11 @@ public class AudioCommandSpigot implements CommandExecutor {
     }
 
     public static void sendConnectMessage(Player p, String link) {
+        if (AudioQRcodeCommand.requestingQRcode.contains(p.getUniqueId())) {
+            QrCodeGenerator.sendMap(link, p);
+            AudioQRcodeCommand.requestingQRcode.remove(p.getUniqueId());
+            return;
+        }
         BoostedAudioConfiguration config = BoostedAudioAPI.api.getConfiguration();
 
         TextComponent text = MessageUtils.colorFormatToTextComponent(new StringBuilder(config.getConnectionMessage().replace("{link}", link)));

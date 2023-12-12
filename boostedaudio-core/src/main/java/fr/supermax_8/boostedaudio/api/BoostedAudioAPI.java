@@ -14,7 +14,7 @@ public interface BoostedAudioAPI {
     BoostedAudioAPI api = BoostedAudioAPIImpl.getApi();
 
     /**
-     * @return An object to communicate with the host, it can be current server but can also be the bungee so execute that in async
+     * @return An object to communicate with the host, it can be the current server but can also be the bungee so execute that in async
      */
     HostProvider getHostProvider();
 
