@@ -46,9 +46,14 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                         } catch (Exception e) {
                         }
                     } else {
-                        fade = Integer.parseInt(args[3]);
+                        try {
+                            fade = Integer.parseInt(args[3]);
+                        } catch (Exception e) {
+                            fade = 500;
+                        }
+                        int finalFade = fade;
                         BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().forEach(((uuid, user) -> {
-                            user.playAudio(link, fade);
+                            user.playAudio(link, finalFade);
                         }));
                     }
                 }
@@ -172,6 +177,10 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
             }
         } catch (Exception e) {
             sendHelp(sender);
+            if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) {
+                BoostedAudioAPI.getAPI().debug("DEBUG MESSAGE");
+                e.printStackTrace();
+            }
         }
         return false;
     }
