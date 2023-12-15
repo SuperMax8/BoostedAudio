@@ -299,6 +299,8 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         iceCandidatePoolSize: 10,
     };
 
+    const RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+
     // Map<String(layerId), Map<UUID, PeerConnectionContainer>>
     const peerConnections = new Map();
     peerConnections.set("proximitychat", new Map());
@@ -893,13 +895,19 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
             // Setup user bar
             const userVolume = peerConnectionContainer.element.getElementsByClassName("user-volume").item(0);
-            gain.gain.value = 1;
-            userVolume.value = 100;
+
+            const savedVolume = getCookie(peerConnectionContainer.playerId + '_volume');
+            const volumeValue = savedVolume ? parseFloat(savedVolume) : 100;
+
+            gain.gain.value = volumeValue / 100;
+            userVolume.value = volumeValue;
             userVolume.addEventListener('input', (e) => {
                 const volume = parseFloat(e.target.value) / 100;
                 peerConnectionContainer.gainValue = volume;
                 if (peerConnectionContainer.mute) return;
                 gain.gain.value = volume * voiceVolume;
+
+                setCookie(peerConnectionContainer.playerId + '_volume', e.target.value);
             });
         }
 
@@ -920,20 +928,39 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             const muteButton = element.getElementsByClassName("muteButton").item(0)
             const mutedButton = element.getElementsByClassName("mutedButton").item(0)
 
-            // Mute User Button
-            mutedButton.classList.add('hidden');
+            // Charger l'état mute et le volume depuis les cookies, ou utiliser des valeurs par défaut
+            const muteStatus = getCookie(peerObj.playerId + '_mute');
+            const volumeLevel = getCookie(peerObj.playerId + '_volume');
+
+            peerObj.mute = muteStatus === 'true' ? true : false;
+            peerObj.gain.gain.value = muteStatus === 'true' ? 0 : (volumeLevel ? parseFloat(volumeLevel) : peerObj.gainValue * voiceVolume);
+
+            // Mettre à jour l'interface en fonction de l'état mute
+            if (peerObj.mute) {
+                muteButton.classList.add('hidden');
+                mutedButton.classList.remove('hidden');
+            } else {
+                muteButton.classList.remove('hidden');
+                mutedButton.classList.add('hidden');
+            }
+
+            // Gestion des boutons Mute
             muteButton.addEventListener('click', e => {
                 muteButton.classList.add('hidden');
                 mutedButton.classList.remove('hidden');
-                peerObj.mute = true
-                peerObj.gain.gain.value = 0
+                peerObj.mute = true;
+                peerObj.gain.gain.value = 0;
+                setCookie(peerObj.playerId + '_mute', 'true');
+                setCookie(peerObj.playerId + '_volume', '0');
             });
 
             mutedButton.addEventListener('click', e => {
                 mutedButton.classList.add('hidden');
                 muteButton.classList.remove('hidden');
-                peerObj.mute = false
+                peerObj.mute = false;
                 peerObj.gain.gain.value = peerObj.gainValue * voiceVolume;
+                setCookie(peerObj.playerId + '_mute', 'false');
+                setCookie(peerObj.playerId + '_volume', peerObj.gain.gain.value.toString());
             });
 
             element.id = peerObj.playerId
@@ -944,7 +971,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             peerObj.element = element;
 
             users.insertAdjacentElement("beforeend", element);
-            resolve()
+            resolve();
         })
     }
 
@@ -959,6 +986,21 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         const tempContainer = document.createElement("div");
         tempContainer.innerHTML = htmlString;
         return tempContainer.firstElementChild;
+    }
+
+    function setCookie(name, value) {
+        document.cookie = name + "=" + value + ";path=/";
+    }
+
+    function getCookie(name) {
+        let nameEQ = name + "=";
+        let ca = document.cookie.split(';');
+        for(let i=0;i < ca.length;i++) {
+            let c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
     }
 
     function sendTrustPacket() {
@@ -1003,7 +1045,30 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
     }
 
     async function setupAudioSystem() {
-        voice.value = 100;
+        const savedVoiceVolume = getCookie('voice_volume');
+        const savedAmbientVolume = getCookie('ambient_volume');
+
+        voiceVolume = savedVoiceVolume ? parseFloat(savedVoiceVolume) / 100 : 1; // Valeur par défaut à 100 si pas de cookie
+        ambientVolume = savedAmbientVolume ? parseFloat(savedAmbientVolume) / 100 : 0.666; // Valeur par défaut à 66.6 si pas de cookie
+
+        voice.value = voiceVolume * 100;
+        ambient.value = ambientVolume * 100;
+
+        voice.addEventListener('input', function () {
+            voiceVolume = parseFloat(this.value) / 100;
+            updateEveryVolume();
+            // Sauvegarder le nouveau volume dans les cookies
+            setCookie('voice_volume', this.value);
+        });
+
+        ambient.addEventListener('input', function () {
+            ambientVolume = parseFloat(this.value) / 100;
+            updateEveryVolume();
+            // Sauvegarder le nouveau volume dans les cookies
+            setCookie('ambient_volume', this.value);
+        });
+
+/*        voice.value = 100;
         voice.addEventListener('input', function () {
             voiceVolume = parseFloat(this.value) / 100;
             updateEveryVolume()
@@ -1014,7 +1079,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         ambient.addEventListener('input', function () {
             ambientVolume = parseFloat(this.value) / 100;
             updateEveryVolume()
-        });
+        });*/
 
         microphoneSelect.addEventListener("change", async () => {
             try {

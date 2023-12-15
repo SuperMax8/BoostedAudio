@@ -279,7 +279,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         try {
             if (!configuration.isNotification()) return;
             Scheduler.runTaskTimerAsync(() -> {
-                new UpdateChecker(112747).getVersion(v -> {
+                new UpdateChecker(112942).getVersion(v -> {
                     if (v.equals(getPluginVersion())) return;
                     BoostedAudioAPI.api.info("§aNew version available : §6" + v + " §ayou are on §7" + getPluginVersion());
                 });
