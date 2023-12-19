@@ -5,6 +5,7 @@ import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.api.event.events.UserJoinEvent;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
+import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.core.Limiter;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
@@ -14,6 +15,7 @@ import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TrustPacket implements Packet {
 
@@ -49,8 +51,6 @@ public class TrustPacket implements Packet {
             ));
             UserJoinEvent userJoinEvent = new UserJoinEvent(newUser);
             EventManager.getInstance().callEvent(userJoinEvent);
-/*            RegionManager manager1 = BoostedAudioHost.getInstance().getAudioManager().getRegionManager();
-            if (manager1 != null) manager1.getInfoMap().get(playerId).setLastRegions(new CopyOnWriteArrayList<>());*/
         } else {
             user.getSession().close();
             BoostedAudioAPI.api.debug("onReceive close() session");
