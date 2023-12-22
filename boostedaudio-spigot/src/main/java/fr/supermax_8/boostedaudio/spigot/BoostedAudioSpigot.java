@@ -209,11 +209,11 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         workingMode = "Diffuser";
 
         // Init
-        Scheduler.runTaskAsync(t -> {
+        Scheduler.runTaskAsync(() -> {
             // Init DiffuserWebSocketClient when a player is online to avoid pluginChannel problems
             BoostedAudioAPI.getAPI().debug("Bungee websocket uri: " + configuration.getMainProxyWebsocketLink());
 
-            Scheduler.runTaskTimerAsync(task -> {
+            Scheduler.runTaskTimerAsync(() -> {
                 if (diffuserWebSocketClient != null && diffuserWebSocketClient.isConnected()) return;
                 CompletableFuture.runAsync(() -> {
                     try {

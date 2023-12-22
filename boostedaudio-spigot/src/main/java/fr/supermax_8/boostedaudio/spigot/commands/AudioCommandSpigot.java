@@ -5,6 +5,7 @@ import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.core.utils.MessageUtils;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.qrcode.QrCodeGenerator;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -51,23 +52,27 @@ public class AudioCommandSpigot implements CommandExecutor {
     }
 
     public static void sendConnectMessage(Player p, String link) {
-        if (AudioQRcodeCommand.requestingQRcode.contains(p.getUniqueId())) {
-            QrCodeGenerator.sendMap(link, p);
-            AudioQRcodeCommand.requestingQRcode.remove(p.getUniqueId());
-            return;
+        try {
+            if (AudioQRcodeCommand.requestingQRcode.contains(p.getUniqueId())) {
+                QrCodeGenerator.sendMap(link, p);
+                AudioQRcodeCommand.requestingQRcode.remove(p.getUniqueId());
+                return;
+            }
+            BoostedAudioConfiguration config = BoostedAudioAPI.api.getConfiguration();
+
+            String textString = config.getConnectionMessage().replace("{link}", link);
+            TextComponent text = XMaterial.supports(16) ? MessageUtils.colorFormatToTextComponent(new StringBuilder(textString)) : new TextComponent(textString);
+
+            text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
+            text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(config.getConnectionHoverMessage())).toString()).create()));
+
+            if (BoostedAudioAPI.api.getConfiguration().isDebugMode())
+                BoostedAudioAPI.getAPI().debug("Sending connection message to " + p.getName() + " : " + link);
+            p.spigot().sendMessage(text);
+            if (config.isSendQRcodeOnConnect()) QrCodeGenerator.sendMap(link, p);
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
-        BoostedAudioConfiguration config = BoostedAudioAPI.api.getConfiguration();
-
-        TextComponent text = MessageUtils.colorFormatToTextComponent(new StringBuilder(config.getConnectionMessage().replace("{link}", link)));
-        text.setColor(ChatColor.GOLD);
-
-        text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
-        text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(config.getConnectionHoverMessage())).toString()).create()));
-
-        if (BoostedAudioAPI.api.getConfiguration().isDebugMode())
-            BoostedAudioAPI.getAPI().debug("Sending connection message to " + p.getName() + " : " + link);
-        p.spigot().sendMessage(text);
-        if (config.isSendQRcodeOnConnect()) QrCodeGenerator.sendMap(link, p);
     }
 
 }
