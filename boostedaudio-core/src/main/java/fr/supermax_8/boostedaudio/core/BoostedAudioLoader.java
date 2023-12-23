@@ -23,15 +23,8 @@ public class BoostedAudioLoader {
             // QR Code
             "https://repo1.maven.org/maven2/com/google/zxing/core/3.5.2/core-3.5.2.jar",
             "https://repo1.maven.org/maven2/com/google/zxing/javase/3.5.2/javase-3.5.2.jar",
-/*            "https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.76/bcprov-jdk18on-1.76.jar",
-            "https://repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.76/bcpkix-jdk18on-1.76.jar",*/
-            // UnderTow
-            "https://github.com/SuperMax8/UnderTowAIO/releases/download/2.3.8/UnderTowAIO-2.3.8.jar"
-            /*"https://repo1.maven.org/maven2/org/jboss/xnio/xnio-api/3.8.8.Final/xnio-api-3.8.8.Final.jar",
-            "https://repo1.maven.org/maven2/org/jboss/xnio/xnio-nio/3.8.8.Final/xnio-nio-3.8.8.Final.jar",
-            "https://repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.4.3.Final/jboss-logging-3.4.3.Final.jar",
-            "https://repo1.maven.org/maven2/org/jboss/threads/jboss-threads/3.5.0.Final/jboss-threads-3.5.0.Final.jar",
-            "https://repo1.maven.org/maven2/io/undertow/undertow-core/2.3.8.Final/undertow-core-2.3.8.Final.jar",*/
+            // BA DEPENDENCIES
+            "https://github.com/SuperMax8/BoostedAudioDependencies/releases/download/2.8.6/BA-dependencies.jar"
     };
 
     public static void loadExternalLibs(File dataFolder) throws IOException {

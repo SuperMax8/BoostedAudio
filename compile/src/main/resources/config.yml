@@ -47,8 +47,9 @@ webSocket:
   webSocketPort: 8081
   webSocketHostName: 0.0.0.0
 
-# SSL, ssl will be used for WebClient if enabled, and websocket
+# SSL, ssl will be used for WebClient if enabled, and WebSocket
 # Even ssl option is false the socket & autohost will still be https and wss with a self-signed certificate
+# You can use a .jks file OR use 2 pem files named cert.pem and key.pem
 ssl:
   ssl: false
   keystorePassword: "YOUR_PASSWORD"

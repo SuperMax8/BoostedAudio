@@ -10,6 +10,8 @@ import io.undertow.UndertowOptions;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import lombok.Getter;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.pem.util.PemUtils;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 import org.xnio.Options;
 
@@ -21,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.util.Enumeration;
 import java.util.List;
@@ -190,10 +193,21 @@ public class BoostedAudioHost {
             ResourceUtils.saveResource("default.jks", new File(configuration.getDataFolder(), "default.jks").getAbsolutePath());
             dummySslContext = getSSLContext(Files.newInputStream(new File(configuration.getDataFolder(), "default.jks").toPath()), "changeit".toCharArray());
             if (configuration.isSsl()) {
-                sslContext = getSSLContext(
-                        Files.newInputStream(new File(configuration.getDataFolder(), configuration.getKeystoreFileName()).toPath()),
-                        configuration.getKeystorePassword().toCharArray()
-                );
+                File jksFile = new File(configuration.getDataFolder(), configuration.getKeystoreFileName());
+                if (jksFile.exists()) {
+                    sslContext = getSSLContext(
+                            Files.newInputStream(jksFile.toPath()),
+                            configuration.getKeystorePassword().toCharArray()
+                    );
+                } else {
+                    File cert = new File(configuration.getDataFolder(), "cert.pem");
+                    File key = new File(configuration.getDataFolder(), "key.pem");
+                    if (!cert.exists() || !key.exists()) {
+                        BoostedAudioAPI.api.info("You need to put SSL file in the plugin folder, one .jks OR 2 pem named cert.pem and key.pem");
+                        return;
+                    }
+                    sslContext = loadPem(cert.getAbsolutePath(), key.getAbsolutePath());
+                }
             } else sslContext = dummySslContext;
 
             BoostedAudioAPI.api.debug("SSL setuped");
@@ -223,6 +237,17 @@ public class BoostedAudioHost {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private SSLContext loadPem(String cert, String key) {
+        var keyManager = PemUtils.loadIdentityMaterial(Path.of(cert), Path.of(key));
+
+        var sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(keyManager)
+                .withDefaultTrustMaterial()
+                .build();
+
+        return sslFactory.getSslContext();
     }
 
 

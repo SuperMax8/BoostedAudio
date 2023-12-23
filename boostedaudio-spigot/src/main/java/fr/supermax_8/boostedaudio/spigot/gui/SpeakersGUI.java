@@ -169,7 +169,11 @@ public class SpeakersGUI extends AbstractGUI {
                                     selectedSpeaker.isLoop() + ";"
                                     + joiner;
 
-                    component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, currentParams));
+                    try {
+                        component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, currentParams));
+                    } catch (Throwable e) {
+
+                    }
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
                             "Click to copy to clipboard").create()));
 

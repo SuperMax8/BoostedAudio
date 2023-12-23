@@ -139,7 +139,11 @@ public class RegionsGUI extends AbstractGUI {
 
                     component.setUnderlined(true);
                     component.setColor(ChatColor.BOLD);
-                    component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, params));
+                    try {
+                        component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, params));
+                    } catch (Throwable e) {
+
+                    }
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
                             "Click to copy to clipboard").create()));
                     return;

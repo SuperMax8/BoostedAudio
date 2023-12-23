@@ -113,7 +113,11 @@ public class DirectoryShowGUI extends AbstractGUI {
                             TextComponent component = new TextComponent(s);
                             component.setUnderlined(true);
                             component.setColor(ChatColor.BOLD);
-                            component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, s));
+                            try {
+                                component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, s));
+                            } catch (Throwable ex) {
+
+                            }
                             component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
                                     "Click to copy to clipboard").create()));
                             owner.spigot().sendMessage(component);
