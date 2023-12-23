@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.utils.editor;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -67,7 +68,7 @@ public class ChatEditor implements Listener {
         HandlerList.unregisterAll(this);
 
         String msg = e.getMessage();
-        Bukkit.getScheduler().runTask(instance, () -> c.accept(msg));
+        BoostedAudioSpigot.getInstance().getScheduler().runAtEntity(p, t -> c.accept(msg));
         BoostedAudioAPI.getAPI().debug(msg);
     }
 

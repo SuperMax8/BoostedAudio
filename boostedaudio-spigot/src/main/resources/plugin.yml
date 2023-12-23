@@ -2,6 +2,7 @@ name: BoostedAudio
 version: '${project.version}'
 main: fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot
 api-version: '1.16'
+folia-supported: true
 authors:
   - SuperMax_8
 description: Realtime music and proximity voice chat

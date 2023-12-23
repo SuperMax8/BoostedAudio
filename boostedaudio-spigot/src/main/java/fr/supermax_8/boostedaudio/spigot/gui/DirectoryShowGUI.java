@@ -4,7 +4,6 @@ import fr.supermax_8.boostedaudio.core.utils.NaturalOrderComparator;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
-import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
@@ -163,7 +162,7 @@ public class DirectoryShowGUI extends AbstractGUI {
         if (currentDir.equals(baseDir)) return;
         currentDir = currentDir.getParentFile();
         setItems(currentDir);
-        Scheduler.runTaskLater(() -> {
+        BoostedAudioSpigot.getInstance().getScheduler().runAtEntityLater(p, task -> {
             initSelfListener();
             p.openInventory(inv);
         }, 1);

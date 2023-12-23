@@ -5,7 +5,6 @@ import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
-import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,7 +17,7 @@ public class PlayerListener implements Listener {
     public void join(PlayerJoinEvent e) {
         Player p = e.getPlayer();
         BoostedAudioConfiguration config = BoostedAudioAPI.getAPI().getConfiguration();
-        if (config.isSendOnConnect()) Scheduler.runTaskLaterAsync(() -> {
+        if (config.isSendOnConnect()) BoostedAudioSpigot.getInstance().getScheduler().runLaterAsync(t -> {
             if (!BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId()))
                 AudioCommandSpigot.sendConnectMessage(p);
         }, BoostedAudioAPI.getAPI().getConfiguration().getSendOnConnectDelay());
@@ -31,7 +30,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void quit(PlayerQuitEvent e) {
         Player p = e.getPlayer();
-        Scheduler.runTaskAsync(() -> {
+        BoostedAudioSpigot.getInstance().getScheduler().runAsync(task -> {
             RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
             if (regionManager != null) {
                 regionManager.getInfoMap().remove(p.getUniqueId());

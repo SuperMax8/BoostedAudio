@@ -1,32 +1,34 @@
 package fr.supermax_8.boostedaudio.spigot;
 
+import com.tcoded.folialib.FoliaLib;
+import com.tcoded.folialib.impl.ServerImplementation;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.*;
+import fr.supermax_8.boostedaudio.core.multiserv.DiffuserWebSocketClient;
+import fr.supermax_8.boostedaudio.core.multiserv.ServerPacketListener;
+import fr.supermax_8.boostedaudio.core.multiserv.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
-import fr.supermax_8.boostedaudio.core.multiserv.ServerPacketListener;
-import fr.supermax_8.boostedaudio.core.multiserv.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.utils.DataVisualisationUtils;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioQRcodeCommand;
 import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserUser;
-import fr.supermax_8.boostedaudio.core.multiserv.DiffuserWebSocketClient;
 import fr.supermax_8.boostedaudio.spigot.manager.AudioManager;
 import fr.supermax_8.boostedaudio.spigot.manager.PlaceHoldersManager;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.proximitychat.VoiceChatProcessor;
 import fr.supermax_8.boostedaudio.spigot.utils.AroundManager;
 import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
-import fr.supermax_8.boostedaudio.spigot.utils.Scheduler;
 import fr.supermax_8.boostedaudio.spigot.utils.TemporaryListener;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -71,12 +73,15 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private AroundManager aroundManager;
     private BoostedAudioConfiguration configuration;
     private String workingMode = "";
+    @Getter
+    private final FoliaLib folia = new FoliaLib(this);
+    @Getter
+    private final ServerImplementation scheduler = folia.getImpl();
 
     @Override
     public void onEnable() {
         instance = this;
         usersOnServer = new ConcurrentHashMap<>();
-
         BoostedAudioAPIImpl.sendMessage = s -> Bukkit.getConsoleSender().sendMessage(s);
 
         configuration = new BoostedAudioConfiguration(new File(getDataFolder(), "config.yml"));
@@ -109,6 +114,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
 
         aroundManager = new AroundManager();
+        scheduler.runTimerAsync(() -> aroundManager.run(), 0, 1);
 
         // Placeholders
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceHolderAPI")) {
@@ -116,7 +122,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             BoostedAudioAPI.getAPI().info("Placeholders loaded successfully");
         } else BoostedAudioAPI.getAPI().info("PlaceholderAPI is not on the server");
 
-        Scheduler.runTaskLater(() -> {
+        scheduler.runAsync(task -> {
             try {
                 audioManager = new AudioManager();
                 BoostedAudioAPI.getAPI().debug("Audio manager loaded");
@@ -128,20 +134,20 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             // Region manager
             RegionManager regionManager = audioManager.getRegionManager();
             if (regionManager != null)
-                Scheduler.runTaskTimerAsync(() -> {
+                scheduler.runTimerAsync(() -> {
                     try {
                         regionManager.tick(BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer());
                     } catch (Throwable e) {
                         e.printStackTrace();
                     }
                 }, 0, 0);
-        }, 0);
+        });
 
         voiceChatProcessor = new VoiceChatProcessor();
         if (configuration.isVoiceChatEnabled())
             voiceChatProcessor.getLayers().put("proximitychat", new VoiceLayer(true, 0, null, "proximitychat"));
 
-        Bukkit.getScheduler().runTaskLater(this, this::initMetrics, 20 * 60);
+        scheduler.runLaterAsync(this::initMetrics, 20 * 60);
     }
 
     @Override
@@ -193,15 +199,14 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         };
 
         voiceChatManager = new VoiceChatManager();
-        Scheduler.runTaskTimerAsync(() -> {
+        scheduler.runTimerAsync(() -> {
             try {
-                VoiceChatResult result = voiceChatProcessor.process();
-                voiceChatManager.processResult(result);
+                voiceChatProcessor.process(result -> voiceChatManager.processResult(result));
             } catch (Throwable e) {
                 BoostedAudioAPI.getAPI().info("Error while processing voice chat :");
                 e.printStackTrace();
             }
-        }, 0, 0);
+        }, 20, 1);
     }
 
     private void setupDiffuser() {
@@ -209,11 +214,11 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         workingMode = "Diffuser";
 
         // Init
-        Scheduler.runTaskAsync(() -> {
+        scheduler.runAsync(task -> {
             // Init DiffuserWebSocketClient when a player is online to avoid pluginChannel problems
             BoostedAudioAPI.getAPI().debug("Bungee websocket uri: " + configuration.getMainProxyWebsocketLink());
 
-            Scheduler.runTaskTimerAsync(() -> {
+            scheduler.runTimerAsync(() -> {
                 if (diffuserWebSocketClient != null && diffuserWebSocketClient.isConnected()) return;
                 CompletableFuture.runAsync(() -> {
                     try {
@@ -233,7 +238,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                 if (player1.isOnline()) AudioCommandSpigot.sendConnectMessage(player1.getPlayer(), split[1]);
             });
 
-            Scheduler.runTaskTimerAsync(() -> {
+            scheduler.runTimerAsync(() -> {
                 try {
                     StringJoiner joiner = new StringJoiner(";");
                     Bukkit.getOnlinePlayers().forEach(player -> joiner.add(player.getUniqueId().toString()));
@@ -245,7 +250,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
-            }, 0, 0);
+            }, 0, 1);
         });
 
 
@@ -262,23 +267,21 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             }
         };
 
-        Scheduler.runTaskTimerAsync(() -> {
+        scheduler.runTimerAsync(() -> {
             try {
-                VoiceChatResult result = voiceChatProcessor.process();
-                if (result == null) return;
-                sendServerPacket("tick", BoostedAudioAPI.api.getGson().toJson(result));
+                voiceChatProcessor.process(result -> sendServerPacket("tick", BoostedAudioAPI.api.getGson().toJson(result)));
             } catch (Throwable e) {
                 BoostedAudioAPI.getAPI().info("Error while processing voice chat :");
                 e.printStackTrace();
             }
-        }, 0, 0);
+        }, 0, 1);
     }
 
 
     private void checkForUpdates() {
         try {
             if (!configuration.isNotification()) return;
-            Scheduler.runTaskTimerAsync(() -> {
+            scheduler.runTimerAsync(() -> {
                 new UpdateChecker(112942).getVersion(v -> {
                     if (v.equals(getPluginVersion())) return;
                     BoostedAudioAPI.api.info("§aNew version available : §6" + v + " §ayou are on §7" + getPluginVersion());
@@ -304,6 +307,11 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         return getDescription().getVersion();
     }
 
+
+    public static String getServerVersion() {
+        Server server = Bukkit.getServer();
+        return server.getVersion().toLowerCase();
+    }
 
     public double getBukkitVersion() {
         try {

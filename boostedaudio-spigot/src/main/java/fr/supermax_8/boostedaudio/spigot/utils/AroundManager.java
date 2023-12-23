@@ -1,10 +1,10 @@
 package fr.supermax_8.boostedaudio.spigot.utils;
 
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Map;
 import java.util.UUID;
@@ -12,16 +12,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-/*1.1*/
-public class AroundManager extends BukkitRunnable {
+/*1.2*/
+public class AroundManager implements Runnable {
 
+    @Getter
     private final ConcurrentHashMap<ChunkCoord, ConcurrentHashMap<Location, Around>> arounds = new ConcurrentHashMap<>();
 
+    @Getter
     private ConcurrentHashMap<UUID, ConcurrentHashMap<Location, Around>> whosAround = new ConcurrentHashMap<>();
     private double biggestRadius = 0;
 
     public AroundManager() {
-        runTaskTimerAsynchronously(BoostedAudioSpigot.getInstance(), 0, 0);
     }
 
     @Override
@@ -67,28 +68,24 @@ public class AroundManager extends BukkitRunnable {
 
     public void addAround(Location location, double radius, Consumer<Player> onEnter, Consumer<Player> onLeave, Predicate<Player> detection) {
         if (radius > biggestRadius) biggestRadius = radius;
-        ChunkCoord chunkCoord = new ChunkCoord(location.getChunk());
-        ConcurrentHashMap<Location, Around> locations = arounds.get(chunkCoord);
-        if (locations == null) {
-            locations = new ConcurrentHashMap<>();
-            arounds.put(chunkCoord, locations);
-        }
-        locations.put(location, new Around(onEnter, onLeave, radius, detection));
+        BoostedAudioSpigot.getInstance().getScheduler().runAtLocation(location, t -> {
+            ChunkCoord chunkCoord = new ChunkCoord(location.getChunk());
+            ConcurrentHashMap<Location, Around> locations = arounds.get(chunkCoord);
+            if (locations == null) {
+                locations = new ConcurrentHashMap<>();
+                arounds.put(chunkCoord, locations);
+            }
+            locations.put(location, new Around(onEnter, onLeave, radius, detection));
+        });
     }
 
     public void removeAround(Location location) {
-        ChunkCoord chunkCoord = new ChunkCoord(location.getChunk());
-        ConcurrentHashMap<Location, Around> locations = arounds.get(chunkCoord);
-        if (locations == null) return;
-        locations.remove(location);
-    }
-
-    public ConcurrentHashMap<ChunkCoord, ConcurrentHashMap<Location, Around>> getArounds() {
-        return arounds;
-    }
-
-    public ConcurrentHashMap<UUID, ConcurrentHashMap<Location, Around>> getWhosAround() {
-        return whosAround;
+        BoostedAudioSpigot.getInstance().getScheduler().runAtLocation(location, t -> {
+            ChunkCoord chunkCoord = new ChunkCoord(location.getChunk());
+            ConcurrentHashMap<Location, Around> locations = arounds.get(chunkCoord);
+            if (locations == null) return;
+            locations.remove(location);
+        });
     }
 
     public static class Around {
