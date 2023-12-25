@@ -283,7 +283,11 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             if (!configuration.isNotification()) return;
             scheduler.runTimerAsync(() -> {
                 new UpdateChecker(112942).getVersion(v -> {
-                    if (v.equals(getPluginVersion())) return;
+                    if (
+                            Integer.getInteger(v.replaceAll("\\.", ""))
+                                    <=
+                                    Integer.getInteger(getPluginVersion().replaceAll("\\.", ""))
+                    ) return;
                     BoostedAudioAPI.api.info("§aNew version available : §6" + v + " §ayou are on §7" + getPluginVersion());
                 });
             }, 0, 20 * 60 * 60);
@@ -291,8 +295,12 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             new TemporaryListener<PlayerJoinEvent>(PlayerJoinEvent.class, EventPriority.NORMAL, event -> {
                 Player p = event.getPlayer();
                 if (p.hasPermission("boostedaudio.admin")) {
-                    new UpdateChecker(112747).getVersion(v -> {
-                        if (v.equals(getPluginVersion())) return;
+                    new UpdateChecker(112942).getVersion(v -> {
+                        if (
+                                Integer.getInteger(v.replaceAll("\\.", ""))
+                                        <=
+                                        Integer.getInteger(getPluginVersion().replaceAll("\\.", ""))
+                        ) return;
                         p.sendMessage("§2[BoostedAudio] §aNew version available : §e" + v + " §ayou are on §e" + getPluginVersion());
                     });
                     return true;
