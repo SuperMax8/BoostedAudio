@@ -877,13 +877,13 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 source.connect(panner)
                 panner.connect(gain)
                 gain.connect(audioContext.destination)
-                gain.gain.value = 1;
 
                 // We use a dummy audio muted, because of a bug in chrome https://bugs.chromium.org/p/chromium/issues/detail?id=933677
                 const dummyAudio = new Audio();
                 dummyAudio.muted = true;
                 dummyAudio.srcObject = mediaStream;
                 console.log("Track set")
+                updateEveryVolume()
             }
         }
 
@@ -900,15 +900,17 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             const userVolume = peerConnectionContainer.element.getElementsByClassName("user-volume").item(0);
 
             const savedVolume = getCookie(peerConnectionContainer.playerId + '_volume');
-            const volumeValue = savedVolume ? parseFloat(savedVolume) : 100;
+            const userVolumeValue = savedVolume ? parseFloat(savedVolume) : 100;
 
-            gain.gain.value = volumeValue / 100;
-            userVolume.value = volumeValue;
+            gain.gain.value = userVolumeValue / 100;
+            userVolume.value = userVolumeValue;
+            peerConnectionContainer.gainValue = userVolumeValue / 100;
+
+
             userVolume.addEventListener('input', (e) => {
-                const volume = parseFloat(e.target.value) / 100;
-                peerConnectionContainer.gainValue = volume;
+                peerConnectionContainer.gainValue = parseFloat(e.target.value) / 100;
                 if (peerConnectionContainer.mute) return;
-                gain.gain.value = volume * voiceVolume;
+                updateEveryVolume();
 
                 setCookie(peerConnectionContainer.playerId + '_volume', e.target.value);
             });
