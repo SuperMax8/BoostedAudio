@@ -13,6 +13,7 @@ import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
 import fr.supermax_8.boostedaudio.core.utils.DataVisualisationUtils;
+import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioQRcodeCommand;
@@ -86,6 +87,8 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
         configuration = new BoostedAudioConfiguration(new File(getDataFolder(), "config.yml"));
         BoostedAudioAPIImpl.configuration = configuration;
+
+        Lang.init(getDataFolder());
 
         getCommand("audio").setExecutor(new AudioCommandSpigot());
         getCommand("boostedaudio").setExecutor(new BoostedAudioCommand());

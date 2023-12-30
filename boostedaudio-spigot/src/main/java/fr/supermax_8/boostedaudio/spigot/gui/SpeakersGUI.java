@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
 import fr.supermax_8.boostedaudio.api.user.Audio;
+import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.SpeakerManager;
 import fr.supermax_8.boostedaudio.spigot.utils.InternalUtils;
@@ -33,7 +34,7 @@ public class SpeakersGUI extends AbstractGUI {
     private final World world;
 
     public SpeakersGUI(Player player, World world) {
-        super(player, 54, "§lSpeakers of world " + world.getName(), null);
+        super(player, 54, Lang.get("speakers_title", world.getName()), null);
         this.items = new ArrayList<>();
         this.world = world;
         this.scroll = new InventoryScroll(getInventory(), items, InventoryScroll.InventoryScrollType.GAP, 0, 44, 9, false, false);
@@ -53,26 +54,26 @@ public class SpeakersGUI extends AbstractGUI {
             ItemStack item = createSpeakerItem(audio);
             items.add(item);
         }
-        inv.setItem(45, ItemUtils.createItm(XMaterial.EMERALD.parseMaterial(), "§2§lAdd speaker", "§7Add a new speaker at your location"));
-        inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), "§lPrevious", "§7Click to show back"));
-        inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), "§lNext", "§7Click to show next"));
+        inv.setItem(45, ItemUtils.createItm(XMaterial.EMERALD.parseMaterial(), Lang.get("add_speaker"), Lang.get("add_speaker_desc")));
+        inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), Lang.get("previous"), Lang.get("previous_desc")));
+        inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), Lang.get("next"), Lang.get("next_desc")));
 
         scroll.setItems();
     }
 
     private ItemStack createSpeakerItem(Audio audio) {
         return ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(), "§l" + audio.getId(),
-                "§7Links: " + audio.getLinks(),
-                "§7Location: " + audio.getSpatialInfo().getLocation(),
-                "§7Max distance: " + audio.getSpatialInfo().getMaxVoiceDistance(),
-                "§7Distance model: " + audio.getSpatialInfo().getDistanceModel(),
-                "§7Ref distance: " + audio.getSpatialInfo().getRefDistance(),
-                "§7Rolloff factor: " + audio.getSpatialInfo().getRolloffFactor(),
-                "§7Loop: " + audio.isLoop(),
+                Lang.get("link", audio.getLinks()),
+                Lang.get("location", audio.getSpatialInfo().getLocation()),
+                Lang.get("maxdistance", audio.getSpatialInfo().getMaxVoiceDistance()),
+                Lang.get("distancemodel", audio.getSpatialInfo().getDistanceModel()),
+                Lang.get("refdistance", audio.getSpatialInfo().getRefDistance()),
+                Lang.get("rollofffactor", audio.getSpatialInfo().getRolloffFactor()),
+                Lang.get("loop", audio.isLoop()),
                 "",
-                "§7LeftClick to edit",
-                "§7RightClick to copy params",
-                "§c§lShift RightClick to remove"
+                Lang.get("left_click_edit"),
+                Lang.get("right_click_copy_params"),
+                Lang.get("shift_right_to_remove")
         );
     }
 
@@ -135,17 +136,12 @@ public class SpeakersGUI extends AbstractGUI {
                         }
 
                         speakerManager.addSpeaker(new Audio(links, info, UUID.randomUUID(), 100, 100, loop));
-                        owner.sendMessage("§aSpeaker added");
+                        owner.sendMessage(Lang.get("speaker_added"));
                         BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                     } catch (Exception e) {
-                        owner.sendMessage("§cWrong values, read the format and try again");
+                        owner.sendMessage(Lang.get("wrong_values"));
                     }
-                }, "§6Enter the values of the new speaker in the chat, it will be placed at your position",
-                        "§7Format:",
-                        "§7link;maxVoiceDistance;distanceModel(optional);refDistance(optional);rolloffFactor(optional);loop(optional)",
-                        "OR",
-                        "§7maxVoiceDistance;distanceModel;refDistance;rolloffFactor;loop;links1;links2(optional);links3(optional);links4(optional)"
-                );
+                }, Lang.get("speaker_create"));
                 break;
             default:
                 int index = scroll.getListIndexFromSlot(slot);
@@ -154,7 +150,7 @@ public class SpeakersGUI extends AbstractGUI {
                 if (event.isRightClick()) {
                     owner.closeInventory();
 
-                    TextComponent component = new TextComponent("Copy to clipboard");
+                    TextComponent component = new TextComponent(Lang.get("copy_clipboard"));
 
                     component.setUnderlined(true);
                     component.setColor(ChatColor.BOLD);
@@ -175,13 +171,12 @@ public class SpeakersGUI extends AbstractGUI {
 
                     }
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-                            "Click to copy to clipboard").create()));
+                            Lang.get("click_copy_clipboard")).create()));
 
                     owner.spigot().sendMessage(component);
                     return;
                 } else if (event.isLeftClick()) {
-                    TextComponent component = new TextComponent("Enter the values for the modification of the speaker in the chat " +
-                            "§7Format: §7maxVoiceDistance;distanceModel;refDistance;rolloffFactor;loop;links1;links2(optional);links3(optional);links4(optional)");
+                    TextComponent component = new TextComponent(Lang.get("speaker_modification"));
 
                     component.setUnderlined(true);
                     component.setColor(ChatColor.GOLD);
@@ -197,7 +192,7 @@ public class SpeakersGUI extends AbstractGUI {
                                     + joiner;
                     component.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, currentParams));
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-                            "Click to copy to chat").create()));
+                            Lang.get("click_to_paste_chat")).create()));
 
                     new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
                         try {
@@ -221,10 +216,10 @@ public class SpeakersGUI extends AbstractGUI {
 
                             speakerManager.removeSpeaker(InternalUtils.serializableLocToBukkitLocation(selectedSpeaker.getSpatialInfo().getLocation()));
                             speakerManager.addSpeaker(new Audio(links, info, UUID.randomUUID(), 200, 200, loop));
-                            owner.sendMessage("§aSpeaker modified");
+                            owner.sendMessage(Lang.get("speaker_modified"));
                             BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                         } catch (Exception e) {
-                            owner.sendMessage("§cWrong values, read the format and try again");
+                            owner.sendMessage(Lang.get("wrong_values"));
                         }
                     }, component);
                 }

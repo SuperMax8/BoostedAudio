@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
+import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.core.utils.NaturalOrderComparator;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
@@ -32,7 +33,7 @@ public class DirectoryShowGUI extends AbstractGUI {
     private final ArrayList<ItemStack> items = new ArrayList<>();
 
     public DirectoryShowGUI(Player p, File baseDir) {
-        super(p, 54, "§lDirectory", null);
+        super(p, 54, Lang.get("directory"), null);
         this.baseDir = baseDir;
         this.currentDir = baseDir;
         scroll = new InventoryScroll(inv, items, InventoryScroll.InventoryScrollType.GAP, 0, 44, 9, false, false);
@@ -51,8 +52,8 @@ public class DirectoryShowGUI extends AbstractGUI {
         files.clear();
         items.clear();
 
-        inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), "§lPrevious", "§7Click to show back"));
-        inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), "§lNext", "§7Click to show next"));
+        inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), Lang.get("previous"), Lang.get("previous_desc")));
+        inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), Lang.get("next"), Lang.get("next_desc")));
 
 
         if (directory == null || !directory.isDirectory()) return;
@@ -65,20 +66,20 @@ public class DirectoryShowGUI extends AbstractGUI {
             if (f.isDirectory()) {
                 item = ItemUtils.createItm(XMaterial.CHEST.parseMaterial(),
                         "§6§l" + f.getName(),
-                        "§8File in directory: " + f.listFiles().length,
+                        Lang.get("file_in_dir", f.listFiles().length),
                         "",
-                        "§7Click to open"
+                        Lang.get("click_to_open")
                 );
             } else {
                 String s = f.getAbsolutePath();
                 s = s.substring(s.indexOf("audio"));
                 item = ItemUtils.createItm(XMaterial.CHEST.parseMaterial(),
                         "§f§l" + f.getName(),
-                        "§7Path: " + s,
+                        Lang.get("path", s),
                         "",
-                        "§7Left click to copy path",
-                        "§9Right click to modify audio file gain (volume)",
-                        "§cShift right click to delete file"
+                        Lang.get("left_click_copy"),
+                        Lang.get("right_click_volume"),
+                        Lang.get("shift_click_delete")
                 );
             }
             items.add(item);
@@ -118,7 +119,7 @@ public class DirectoryShowGUI extends AbstractGUI {
 
                             }
                             component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-                                    "Click to copy to clipboard").create()));
+                                    Lang.get("click_copy_clipboard")).create()));
                             owner.spigot().sendMessage(component);
                             break;
                         case RIGHT:
@@ -131,16 +132,16 @@ public class DirectoryShowGUI extends AbstractGUI {
                                         FileUtils.adjustGain(file.getAbsolutePath(),
                                                 outputFile.getAbsolutePath(),
                                                 v);
-                                        owner.sendMessage("§aAudio file " + file.getName() + " Harmonized at " + v + "dB !");
-                                    } catch (Exception exx) {
+                                        owner.sendMessage(Lang.get("harmonized_message", file.getName(), v));
+                                    } catch (Exception exxx) {
                                         if (FileUtils.ffmpeg == null || FileUtils.ffprobe == null) {
-                                            owner.sendMessage("§cYou need to have ffmpeg in libs, check the wiki");
-                                        } else exx.printStackTrace();
+                                            owner.sendMessage(Lang.get("ffmpeg_message"));
+                                        } else exxx.printStackTrace();
                                     }
                                 } catch (Exception ex) {
-                                    owner.sendMessage("§cWrong value !");
+                                    owner.sendMessage(Lang.get("wrong_values"));
                                 }
-                            }, "§7Enter in the chat the gain ajustement, §6WARNING: Modifying gain can decrease audio quality if you do it to many times, I recommend having a save of your audios file in local");
+                            }, Lang.get("enter_chat_gain_adjustment"));
                             break;
                     }
                 }

@@ -2,15 +2,14 @@ package fr.supermax_8.boostedaudio.spigot.commands;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.user.User;
-import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.core.Limiter;
+import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.gui.BoostedAudioGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
@@ -23,6 +22,10 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("boostedaudio.admin")) return false;
         try {
+            if (args.length == 0) {
+                sendHelp(sender);
+                return false;
+            }
             switch (args[0].toLowerCase()) {
                 case "help" -> sendHelp(sender);
 
@@ -106,7 +109,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     }
                 }
                 case "userlist" -> {
-                    sender.sendMessage("§7Users on server:");
+                    sender.sendMessage(Lang.get("users_on_server"));
                     StringJoiner joiner = new StringJoiner("§8, ");
                     BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().values().forEach(u -> {
                         joiner.add((u.isMuted() ? "§c§l" : "§f§l") + Bukkit.getPlayer(u.getPlayerId()).getName());
@@ -119,12 +122,12 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     try {
                         User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
                         if (user.isMuted()) {
-                            sender.sendMessage("§cPlayer is already muted");
+                            sender.sendMessage(Lang.get("player_already_muted"));
                             return false;
                         }
                         long endTime = (long) (System.currentTimeMillis() + 1000 * 60 * Float.parseFloat(args[2]));
                         user.setMuted(true, endTime);
-                        sender.sendMessage("§7Player §f§l" + p.getName() + " §7is now muted !");
+                        sender.sendMessage(Lang.get("player_now_muted", p.getName()));
                     } catch (Exception e) {
                     }
                 }
@@ -134,11 +137,11 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     try {
                         User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
                         if (!user.isMuted()) {
-                            sender.sendMessage("§cPlayer is already unmuted");
+                            sender.sendMessage(Lang.get("player_already_unmuted"));
                             return false;
                         }
                         user.setMuted(false, 0);
-                        sender.sendMessage("§7Player §f§l" + p.getName() + " §7is now unmuted !");
+                        sender.sendMessage(Lang.get("player_now_unmuted", p.getName()));
                     } catch (Exception e) {
                     }
                 }
@@ -190,23 +193,23 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(new String[]{
                 "§8§l[§9§lBoostedAudio§8§l] §7v§f" + BoostedAudioSpigot.getInstance().getPluginVersion() + " " + (Limiter.isPremium() ? "§6§lPremium" : "§aFree"),
                 "",
-                "§7/boostedaudio help §8- §7Show this help",
+                "§7/boostedaudio help §8- " + Lang.get("command_help"),
                 //"§7/boostedaudio reload §8- §7Reload the plugin (can make the server freeze temporarily, and kick all players)",
-                "§7/boostedaudio edit §8- Open edition GUI",
+                "§7/boostedaudio edit §8-" + Lang.get("command_open_edition"),
                 "",
-                "§7/boostedaudio userlist §8- List the players connected to the audio panel on the server, the players in red are muted",
+                "§7/boostedaudio userlist §8- " + Lang.get("command_userlist"),
                 "",
-                "§7/boostedaudio mute <Player> <TimeInMinutes> §8Mute a player in proximity chat",
-                "§7/boostedaudio unmute <Player> §8UnMute a player in proximity chat",
+                "§7/boostedaudio mute " + Lang.get("command_mute"),
+                "§7/boostedaudio unmute " + Lang.get("command_unmute"),
                 "",
-                "§7/boostedaudio play <AudioLink> <Player> <Fade> §8- Play a sound for a player if he's connected",
-                "§7/boostedaudio play <AudioLink> <Fade> §8- Play a sound for all players on the server",
-                "§7/boostedaudio playradius <AudioLink> <Radius> <Fade> §8- Play a sound for a players if connected in radius at your location/location of the command block",
-                "§7/boostedaudio playradius <world> <x> <y> <z> <AudioLink> <Radius> <Fade> §8- Play a sound for players if connected in radius at a location",
-                "§7/boostedaudio stop <AudioLink> <Player> §8- Stop a sound for a player if he's connected",
-                "§7/boostedaudio stop <AudioLink> §8- Stop a sound for all players on the server",
-                "§7/boostedaudio stopradius <AudioLink> <Radius> §8- Stop a sound for a player if connected in radius at your location/location of the command block",
-                "§7/boostedaudio stopradius <world> <x> <y> <z> <AudioLink> <Radius> §8- Stop a sound for players if connected in radius at a location",
+                "§7/boostedaudio play " + Lang.get("command_play1"),
+                "§7/boostedaudio play " + Lang.get("command_play2"),
+                "§7/boostedaudio playradius " + Lang.get("command_playradius1"),
+                "§7/boostedaudio playradius " + Lang.get("command_playradius2"),
+                "§7/boostedaudio stop " + Lang.get("command_stop1"),
+                "§7/boostedaudio stop " + Lang.get("command_stop2"),
+                "§7/boostedaudio stopradius " + Lang.get("command_stopradius1"),
+                "§7/boostedaudio stopradius " + Lang.get("command_stopradius2"),
         });
     }
 
