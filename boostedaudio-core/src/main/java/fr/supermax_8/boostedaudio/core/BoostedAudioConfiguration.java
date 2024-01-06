@@ -32,6 +32,7 @@ public class BoostedAudioConfiguration {
     private boolean autoHost;
     private int autoHostPort;
     private boolean ssl;
+    private List<String> iceServers;
     private String keystorePassword;
     private String keystoreFileName;
     private int webSocketPort;
@@ -98,6 +99,8 @@ public class BoostedAudioConfiguration {
         autoHostPort = (int) config.get("autoHostPort", 8080);
 
         ssl = (boolean) config.get("ssl.ssl", false);
+        iceServers = config.getStringList("iceServers");
+
         keystorePassword = (String) config.get("ssl.keystorePassword", "YOUR_PASSWORD");
         keystoreFileName = (String) config.get("ssl.keystoreFileName", "keystore.jks");
 

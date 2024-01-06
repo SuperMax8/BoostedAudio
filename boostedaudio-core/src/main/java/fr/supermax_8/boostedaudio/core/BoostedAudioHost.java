@@ -92,6 +92,10 @@ public class BoostedAudioHost {
             }
 
             BoostedAudioAPI.api.debug("WebSocket IP: " + ipConnec);
+            StringBuilder sb = new StringBuilder();
+            for (String line : configuration.getIceServers()) sb.append(line).append("\n");
+
+            FileUtils.replaceInFile(index, "\"%iceServers%\"", sb.toString());
             FileUtils.replaceInFile(index, "%WS_IP%", ipConnec);
             FileUtils.replaceInFile(index, "let proximityChat = true;", "let proximityChat = " + configuration.isVoiceChatEnabled());
         }

@@ -292,12 +292,11 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 <script>
     const servers = {
         iceServers: [
-            {
-                urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
-            },
+            "%iceServers%"
         ],
+
         iceCandidatePoolSize: 10,
-    };
+    }
 
     const RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
 
@@ -865,6 +864,13 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         if (!peerConnections.has(layerId)) peerConnections.set(layerId, new Map())
         peerConnections.get(layerId).set(peerId, peerConnectionContainer)
 
+        pc.onicecandidateerror = event => {
+            console.error("Error ICE Candidate :", event);
+        };
+
+        pc.onerror = event => {
+            console.error("Error RTCPeerConnection :", event);
+        };
 
         pc.ontrack = event => {
             if (event.track.kind === 'audio') {
@@ -971,7 +977,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             element.id = peerObj.playerId
 
             nameElement.textContent = userName;
-            logoElement.src = "https://cravatar.eu/avatar/" + peerObj.playerId + "/512.png"
+            logoElement.src = "https://crafthead.net/avatar/" + peerObj.playerId;
 
             peerObj.element = element;
 

@@ -30,7 +30,7 @@ mainProxyWebsocketLink: wss://localhost:8081
 # If this a proxy config: put the secrets of the spigot servers here
 # You can also manually define the secret here (Use unique strong secret)
 secrets:
-- ""
+  - ""
 # The name of the server used on the proxy (only for diffuser servers)
 # The name of the spigot server (config of your mainProxy) OR a random name for another proxy
 proxyServerName: "lobby"
@@ -54,6 +54,18 @@ ssl:
   ssl: false
   keystorePassword: "YOUR_PASSWORD"
   keystoreFileName: "keystore.jks"
+
+# Stun & Turn servers
+# These servers are used for webrtc (the proximity chat technology)
+# By default, the plugin uses free ones
+# If you have a lot of players or problems with inconsistent proximity chat connections,
+# using turn made for your server can resolve proximity chat connections problems
+# https://github.com/coturn/coturn Free open src project to host yourself a stun/turn server
+# https://www.metered.ca/tools/openrelay/ They have a free plan with 50GB for stun/turn servers
+iceServers:
+  - "{urls: 'stun:stun2.l.google.com:19302'},"
+  - "{urls: 'turns:freestun.net:5350', username: 'free', credential: 'free'},"
+  - "{urls: 'turn:freestun.net:3479', username: 'free', credential: 'free'},"
 
 #VoiceChat
 voicechat:
