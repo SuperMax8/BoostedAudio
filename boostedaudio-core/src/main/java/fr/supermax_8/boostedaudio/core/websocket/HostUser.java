@@ -33,10 +33,10 @@ public class HostUser implements User {
     private final String connectionToken;
     @Expose
     private final UUID playerId;
+    @Expose
+    private boolean muted = false;
 
     private long waitUntil = 0;
-
-    private boolean muted = false;
 
     public HostUser(WebSocket session, String connectionToken, UUID playerId) {
         this.session = session;
