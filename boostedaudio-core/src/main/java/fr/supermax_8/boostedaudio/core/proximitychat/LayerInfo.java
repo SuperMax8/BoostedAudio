@@ -1,8 +1,11 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
+import lombok.Getter;
+
 import java.util.Map;
 import java.util.UUID;
 
+@Getter
 public class LayerInfo {
 
     private final String layerId;
@@ -16,13 +19,5 @@ public class LayerInfo {
         this.layerId = layerId;
     }
 
-
-    public Map<UUID, PlayerInfo> getPlayersInfo() {
-        return playersInfo;
-    }
-
-    public String getLayerId() {
-        return layerId;
-    }
 
 }
