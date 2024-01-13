@@ -112,11 +112,10 @@ public class DirectoryShowGUI extends AbstractGUI {
                             s = s.substring(s.indexOf("audio")).replaceAll("\\\\", "/");
                             TextComponent component = new TextComponent(s);
                             component.setUnderlined(true);
-                            component.setColor(ChatColor.BOLD);
+                            component.setBold(true);
                             try {
                                 component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, s));
                             } catch (Throwable ex) {
-
                             }
                             component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
                                     Lang.get("click_copy_clipboard")).create()));

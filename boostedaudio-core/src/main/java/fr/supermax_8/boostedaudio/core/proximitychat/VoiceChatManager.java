@@ -5,6 +5,7 @@ import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.core.websocket.packets.UpdateVocalPositionsPacket;
+import lombok.Getter;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 // Host Only
 public class VoiceChatManager {
 
+    @Getter
     private static final HashMap<UUID, MuteUser> mutedUsers = new HashMap<>();
 
     public VoiceChatManager() {
@@ -142,6 +144,7 @@ public class VoiceChatManager {
     public static class MuteUser {
 
         private long muteEnd;
+        @Getter
         private UUID playerId;
 
         public MuteUser(UUID playerId, long muteEnd) {
@@ -153,14 +156,6 @@ public class VoiceChatManager {
             return System.currentTimeMillis() < muteEnd;
         }
 
-        public UUID getPlayerId() {
-            return playerId;
-        }
-
-    }
-
-    public static HashMap<UUID, MuteUser> getMutedUsers() {
-        return mutedUsers;
     }
 
 }

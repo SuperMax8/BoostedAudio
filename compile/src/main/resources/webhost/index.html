@@ -401,9 +401,8 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 }
             }
         }, 100);
+        askMic()
     }
-
-    if (proximityChat) askMic()
 
     async function askMic() {
         micStream = await navigator.mediaDevices.getUserMedia({audio: true, noiseSuppression: true});
@@ -547,13 +546,6 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                     if (players.hasOwnProperty(key)) map.set(key, players[key]);
                 }
 
-                peerConnections.forEach((layerMap, layerId) => {
-                    layerMap.forEach((peerObj, uuid) => {
-                        peerObj.loc = map.get(uuid)
-                        spatializeAudio(peerObj.panner, peerObj.loc)
-                    })
-                })
-
                 audioMap.forEach((audioObj, uuid) => {
                     const loc = audioObj.location;
                     if (loc) {
@@ -565,6 +557,14 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                         }
                     }
                 })
+
+                if (proximityChat)
+                    peerConnections.forEach((layerMap, layerId) => {
+                        layerMap.forEach((peerObj, uuid) => {
+                            peerObj.loc = map.get(uuid)
+                            spatializeAudio(peerObj.panner, peerObj.loc)
+                        })
+                    })
                 break
             case "AddAudioPacket":
                 id = packet.uuid;
@@ -943,7 +943,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             const muteStatus = getCookie(peerObj.playerId + '_mute');
             const volumeLevel = getCookie(peerObj.playerId + '_volume');
 
-            peerObj.mute = muteStatus === 'true' ? true : false;
+            peerObj.mute = muteStatus === 'true';
             peerObj.gain.gain.value = muteStatus === 'true' ? 0 : (volumeLevel ? parseFloat(volumeLevel) : peerObj.gainValue * voiceVolume);
 
             // Mettre à jour l'interface en fonction de l'état mute
@@ -1044,14 +1044,14 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
     }
 
     function updateEveryVolume() {
+        audioMap.forEach((audioObj, id) => {
+            audioObj.audio.volume = ambientVolume;
+        })
+
         peerConnections.forEach((layerMap, layerId) => {
             layerMap.forEach((peerObj, id) => {
                 peerObj.gain.gain.value = peerObj.gainValue * voiceVolume;
             });
-        })
-
-        audioMap.forEach((audioObj, id) => {
-            audioObj.audio.volume = ambientVolume;
         })
     }
 
@@ -1065,12 +1065,13 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         voice.value = voiceVolume * 100;
         ambient.value = ambientVolume * 100;
 
-        voice.addEventListener('input', function () {
-            voiceVolume = parseFloat(this.value) / 100;
-            updateEveryVolume();
-            // Sauvegarder le nouveau volume dans les cookies
-            setCookie('voice_volume', this.value);
-        });
+        if (proximityChat)
+            voice.addEventListener('input', function () {
+                voiceVolume = parseFloat(this.value) / 100;
+                updateEveryVolume();
+                // Sauvegarder le nouveau volume dans les cookies
+                setCookie('voice_volume', this.value);
+            });
 
         ambient.addEventListener('input', function () {
             ambientVolume = parseFloat(this.value) / 100;
@@ -1079,45 +1080,33 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             setCookie('ambient_volume', this.value);
         });
 
-        /*        voice.value = 100;
-                voice.addEventListener('input', function () {
-                    voiceVolume = parseFloat(this.value) / 100;
-                    updateEveryVolume()
-                });
-
-
-                ambient.value = 66.6;
-                ambient.addEventListener('input', function () {
-                    ambientVolume = parseFloat(this.value) / 100;
-                    updateEveryVolume()
-                });*/
-
-        microphoneSelect.addEventListener("change", async () => {
-            try {
-                const selectedDeviceId = microphoneSelect.value;
-                console.log("New device selected: " + selectedDeviceId)
-                const constraints = {audio: {deviceId: selectedDeviceId, noiseSuppression: true}};
-                const isMuted = micStream.getTracks().at(0).enabled;
-                micStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const newAudioTrack = micStream.getAudioTracks()[0];
-                newAudioTrack.enabled = isMuted;
-                peerConnections.forEach((layerMap, id) => {
-                    layerMap.forEach((peerObj, id) => {
-                        const pc = peerObj.pc;
-                        const senders = pc.getSenders();
-                        const audioSender = senders.find(sender => sender.track.kind === 'audio');
-                        if (audioSender) {
-                            const currentAudioTrack = audioSender.track;
-                            currentAudioTrack.stop();
-                            audioSender.replaceTrack(newAudioTrack);
-                            console.log("replaceTrack", newAudioTrack)
-                        }
-                    })
-                });
-            } catch (error) {
-                console.error("Error getting selected microphone stream:", error);
-            }
-        });
+        if (proximityChat)
+            microphoneSelect.addEventListener("change", async () => {
+                try {
+                    const selectedDeviceId = microphoneSelect.value;
+                    console.log("New device selected: " + selectedDeviceId)
+                    const constraints = {audio: {deviceId: selectedDeviceId, noiseSuppression: true}};
+                    const isMuted = micStream.getTracks().at(0).enabled;
+                    micStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    const newAudioTrack = micStream.getAudioTracks()[0];
+                    newAudioTrack.enabled = isMuted;
+                    peerConnections.forEach((layerMap, id) => {
+                        layerMap.forEach((peerObj, id) => {
+                            const pc = peerObj.pc;
+                            const senders = pc.getSenders();
+                            const audioSender = senders.find(sender => sender.track.kind === 'audio');
+                            if (audioSender) {
+                                const currentAudioTrack = audioSender.track;
+                                currentAudioTrack.stop();
+                                audioSender.replaceTrack(newAudioTrack);
+                                console.log("replaceTrack", newAudioTrack)
+                            }
+                        })
+                    });
+                } catch (error) {
+                    console.error("Error getting selected microphone stream:", error);
+                }
+            });
     }
 
     function setupWithConsent() {
