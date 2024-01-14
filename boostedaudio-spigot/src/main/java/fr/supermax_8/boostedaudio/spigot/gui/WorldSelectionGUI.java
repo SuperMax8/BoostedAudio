@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
+import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
@@ -22,7 +23,7 @@ public class WorldSelectionGUI extends AbstractGUI {
     private final Consumer<World> onClick;
 
     public WorldSelectionGUI(Player player, Consumer<World> onClick) {
-        super(player, 54, "§lChoose World", null);
+        super(player, 54, Lang.get("choose_world_title"), null);
         this.items = new ArrayList<>();
         this.onClick = onClick;
         this.worldList = Bukkit.getWorlds();
@@ -33,8 +34,8 @@ public class WorldSelectionGUI extends AbstractGUI {
 
     @Override
     public void setItems() {
-        inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), "§lPrevious", "§7Click to show back"));
-        inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), "§lNext", "§7Click to show next"));
+        inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), Lang.get("previous"), Lang.get("previous_desc")));
+        inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), Lang.get("next"), Lang.get("next_desc")));
 
         for (World world : worldList) {
             ItemStack item = ItemUtils.createItm(XMaterial.MAP.parseMaterial(), "§6§l" + world.getName());

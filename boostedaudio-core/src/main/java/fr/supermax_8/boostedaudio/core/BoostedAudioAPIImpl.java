@@ -7,8 +7,10 @@ import fr.supermax_8.boostedaudio.api.HostProvider;
 import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RTCIcePacket;
+import lombok.Getter;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class BoostedAudioAPIImpl implements BoostedAudioAPI {
 
@@ -17,16 +19,14 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
             .registerTypeAdapter(RTCIcePacket.class, new RTCIcePacket.Adapter())
             .create();
 
+    @Getter
     private static final BoostedAudioAPIImpl api = new BoostedAudioAPIImpl();
 
     public static BoostedAudioConfiguration configuration;
     public static HostProvider hostProvider;
     public static InternalAPI internalAPI;
     public static List<String> multiServerSecrets;
-
-    public static BoostedAudioAPIImpl getApi() {
-        return api;
-    }
+    public static Consumer<String> sendMessage;
 
     public InternalAPI getInternalAPI() {
         return internalAPI;
@@ -61,12 +61,12 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
     @Override
     public void info(String message) {
         String finalMessage = "§8§l[§9§lBoostedAudio§8§l] §7" + message;
-        System.out.println(finalMessage);
+        sendMessage.accept(finalMessage);
     }
 
     @Override
     public void debug(String message) {
-        if (configuration.isDebugMode()) info("BoostedAudioDebug: " + message);
+        if (configuration.isDebugMode()) info("Debug: " + message);
     }
 
 }

@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
 import fr.supermax_8.boostedaudio.api.user.Audio;
+import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
@@ -31,7 +32,7 @@ public class RegionsGUI extends AbstractGUI {
     private final World world;
 
     public RegionsGUI(Player player, World world) {
-        super(player, 54, "§lRegions of world " + world.getName(), null);
+        super(player, 54, Lang.get("regions_title", world.getName()), null);
         this.items = new ArrayList<>();
         this.world = world;
         this.scroll = new InventoryScroll(getInventory(), items, InventoryScroll.InventoryScrollType.GAP, 0, 44, 9, false, false);
@@ -56,24 +57,24 @@ public class RegionsGUI extends AbstractGUI {
             items.add(item);
         }
 
-        inv.setItem(45, ItemUtils.createItm(XMaterial.EMERALD.parseMaterial(), "§2§lAdd region audio", "§7Add a new speaker at your location"));
-        inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), "§lPrevious", "§7Click to show back"));
-        inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), "§lNext", "§7Click to show next"));
+        inv.setItem(45, ItemUtils.createItm(XMaterial.EMERALD.parseMaterial(), Lang.get("add_region"), Lang.get("add_region_desc")));
+        inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), Lang.get("previous"), Lang.get("previous_desc")));
+        inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), Lang.get("next"), Lang.get("next_desc")));
 
         scroll.setItems();
     }
 
     private ItemStack createRegionItem(String region, Audio audio) {
         return ItemUtils.createItm(XMaterial.MAP.parseMaterial(), "§l" + region,
-                "§7Link: " + audio.getLinks(),
-                "§7Region: " + region,
-                "§7Fade in: " + audio.getFadeIn() + "ms",
-                "§7Fade out: " + audio.getFadeOut() + "ms",
-                "§7Loop: " + audio.isLoop(),
+                Lang.get("link", audio.getLinks()),
+                Lang.get("region", region),
+                Lang.get("fadein", audio.getFadeIn()),
+                Lang.get("fadeout", audio.getFadeOut()),
+                Lang.get("loop", audio.isLoop()),
                 "",
-                "§7LeftClick to edit",
-                "§7RightClick to copy params",
-                "§c§lShift RightClick to remove"
+                Lang.get("left_click_edit"),
+                Lang.get("right_click_copy_params"),
+                Lang.get("shift_right_to_remove")
         );
     }
 
@@ -118,13 +119,9 @@ public class RegionsGUI extends AbstractGUI {
                         owner.sendMessage("§aRegion audio added");
                         BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                     } catch (Exception e) {
-                        owner.sendMessage("§cWrong values, read the format and try again");
+                        owner.sendMessage(Lang.get("wrong_values"));
                     }
-                }, "§6Enter the values of the new region audio in the chat",
-                        "§7Formats:",
-                        "§7link;region;fadeIn(optional);fadeOut(optional);loop(optional)",
-                        "§7OR",
-                        "§7region;fadeIn;fadeOut;loop;link1;link2;link3(optional)..."
+                }, Lang.get("region_create")
                 );
                 break;
             default:
@@ -135,23 +132,26 @@ public class RegionsGUI extends AbstractGUI {
                 if (event.isRightClick()) {
                     owner.closeInventory();
 
-                    TextComponent component = new TextComponent("Copy to clipboard");
+                    TextComponent component = new TextComponent(Lang.get("copy_clipboard"));
 
                     component.setUnderlined(true);
                     component.setColor(ChatColor.BOLD);
-                    component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, params));
+                    try {
+                        component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, params));
+                    } catch (Throwable e) {
+
+                    }
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-                            "Click to copy to clipboard").create()));
+                            Lang.get("click_copy_clipboard")).create()));
                     return;
                 } else if (event.isLeftClick()) {
-                    TextComponent component = new TextComponent("Enter the values for the modification of the speaker in the chat " +
-                            "§7Format: region;fadeIn;fadeOut;loop;link1;link2;link3(optional)...");
+                    TextComponent component = new TextComponent(Lang.get("region_modification"));
 
                     component.setUnderlined(true);
                     component.setColor(ChatColor.GOLD);
                     component.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, params));
                     component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-                            "Click to copy to chat").create()));
+                            Lang.get("click_to_paste_chat")).create()));
 
                     new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
                         try {
@@ -163,10 +163,10 @@ public class RegionsGUI extends AbstractGUI {
                             List<String> links = new ArrayList<>(Arrays.asList(output).subList(4, output.length));
 
                             regionManager.addRegion(region, new Audio(links, null, UUID.randomUUID(), fadeIn, fadeOut, loop));
-                            owner.sendMessage("§aRegion audio modified");
+                            owner.sendMessage(Lang.get("region_audio_modified"));
                             BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                         } catch (Exception e) {
-                            owner.sendMessage("§cWrong values, read the format and try again");
+                            owner.sendMessage(Lang.get("wrong_values"));
                         }
                     }, component);
                 }

@@ -2,16 +2,22 @@ name: BoostedAudio
 version: '${project.version}'
 main: fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot
 api-version: '1.16'
+folia-supported: true
 authors:
   - SuperMax_8
 description: Realtime music and proximity voice chat
 website: https://www.spigotmc.org/resources/boostedaudio-%E2%9C%A8proximity-voice-chat-and-music.112942/
 softdepend:
   - WorldGuard
+  - ProtocolLib
+  - PlaceHolderAPI
 commands:
   audio:
     aliases:
       - music
+  audioqrcode:
+    aliases:
+      - musicqrcode
   boostedaudio:
     permission: boostedaudio.admin
     aliases:

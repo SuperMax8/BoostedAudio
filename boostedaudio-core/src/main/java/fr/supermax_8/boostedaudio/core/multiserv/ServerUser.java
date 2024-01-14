@@ -1,4 +1,4 @@
-package fr.supermax_8.boostedaudio.core.serverpacket;
+package fr.supermax_8.boostedaudio.core.multiserv;
 
 import org.java_websocket.WebSocket;
 

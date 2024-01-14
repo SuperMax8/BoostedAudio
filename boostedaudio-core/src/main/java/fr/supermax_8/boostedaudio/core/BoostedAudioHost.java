@@ -1,14 +1,17 @@
 package fr.supermax_8.boostedaudio.core;
 
+import dev.dejvokep.boostedyaml.YamlDocument;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.FileUtils;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
-import fr.supermax_8.boostedaudio.core.utils.configuration.CrossConfiguration;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
+import lombok.Getter;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.pem.util.PemUtils;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 import org.xnio.Options;
 
@@ -20,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.util.Enumeration;
 import java.util.List;
@@ -27,16 +31,26 @@ import java.util.concurrent.CompletableFuture;
 
 public class BoostedAudioHost {
 
+    /**
+     * You can use it only if execute on a host server
+     *
+     * @return the instance of the host or null if on a diffuser server
+     */
+    @Getter
     private static BoostedAudioHost instance;
 
 
     private final BoostedAudioConfiguration configuration;
+    @Getter
     private AudioWebSocketServer webSocketServer;
     private Undertow webServer;
     private SSLContext sslContext;
     private SSLContext dummySslContext;
+    @Getter
     private File webserver;
+    @Getter
     private File audioDir;
+    @Getter
     private boolean sucessfulSetup = false;
 
     public BoostedAudioHost(BoostedAudioConfiguration configuration) {
@@ -59,18 +73,6 @@ public class BoostedAudioHost {
         BoostedAudioAPI.api.info("Plugin loaded");
     }
 
-    public AudioWebSocketServer getWebSocketServer() {
-        return webSocketServer;
-    }
-
-    public File getAudioDir() {
-        return audioDir;
-    }
-
-    public File getWebserver() {
-        return webserver;
-    }
-
     private void startServers() throws IOException {
         BoostedAudioAPI.api.info("Starting servers...");
         initSSL();
@@ -90,6 +92,10 @@ public class BoostedAudioHost {
             }
 
             BoostedAudioAPI.api.debug("WebSocket IP: " + ipConnec);
+            StringBuilder sb = new StringBuilder();
+            for (String line : configuration.getIceServers()) sb.append(line).append("\n");
+
+            FileUtils.replaceInFile(index, "\"%iceServers%\"", sb.toString());
             FileUtils.replaceInFile(index, "%WS_IP%", ipConnec);
             FileUtils.replaceInFile(index, "let proximityChat = true;", "let proximityChat = " + configuration.isVoiceChatEnabled());
         }
@@ -98,9 +104,7 @@ public class BoostedAudioHost {
             List<String> placeholders;
             if (Limiter.isPremium()) placeholders = configuration.getClientConfig();
             else {
-                Reader reader = new InputStreamReader(ResourceUtils.getResourceAsStream("config.yml"));
-                CrossConfiguration fc = CrossConfiguration.newConfig().load(reader);
-                placeholders = (List<String>) fc.get("clientConfig");
+                placeholders = YamlDocument.create(ResourceUtils.getResourceAsStream("config.yml")).getStringList("clientConfig");
             }
 
             placeholders.forEach(s -> {
@@ -193,10 +197,21 @@ public class BoostedAudioHost {
             ResourceUtils.saveResource("default.jks", new File(configuration.getDataFolder(), "default.jks").getAbsolutePath());
             dummySslContext = getSSLContext(Files.newInputStream(new File(configuration.getDataFolder(), "default.jks").toPath()), "changeit".toCharArray());
             if (configuration.isSsl()) {
-                sslContext = getSSLContext(
-                        Files.newInputStream(new File(configuration.getDataFolder(), configuration.getKeystoreFileName()).toPath()),
-                        configuration.getKeystorePassword().toCharArray()
-                );
+                File jksFile = new File(configuration.getDataFolder(), configuration.getKeystoreFileName());
+                if (jksFile.exists()) {
+                    sslContext = getSSLContext(
+                            Files.newInputStream(jksFile.toPath()),
+                            configuration.getKeystorePassword().toCharArray()
+                    );
+                } else {
+                    File cert = new File(configuration.getDataFolder(), "cert.pem");
+                    File key = new File(configuration.getDataFolder(), "key.pem");
+                    if (!cert.exists() || !key.exists()) {
+                        BoostedAudioAPI.api.info("You need to put SSL file in the plugin folder, one .jks OR 2 pem named cert.pem and key.pem");
+                        return;
+                    }
+                    sslContext = loadPem(cert.getAbsolutePath(), key.getAbsolutePath());
+                }
             } else sslContext = dummySslContext;
 
             BoostedAudioAPI.api.debug("SSL setuped");
@@ -228,17 +243,15 @@ public class BoostedAudioHost {
         }
     }
 
-    public boolean isSucessfulSetup() {
-        return sucessfulSetup;
-    }
+    private SSLContext loadPem(String cert, String key) {
+        var keyManager = PemUtils.loadIdentityMaterial(Path.of(cert), Path.of(key));
 
-    /**
-     * You can use it only if execute on a host server
-     *
-     * @return the instance of the host or null if on a diffuser server
-     */
-    public static BoostedAudioHost getInstance() {
-        return instance;
+        var sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(keyManager)
+                .withDefaultTrustMaterial()
+                .build();
+
+        return sslFactory.getSslContext();
     }
 
 

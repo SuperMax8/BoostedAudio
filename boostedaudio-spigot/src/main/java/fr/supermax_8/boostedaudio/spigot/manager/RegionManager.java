@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.spigot.manager;
 
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.api.user.Audio;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.codemc.worldguardwrapper.WorldGuardWrapper;
@@ -13,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RegionManager {
 
     private static final WorldGuardWrapper api = WorldGuardWrapper.getInstance();
+    @Getter
     private final HashMap<UUID, RegionInfo> infoMap = new HashMap<>();
 
     private final ConcurrentHashMap<String, Audio> audioRegions = new ConcurrentHashMap<>();
@@ -24,12 +26,17 @@ public class RegionManager {
     }
 
     public void tick(Map<UUID, User> connectedUsers) {
-        for (User user : connectedUsers.values()) {
-            RegionInfo regionInfo = infoMap.get(user.getPlayerId());
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            UUID pId = p.getUniqueId();
+            User user = connectedUsers.get(pId);
+            RegionInfo regionInfo = infoMap.get(pId);
             if (regionInfo == null) continue;
-            List<IWrappedRegion> lastRegions = regionInfo.getLastRegions();
+            if (user == null) {
+                infoMap.put(pId, new RegionInfo());
+                continue;
+            }
 
-            Player p = Bukkit.getPlayer(user.getPlayerId());
+            List<IWrappedRegion> lastRegions = regionInfo.getLastRegions();
             Set<IWrappedRegion> playerRegions = api.getRegions(p.getLocation());
             // Found highest priority regions
             List<IWrappedRegion> highestPriorityRegions = new ArrayList<>();
@@ -69,10 +76,6 @@ public class RegionManager {
             lastRegions.clear();
             lastRegions.addAll(highestPriorityRegions);
         }
-    }
-
-    public HashMap<UUID, RegionInfo> getInfoMap() {
-        return infoMap;
     }
 
     public void addRegion(String region, Audio audio) {

@@ -203,11 +203,11 @@ public class InventoryScroll {
                 break;
             case GAP:
                 int newIndexGap = this.gap + finalGap;
-//                System.out.println("---");
-//                System.out.println("newIndexGap: " + newIndexGap);
-//                System.out.println("displaySize: " + displaySize);
-//                System.out.println("items.size(): " + items.size());
-//                System.out.println("---");
+//                BoostedAudioAPI.getAPI().info("---");
+//                BoostedAudioAPI.getAPI().info("newIndexGap: " + newIndexGap);
+//                BoostedAudioAPI.getAPI().info("displaySize: " + displaySize);
+//                BoostedAudioAPI.getAPI().info("items.size(): " + items.size());
+//                BoostedAudioAPI.getAPI().info("---");
                 if (infiniteLoop) {
                     if (newIndexGap > items.size() - 1) newIndexGap = 0;
                 } else {

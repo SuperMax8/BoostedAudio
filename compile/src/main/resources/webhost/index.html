@@ -19,7 +19,7 @@
             }
         }
     </script>
-    <title>BoostedAudio</title>
+    <title>{page-title}</title>
 </head>
 <body class="flex h-screen w-screen bg-[url({bg-img})] bg-no-repeat bg-cover">
 
@@ -75,7 +75,7 @@
 </script>
 
 <div class="w-full h-full
-bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
+bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary/{bg-opacity}">
     <!--Connection-->
     <div id="connection"
          class="z-50 fixed bg-gray-800/60 left-0 w-full h-full flex justify-center items-center text-slate-200">
@@ -121,7 +121,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
          class="z-50 fixed top-0 left-0 w-full h-full bg-gray-800/50 flex justify-center items-center hidden text-slate-200">
         <!--Params-->
         <div id="params"
-             class="bg-main p-4 rounded-lg w-2/3 h-fit grid gap-5 drop-shadow-lg ring ring-2 hover:ring-accent duration-300">
+             class="bg-main p-4 rounded-lg w-2/3 h-fit grid gap-5 drop-shadow-lg ring ring-primary ring-2 hover:ring-accent duration-300">
             <div class="text-center">
                 <h1 class="text-xl font-bold">{settings-title}</h1>
                 <label class="text-sm text-slate-400">{settings-label}</label>
@@ -129,7 +129,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             <div id="microphoneSelectDiv" class="w-full h-10">
                 <label class="block text-m font-medium mb-2">{settings-microphone-device-label}</label>
                 <select id="microphoneSelect"
-                        class="w-full h-full bg-primary rounded focus:outline-none focus:ring hover:ring duration-300">
+                        class="w-full h-full bg-primary rounded focus:outline-none focus:ring focus:ring-accent hover:ring hover:ring-accent duration-300">
                 </select>
             </div>
             <div class="mt-5"></div>
@@ -151,12 +151,14 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     <!--Ambient Volume-->
                     <div id="ambient" class="w-1/3 pr-4 grid grid-cols-1">
                         <label class="block text-sm font-medium mb-2">{ambient-volume}</label>
-                        <input id="ambientVolume" type="range" class="w-full ring-slate-800" min="0" max="100">
+                        <input id="ambientVolume" type="range" class="accent-accent w-full ring-slate-800" min="0"
+                               max="100">
                     </div>
                     <!--Voice Volume-->
                     <div id="voice" class="w-1/3 pr-4 grid grid-cols-1">
                         <label class="block text-sm font-medium mb-2">{voice-volume}</label>
-                        <input id="voiceVolume" type="range" class="w-full ring-slate-800" min="0" max="150">
+                        <input id="voiceVolume" type="range" class="accent-accent w-full ring-slate-800" min="0"
+                               max="150">
                     </div>
 
                     <!--MuteButton-->
@@ -202,7 +204,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 <!--Search-->
                 <div id="searchDiv" class="p-1 w-1/5 mb-4 relative">
                     <input id="search" type="text"
-                           class="w-full px-4 py-2 ring focus:ring-accent hover:ring-accent duration-300 bg-secondary text-gray-300 border-none rounded-full focus:outline-none"
+                           class="w-full px-4 py-2 ring ring-primary focus:ring-accent hover:ring-accent duration-300 bg-secondary text-gray-300 border-none rounded-full focus:outline-none"
                            placeholder="{search-placeholder}" maxlength="20">
                     <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
                         <svg id="search-logo" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300"
@@ -235,15 +237,16 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 <!--Mute Info-->
                 <p id="muteUser" class="text-red-500 text-center p-10 text-5xl italic hidden">{you-are-mute}</p>
 
+                <!--Users-->
                 <div id="users" class="overflow-auto
         sm:max-h-[5rem] md:max-h-[20rem] 2xl:sm:max-h-[30rem]
-         min-h-0 bg-gray-700/40 p-2 rounded-lg bg-scroll grid gap-4 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 drop-shadow-lg">
+         min-h-0 bg-primary p-2 rounded-lg bg-scroll grid gap-4 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 drop-shadow-lg">
                     <div id="user"
-                         class="user flex items-center bg-gray-800 p-4 rounded-lg focus:outline-none focus:ring hover:ring duration-300">
+                         class="user flex items-center bg-main p-4 rounded-lg focus:outline-none focus:ring hover:ring duration-300">
                         <img src="" alt="User 1" class="logo w-12 h-12 rounded-lg mr-4">
                         <div class="flex-grow">
                             <p class="font-medium username"></p>
-                            <input type="range" class="user-volume w-full mt-1" min="0" max="150">
+                            <input type="range" class="user-volume accent-accent w-full mt-1" min="0" max="150">
                         </div>
                         <!--User Mute Button-->
                         <svg class="muteButton h-12 w-12 p-1 text-secondary hover:text-accent cursor-pointer
@@ -289,12 +292,13 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 <script>
     const servers = {
         iceServers: [
-            {
-                urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
-            },
+            "%iceServers%"
         ],
+
         iceCandidatePoolSize: 10,
-    };
+    }
+
+    const RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
 
     // Map<String(layerId), Map<UUID, PeerConnectionContainer>>
     const peerConnections = new Map();
@@ -397,9 +401,8 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 }
             }
         }, 100);
+        askMic()
     }
-
-    if (proximityChat) askMic()
 
     async function askMic() {
         micStream = await navigator.mediaDevices.getUserMedia({audio: true, noiseSuppression: true});
@@ -436,6 +439,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
         switch (type) {
             case "AddPeerPacket":
+                if (muted) return
                 from = packet.from;
                 to = packet.to;
                 layerId = packet.layerId;
@@ -542,13 +546,6 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     if (players.hasOwnProperty(key)) map.set(key, players[key]);
                 }
 
-                peerConnections.forEach((layerMap, layerId) => {
-                    layerMap.forEach((peerObj, uuid) => {
-                        peerObj.loc = map.get(uuid)
-                        spatializeAudio(peerObj.panner, peerObj.loc)
-                    })
-                })
-
                 audioMap.forEach((audioObj, uuid) => {
                     const loc = audioObj.location;
                     if (loc) {
@@ -560,6 +557,14 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                         }
                     }
                 })
+
+                if (proximityChat)
+                    peerConnections.forEach((layerMap, layerId) => {
+                        layerMap.forEach((peerObj, uuid) => {
+                            peerObj.loc = map.get(uuid)
+                            spatializeAudio(peerObj.panner, peerObj.loc)
+                        })
+                    })
                 break
             case "AddAudioPacket":
                 id = packet.uuid;
@@ -580,7 +585,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                         coneOuterGain: 0.4,
                     });
 
-                    const url = link.startsWith("http") ? 'https://corsproxy.io/?' + link : link;
+                    const url = link.startsWith("https") ? link : link.startsWith("http") ? 'https://corsproxy.io/?' + link : link;
                     const audioHtml = new Audio(url)
                     audioHtml.crossOrigin = "anonymous"
                     audioSource = audioContext.createMediaElementSource(audioHtml);
@@ -591,9 +596,8 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                     audioSource.connect(panner);
                     panner.connect(gainNode);
                     gainNode.connect(audioContext.destination);
-                } else {
+                } else
                     audio = new Audio(link)
-                }
 
                 console.log("Playing " + id, " url", link)
                 audio.play()
@@ -680,7 +684,12 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 const mute = packet.mute;
                 muted = mute;
                 if (mute) {
-                    muteUser.classList.remove("hidden")
+                    muteUser.classList.remove("hidden");
+                    for (let value of peerConnections.values()) {
+                        for (let pc of value.values()) {
+                            closePeerConnection(pc);
+                        }
+                    }
                 } else {
                     muteUser.classList.add("hidden")
                 }
@@ -714,13 +723,15 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 "Ambient Volume " + ambientVolume, audioObj
             )
 
-            const interval = 50;
-            const step = interval / duration;
+            const interval = 10;
+            const stepNb = duration / interval;
+            const volumeStep = ambientVolume / stepNb;
+            //const step = interval / duration;
             audio.volume = 0;
 
             const fadeInterval = setInterval(() => {
                 if (audio.volume < ambientVolume) {
-                    audio.volume = Math.min(ambientVolume, audio.volume + step);
+                    audio.volume = Math.min(ambientVolume, audio.volume + volumeStep);
                 } else {
                     clearInterval(fadeInterval);
                     console.log("End FadeIn ", audioObj)
@@ -739,8 +750,9 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
     async function fadeOut(audio, duration, afterFade, audioObj) {
         function fade() {
-            const interval = 50;
-            const step = interval / duration;
+            const interval = 10;
+            const stepNb = duration / interval;
+            const volumeStep = ambientVolume / stepNb;
 
             console.log(
                 "Starting FadeOut " + duration,
@@ -750,7 +762,7 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
             const fadeInterval = setInterval(() => {
                 if (audio.volume > 0) {
-                    audio.volume = Math.max(0, audio.volume - step);
+                    audio.volume = Math.max(0, audio.volume - volumeStep);
                 } else {
                     audio.pause();
                     clearInterval(fadeInterval);
@@ -852,6 +864,13 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         if (!peerConnections.has(layerId)) peerConnections.set(layerId, new Map())
         peerConnections.get(layerId).set(peerId, peerConnectionContainer)
 
+        pc.onicecandidateerror = event => {
+            console.error("Error ICE Candidate :", event);
+        };
+
+        pc.onerror = event => {
+            console.error("Error RTCPeerConnection :", event);
+        };
 
         pc.ontrack = event => {
             if (event.track.kind === 'audio') {
@@ -864,13 +883,13 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
                 source.connect(panner)
                 panner.connect(gain)
                 gain.connect(audioContext.destination)
-                gain.gain.value = 1;
 
                 // We use a dummy audio muted, because of a bug in chrome https://bugs.chromium.org/p/chromium/issues/detail?id=933677
                 const dummyAudio = new Audio();
                 dummyAudio.muted = true;
                 dummyAudio.srcObject = mediaStream;
                 console.log("Track set")
+                updateEveryVolume()
             }
         }
 
@@ -885,18 +904,27 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
 
             // Setup user bar
             const userVolume = peerConnectionContainer.element.getElementsByClassName("user-volume").item(0);
-            gain.gain.value = 1;
-            userVolume.value = 100;
+
+            const savedVolume = getCookie(peerConnectionContainer.playerId + '_volume');
+            const userVolumeValue = savedVolume ? parseFloat(savedVolume) : 100;
+
+            gain.gain.value = userVolumeValue / 100;
+            userVolume.value = userVolumeValue;
+            peerConnectionContainer.gainValue = userVolumeValue / 100;
+
+
             userVolume.addEventListener('input', (e) => {
-                const volume = parseFloat(e.target.value) / 100;
-                peerConnectionContainer.gainValue = volume;
+                peerConnectionContainer.gainValue = parseFloat(e.target.value) / 100;
                 if (peerConnectionContainer.mute) return;
-                gain.gain.value = volume * voiceVolume;
+                updateEveryVolume();
+
+                setCookie(peerConnectionContainer.playerId + '_volume', e.target.value);
             });
         }
 
-        userThing()
+        userThing();
 
+        updateEveryVolume();
         return pc;
     }
 
@@ -911,31 +939,50 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
             const muteButton = element.getElementsByClassName("muteButton").item(0)
             const mutedButton = element.getElementsByClassName("mutedButton").item(0)
 
-            // Mute User Button
-            mutedButton.classList.add('hidden');
+            // Charger l'état mute et le volume depuis les cookies, ou utiliser des valeurs par défaut
+            const muteStatus = getCookie(peerObj.playerId + '_mute');
+            const volumeLevel = getCookie(peerObj.playerId + '_volume');
+
+            peerObj.mute = muteStatus === 'true';
+            peerObj.gain.gain.value = muteStatus === 'true' ? 0 : (volumeLevel ? parseFloat(volumeLevel) : peerObj.gainValue * voiceVolume);
+
+            // Mettre à jour l'interface en fonction de l'état mute
+            if (peerObj.mute) {
+                muteButton.classList.add('hidden');
+                mutedButton.classList.remove('hidden');
+            } else {
+                muteButton.classList.remove('hidden');
+                mutedButton.classList.add('hidden');
+            }
+
+            // Gestion des boutons Mute
             muteButton.addEventListener('click', e => {
                 muteButton.classList.add('hidden');
                 mutedButton.classList.remove('hidden');
-                peerObj.mute = true
-                peerObj.gain.gain.value = 0
+                peerObj.mute = true;
+                peerObj.gain.gain.value = 0;
+                setCookie(peerObj.playerId + '_mute', 'true');
+                setCookie(peerObj.playerId + '_volume', '0');
             });
 
             mutedButton.addEventListener('click', e => {
                 mutedButton.classList.add('hidden');
                 muteButton.classList.remove('hidden');
-                peerObj.mute = false
+                peerObj.mute = false;
                 peerObj.gain.gain.value = peerObj.gainValue * voiceVolume;
+                setCookie(peerObj.playerId + '_mute', 'false');
+                setCookie(peerObj.playerId + '_volume', peerObj.gain.gain.value.toString());
             });
 
             element.id = peerObj.playerId
 
             nameElement.textContent = userName;
-            logoElement.src = "https://cravatar.eu/avatar/" + peerObj.playerId + "/512.png"
+            logoElement.src = "https://crafthead.net/avatar/" + peerObj.playerId;
 
             peerObj.element = element;
 
             users.insertAdjacentElement("beforeend", element);
-            resolve()
+            resolve();
         })
     }
 
@@ -950,6 +997,21 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         const tempContainer = document.createElement("div");
         tempContainer.innerHTML = htmlString;
         return tempContainer.firstElementChild;
+    }
+
+    function setCookie(name, value) {
+        document.cookie = name + "=" + value + ";path=/";
+    }
+
+    function getCookie(name) {
+        let nameEQ = name + "=";
+        let ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
     }
 
     function sendTrustPacket() {
@@ -981,52 +1043,70 @@ bg-gradient-to-t from-primary/80 via-secondary/80 to-primary/80">
         }
     }
 
+    function updateEveryVolume() {
+        audioMap.forEach((audioObj, id) => {
+            audioObj.audio.volume = ambientVolume;
+        })
+
+        peerConnections.forEach((layerMap, layerId) => {
+            layerMap.forEach((peerObj, id) => {
+                peerObj.gain.gain.value = peerObj.gainValue * voiceVolume;
+            });
+        })
+    }
+
     async function setupAudioSystem() {
-        voice.value = 100;
-        voice.addEventListener('input', function () {
-            voiceVolume = parseFloat(this.value) / 100;
-            peerConnections.forEach((layerMap, layerId) => {
-                layerMap.forEach((peerObj, id) => {
-                    peerObj.gain.gain.value = peerObj.gainValue * voiceVolume;
-                });
-            })
-        });
+        const savedVoiceVolume = getCookie('voice_volume');
+        const savedAmbientVolume = getCookie('ambient_volume');
 
+        voiceVolume = savedVoiceVolume ? parseFloat(savedVoiceVolume) / 100 : 1; // Valeur par défaut à 100 si pas de cookie
+        ambientVolume = savedAmbientVolume ? parseFloat(savedAmbientVolume) / 100 : 0.666; // Valeur par défaut à 66.6 si pas de cookie
 
-        ambient.value = 66.6;
+        voice.value = voiceVolume * 100;
+        ambient.value = ambientVolume * 100;
+
+        if (proximityChat)
+            voice.addEventListener('input', function () {
+                voiceVolume = parseFloat(this.value) / 100;
+                updateEveryVolume();
+                // Sauvegarder le nouveau volume dans les cookies
+                setCookie('voice_volume', this.value);
+            });
+
         ambient.addEventListener('input', function () {
             ambientVolume = parseFloat(this.value) / 100;
-            audioMap.forEach((audioObj, id) => {
-                audioObj.audio.volume = ambientVolume;
-            })
+            updateEveryVolume();
+            // Sauvegarder le nouveau volume dans les cookies
+            setCookie('ambient_volume', this.value);
         });
 
-        microphoneSelect.addEventListener("change", async () => {
-            try {
-                const selectedDeviceId = microphoneSelect.value;
-                console.log("New device selected: " + selectedDeviceId)
-                const constraints = {audio: {deviceId: selectedDeviceId, noiseSuppression: true}};
-                const isMuted = micStream.getTracks().at(0).enabled;
-                micStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const newAudioTrack = micStream.getAudioTracks()[0];
-                newAudioTrack.enabled = isMuted;
-                peerConnections.forEach((layerMap, id) => {
-                    layerMap.forEach((peerObj, id) => {
-                        const pc = peerObj.pc;
-                        const senders = pc.getSenders();
-                        const audioSender = senders.find(sender => sender.track.kind === 'audio');
-                        if (audioSender) {
-                            const currentAudioTrack = audioSender.track;
-                            currentAudioTrack.stop();
-                            audioSender.replaceTrack(newAudioTrack);
-                            console.log("replaceTrack", newAudioTrack)
-                        }
-                    })
-                });
-            } catch (error) {
-                console.error("Error getting selected microphone stream:", error);
-            }
-        });
+        if (proximityChat)
+            microphoneSelect.addEventListener("change", async () => {
+                try {
+                    const selectedDeviceId = microphoneSelect.value;
+                    console.log("New device selected: " + selectedDeviceId)
+                    const constraints = {audio: {deviceId: selectedDeviceId, noiseSuppression: true}};
+                    const isMuted = micStream.getTracks().at(0).enabled;
+                    micStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    const newAudioTrack = micStream.getAudioTracks()[0];
+                    newAudioTrack.enabled = isMuted;
+                    peerConnections.forEach((layerMap, id) => {
+                        layerMap.forEach((peerObj, id) => {
+                            const pc = peerObj.pc;
+                            const senders = pc.getSenders();
+                            const audioSender = senders.find(sender => sender.track.kind === 'audio');
+                            if (audioSender) {
+                                const currentAudioTrack = audioSender.track;
+                                currentAudioTrack.stop();
+                                audioSender.replaceTrack(newAudioTrack);
+                                console.log("replaceTrack", newAudioTrack)
+                            }
+                        })
+                    });
+                } catch (error) {
+                    console.error("Error getting selected microphone stream:", error);
+                }
+            });
     }
 
     function setupWithConsent() {

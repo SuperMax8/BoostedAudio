@@ -11,27 +11,32 @@ import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.MutePacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
+import lombok.Getter;
 import org.java_websocket.WebSocket;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HostUser implements User {
 
+    @Getter
     private final WebSocket session;
 
     @Expose
-    private final Map<String, Set<UUID>> remotePeers = new HashMap<>();
+    private final Map<String, Set<UUID>> remotePeers = new ConcurrentHashMap<>();
     @Expose
-    private final Map<UUID, Audio> playingAudio = new HashMap<>();
+    private final Map<UUID, Audio> playingAudio = new ConcurrentHashMap<>();
     @Expose
     private final String connectionToken;
     @Expose
     private final UUID playerId;
+    @Expose
+    private boolean muted = false;
 
     private long waitUntil = 0;
-
-    private boolean muted = false;
 
     public HostUser(WebSocket session, String connectionToken, UUID playerId) {
         this.session = session;
@@ -46,10 +51,6 @@ public class HostUser implements User {
     @Override
     public Map<String, Set<UUID>> getRemotePeers() {
         return remotePeers;
-    }
-
-    public WebSocket getSession() {
-        return session;
     }
 
     @Override
@@ -79,7 +80,7 @@ public class HostUser implements User {
 
     @Override
     public Audio playAudio(String link, int fade) {
-        return playAudio(link, null, fade, fade, false);
+        return playAudio(link, fade, fade);
     }
 
     @Override
@@ -178,6 +179,14 @@ public class HostUser implements User {
             VoiceChatManager.getMutedUsers().put(playerId, new VoiceChatManager.MuteUser(playerId, endTime));
         else
             VoiceChatManager.getMutedUsers().remove(playerId);
+    }
+
+    public void checkMute() {
+        VoiceChatManager.MuteUser usr = VoiceChatManager.getMutedUsers().get(playerId);
+        if (usr != null) {
+            muted = true;
+            sendPacket(new MutePacket(true));
+        }
     }
 
     private void waitUntil() {

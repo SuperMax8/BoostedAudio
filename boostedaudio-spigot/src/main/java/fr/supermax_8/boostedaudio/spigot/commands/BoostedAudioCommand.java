@@ -2,19 +2,16 @@ package fr.supermax_8.boostedaudio.spigot.commands;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.user.User;
-import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.core.Limiter;
+import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.gui.BoostedAudioGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -25,6 +22,10 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("boostedaudio.admin")) return false;
         try {
+            if (args.length == 0) {
+                sendHelp(sender);
+                return false;
+            }
             switch (args[0].toLowerCase()) {
                 case "help" -> sendHelp(sender);
 
@@ -39,11 +40,24 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 }
                 case "play" -> {
                     String link = args[1];
-                    Player p = Bukkit.getPlayer(args[2]);
-                    int fade = Integer.parseInt(args[3]);
-                    try {
-                        BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).playAudio(link, fade);
-                    } catch (Exception e) {
+                    int fade;
+                    if (args.length == 4) {
+                        Player p = Bukkit.getPlayer(args[2]);
+                        fade = Integer.parseInt(args[3]);
+                        try {
+                            BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).playAudio(link, fade);
+                        } catch (Exception e) {
+                        }
+                    } else {
+                        try {
+                            fade = Integer.parseInt(args[3]);
+                        } catch (Exception e) {
+                            fade = 500;
+                        }
+                        int finalFade = fade;
+                        BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().forEach(((uuid, user) -> {
+                            user.playAudio(link, finalFade);
+                        }));
                     }
                 }
                 case "playradius" -> {
@@ -55,7 +69,11 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                         link = args[1];
                         radius = Integer.parseInt(args[2]);
                         fade = Integer.parseInt(args[3]);
-                        loc = ((Player) sender).getLocation();
+                        if (sender instanceof Player p)
+                            loc = p.getLocation();
+                        else if (sender instanceof BlockCommandSender blockCommandSender)
+                            loc = blockCommandSender.getBlock().getLocation();
+                        else loc = null;
                     } else {
                         String world = args[1];
                         int x = Integer.parseInt(args[2]);
@@ -78,14 +96,20 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 }
                 case "stop" -> {
                     String link = args[1];
-                    Player p = Bukkit.getPlayer(args[2]);
-                    try {
-                        BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).stopAudio(link);
-                    } catch (Exception e) {
+                    if (args.length == 3) {
+                        Player p = Bukkit.getPlayer(args[2]);
+                        try {
+                            BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).stopAudio(link);
+                        } catch (Exception e) {
+                        }
+                    } else {
+                        BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().forEach(((uuid, user) -> {
+                            user.stopAudio(link);
+                        }));
                     }
                 }
                 case "userlist" -> {
-                    sender.sendMessage("§7Users on server:");
+                    sender.sendMessage(Lang.get("users_on_server"));
                     StringJoiner joiner = new StringJoiner("§8, ");
                     BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().values().forEach(u -> {
                         joiner.add((u.isMuted() ? "§c§l" : "§f§l") + Bukkit.getPlayer(u.getPlayerId()).getName());
@@ -98,12 +122,12 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     try {
                         User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
                         if (user.isMuted()) {
-                            sender.sendMessage("§cPlayer is already muted");
+                            sender.sendMessage(Lang.get("player_already_muted"));
                             return false;
                         }
                         long endTime = (long) (System.currentTimeMillis() + 1000 * 60 * Float.parseFloat(args[2]));
                         user.setMuted(true, endTime);
-                        sender.sendMessage("§7Player §f§l" + p.getName() + " §7is now muted !");
+                        sender.sendMessage(Lang.get("player_now_muted", p.getName()));
                     } catch (Exception e) {
                     }
                 }
@@ -113,11 +137,11 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     try {
                         User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
                         if (!user.isMuted()) {
-                            sender.sendMessage("§cPlayer is already unmuted");
+                            sender.sendMessage(Lang.get("player_already_unmuted"));
                             return false;
                         }
                         user.setMuted(false, 0);
-                        sender.sendMessage("§7Player §f§l" + p.getName() + " §7is now unmuted !");
+                        sender.sendMessage(Lang.get("player_now_unmuted", p.getName()));
                     } catch (Exception e) {
                     }
                 }
@@ -128,7 +152,11 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     if (args.length == 3) {
                         link = args[1];
                         radius = Integer.parseInt(args[2]);
-                        loc = ((Player) sender).getLocation();
+                        if (sender instanceof Player p)
+                            loc = p.getLocation();
+                        else if (sender instanceof BlockCommandSender blockCommandSender)
+                            loc = blockCommandSender.getBlock().getLocation();
+                        else loc = null;
                     } else {
                         String world = args[1];
                         int x = Integer.parseInt(args[2]);
@@ -152,6 +180,10 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
             }
         } catch (Exception e) {
             sendHelp(sender);
+            if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) {
+                BoostedAudioAPI.getAPI().debug("DEBUG MESSAGE");
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -161,35 +193,54 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(new String[]{
                 "§8§l[§9§lBoostedAudio§8§l] §7v§f" + BoostedAudioSpigot.getInstance().getPluginVersion() + " " + (Limiter.isPremium() ? "§6§lPremium" : "§aFree"),
                 "",
-                "§7/boostedaudio help §8- §7Show this help",
+                "§7/boostedaudio help §8- " + Lang.get("command_help"),
                 //"§7/boostedaudio reload §8- §7Reload the plugin (can make the server freeze temporarily, and kick all players)",
-                "§7/boostedaudio edit §8- Open edition GUI",
+                "§7/boostedaudio edit §8-" + Lang.get("command_open_edition"),
                 "",
-                "§7/boostedaudio userlist §8- List the players connected to the audio panel on the server, the players in red are muted",
+                "§7/boostedaudio userlist §8- " + Lang.get("command_userlist"),
                 "",
-                "§7/boostedaudio mute <Player> <TimeInMinutes> §8Mute a player in proximity chat",
-                "§7/boostedaudio unmute <Player> §8UnMute a player in proximity chat",
+                "§7/boostedaudio mute " + Lang.get("command_mute"),
+                "§7/boostedaudio unmute " + Lang.get("command_unmute"),
                 "",
-                "§7/boostedaudio play <AudioLink> <Player> <Fade> §8- Play a sound for a player if he's connected",
-                "§7/boostedaudio playradius <AudioLink> <Radius> <Fade> §8- Play a sound for a players if connected in radius at your location",
-                "§7/boostedaudio playradius <world> <x> <y> <z> <AudioLink> <Radius> <Fade> §8- Play a sound for a players if connected in radius at a location",
-                "§7/boostedaudio stop <AudioLink> <Player> §8- Stop a sound for a player if he's connected",
-                "§7/boostedaudio stopradius <AudioLink> <Radius> §8- Stop a sound for a players if connected in radius",
-                "§7/boostedaudio stopradius <world> <x> <y> <z> <AudioLink> <Radius> §8- Stop a sound for a players if connected in radius at a location",
+                "§7/boostedaudio play " + Lang.get("command_play1"),
+                "§7/boostedaudio play " + Lang.get("command_play2"),
+                "§7/boostedaudio playradius " + Lang.get("command_playradius1"),
+                "§7/boostedaudio playradius " + Lang.get("command_playradius2"),
+                "§7/boostedaudio stop " + Lang.get("command_stop1"),
+                "§7/boostedaudio stop " + Lang.get("command_stop2"),
+                "§7/boostedaudio stopradius " + Lang.get("command_stopradius1"),
+                "§7/boostedaudio stopradius " + Lang.get("command_stopradius2"),
         });
     }
 
     @Override
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] args) {
+        List<String> completions;
+        String arg;
         switch (args.length) {
             case 1 -> {
-                return List.of("help", "edit", "userlist", "mute", "unmute", "play", "playradius", "stop", "stopradius");
+                arg = args[0];
+                completions = Arrays.asList("help", "edit", "userlist", "mute", "unmute", "play", "playradius", "stop", "stopradius");
             }
             case 2 -> {
-                return List.of();
+                arg = args[1];
+                switch (args[0]) {
+                    case "mute", "unmute" ->
+                            completions = Bukkit.getOnlinePlayers().stream().map(p -> p.getName()).toList();
+                    default -> completions = new ArrayList<>();
+                }
+            }
+            default -> {
+                arg = "";
+                completions = new ArrayList<>();
             }
         }
-        return null;
+
+        List<String> finalList = new ArrayList<>();
+        StringUtil.copyPartialMatches(arg, completions, finalList);
+
+        Collections.sort(finalList);
+        return finalList;
     }
 
 

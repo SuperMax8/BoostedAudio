@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.api.user;
 
 import com.google.gson.annotations.Expose;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
+import lombok.Getter;
 import org.wildfly.common.annotation.Nullable;
 
 import java.util.Collections;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
+@Getter
 public class Audio {
 
     @Expose
@@ -38,36 +40,13 @@ public class Audio {
         this.loop = loop;
     }
 
-    public int getFadeIn() {
-        return fadeIn;
-    }
-
-    public int getFadeOut() {
-        return fadeOut;
-    }
-
     public String getLink() {
         // Get random link from liste
         return links.get(new Random().nextInt(links.size()));
     }
 
-    public List<String> getLinks() {
-        return links;
-    }
 
-    public AudioSpatialInfo getSpatialInfo() {
-        return spatialInfo;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public boolean isLoop() {
-        return loop;
-    }
-
-
+    @Getter
     public static class AudioSpatialInfo {
 
         @Expose
@@ -91,26 +70,6 @@ public class Audio {
             this.distanceModel = distanceModel;
             this.refDistance = refDistance;
             this.rolloffFactor = rolloffFactor;
-        }
-
-        public double getMaxVoiceDistance() {
-            return maxVoiceDistance;
-        }
-
-        public double getRefDistance() {
-            return refDistance;
-        }
-
-        public double getRolloffFactor() {
-            return rolloffFactor;
-        }
-
-        public SerializableLocation getLocation() {
-            return location;
-        }
-
-        public String getDistanceModel() {
-            return distanceModel;
         }
 
     }

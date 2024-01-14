@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
+import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
@@ -20,13 +21,12 @@ public class BoostedAudioGUI extends AbstractGUI {
 
     @Override
     public void setItems() {
-        inv.setItem(1, ItemUtils.createItm(XMaterial.MUSIC_DISC_CAT.parseMaterial(), "§6§lAudio",
-                "§7Show the audio files of the selfHost webserver"));
-        inv.setItem(4, ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(), "§6§lSpeakers",
-                "§7Edit the speakers"));
-        inv.setItem(7, ItemUtils.createItm(XMaterial.MAP.parseMaterial(), "§6§lRegions",
-                "§7Edit the audio played when a player",
-                "§7enter a worldguard region"));
+        inv.setItem(1, ItemUtils.createItm(XMaterial.MUSIC_DISC_CAT.parseMaterial(), Lang.get("audio"),
+                Lang.get("audio_desc")));
+        inv.setItem(4, ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(), Lang.get("speakers"),
+                Lang.get("speaker_desc")));
+        inv.setItem(7, ItemUtils.createItm(XMaterial.MAP.parseMaterial(), Lang.get("regions"),
+                Lang.get("region_desc")));
     }
 
     public void clickInCustomInv(InventoryClickEvent e) {
@@ -48,7 +48,7 @@ public class BoostedAudioGUI extends AbstractGUI {
                 new WorldSelectionGUI(owner, w -> {
                     owner.closeInventory();
                     if (BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager() != null) new RegionsGUI(owner, w);
-                    else owner.sendMessage("§c§lYou need to install WorldGuard to use this feature");
+                    else owner.sendMessage(Lang.get("worldguard_error"));
                 });
                 break;
         }

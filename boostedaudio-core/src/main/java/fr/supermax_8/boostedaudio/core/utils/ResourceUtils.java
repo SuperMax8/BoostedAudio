@@ -1,5 +1,7 @@
 package fr.supermax_8.boostedaudio.core.utils;
 
+import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -43,7 +45,7 @@ public class ResourceUtils {
     public static InputStream getResourceAsStream(String resourcePath) {
         InputStream inputStream = ResourceUtils.class.getClassLoader().getResourceAsStream(resourcePath);
         if (inputStream == null) {
-            System.out.println("%%__USER__%% The specified resource was not found: " + resourcePath);
+            BoostedAudioAPI.getAPI().info("%%__USER__%% The specified resource was not found: " + resourcePath);
             return null;
         }
         return inputStream;
@@ -57,7 +59,7 @@ public class ResourceUtils {
 
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
-                System.out.println("Resource: " + resource.getFile());
+                BoostedAudioAPI.getAPI().info("Resource: " + resource.getFile());
             }
         } catch (IOException e) {
             e.printStackTrace();

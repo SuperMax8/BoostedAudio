@@ -16,16 +16,24 @@ debugMode: false
 # Update notifications and others
 notification: true
 
-# If true the plugin will set to diffuser mode and will send data to the other instance of the plugin normally setuped on your bungee
-# Set to true if you are on bungee AND boostedaudio is setup on the bungee
-bungeecoord: false
-# Use the same param as the clientWebSocketLink in the bungee config
-bungeeWebsocketLink: wss://localhost:8081
+# Set the working mode of the plugin
+# - Diffuser: This will make the server diffuse to the mainProxyWebsocketLink
+# - Host: Make this server the main server (default mode for spigot)
+# Example the multiserv/multiproxy setup you can do this:
+# - Proxy1: MainHost host mode
+# - Proxy2: Diffuser mode
+# - Spigot1,2,3,4: Diffuser mode
+diffuser: false
+# Use the same param as the clientWebSocketLink in the main proxy config
+mainProxyWebsocketLink: wss://localhost:8081
 # If this is the spigot config: let it empty and a secret will be generated, put it in the bungee config same place
-# If this is the bungee config: put the secrets of the spigot servers here
+# If this a proxy config: put the secrets of the spigot servers here
 # You can also manually define the secret here (Use unique strong secret)
-bungeeSecrets:
-- ""
+secrets:
+  - ""
+# The name of the server used on the proxy (only for diffuser servers)
+# The name of the spigot server (config of your mainProxy) OR a random name for another proxy
+proxyServerName: "lobby"
 
 # Web client
 client-link: https://localhost:8080
@@ -39,12 +47,25 @@ webSocket:
   webSocketPort: 8081
   webSocketHostName: 0.0.0.0
 
-# SSL, ssl will be used for WebClient if enabled, and websocket
+# SSL, ssl will be used for WebClient if enabled, and WebSocket
 # Even ssl option is false the socket & autohost will still be https and wss with a self-signed certificate
+# You can use a .jks file OR use 2 pem files named cert.pem and key.pem
 ssl:
   ssl: false
   keystorePassword: "YOUR_PASSWORD"
   keystoreFileName: "keystore.jks"
+
+# Stun & Turn servers
+# These servers are used for webrtc (the proximity chat technology)
+# By default, the plugin uses free ones
+# If you have a lot of players or problems with inconsistent proximity chat connections,
+# using turn made for your server can resolve proximity chat connections problems
+# https://github.com/coturn/coturn Free open src project to host yourself a stun/turn server
+# https://www.metered.ca/tools/openrelay/ They have a free plan with 50GB for stun/turn servers
+iceServers:
+  - "{urls: 'stun:stun2.l.google.com:19302'},"
+  - "{urls: 'turns:freestun.net:5350', username: 'free', credential: 'free'},"
+  - "{urls: 'turn:freestun.net:3479', username: 'free', credential: 'free'},"
 
 #VoiceChat
 voicechat:
@@ -69,10 +90,8 @@ sendOnConnect: true
 # Delay of the connection message in tick when the player connects
 sendOnConnectDelay: 30
 
-# Don't use if you are not sure
-# If this is true it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
-# this property allows you to fully customize the client by modifying the code of the client
-customClient: false
+# Send a packet map in the second hand
+sendQRcodeOnConnect: true
 
 # Messages
 # If you want to add the generated url in the message for example geyser compatibility you can add the placeholder {link} in the message
@@ -80,37 +99,40 @@ customClient: false
 connectionMessage: "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"
 
+# QRcode map item name
+qrCodeTitle: "§6Scan me to connect to the audio"
+
+# BoostedAudio placeholders from PlaceHolderAPI config
+connectedSymbol: "§f🔊"
+mutedSymbol: "§c🔇"
+notconnectedSymbol: ""
+
+# Don't use if you are not sure
+# If this is true it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
+# this property allows you to fully customize the client by modifying the code of the client
+customClient: false
+
 # WORKS ONLY WITH THE PREMIUM VERSION
 # Custom placeholder in the client html, if you custom the client you even can add new placeholder if you need it,
 # inside placeholder you can use html directly (if the placeholder target is not a tag parameter)
 # if you want more customization with like images or things
 clientConfig:
-  # Custom Colors
   - "{mainColor}=#262c3c"
   - "{primaryColor}=#202433"
   - "{secondaryColor}=#205295"
   - "{accentColor}=#4797de"
-
-  # Images
   - "{bg-img}=https://i.imgur.com/6MelMqC.jpg"
-  # Messages
-  - "{title}=BoostedAudio" # You can put html image here to set a logo
-# - "{title}=<img src="your_logo.png">"
+  - "{bg-opacity}=80"
+  - "{title}=BoostedAudio"
+  - "{page-title}=BoostedAudio Client"
   - "{ambient-volume}=Ambient Volume"
   - "{voice-volume}=Voice Volume"
   - "{click-to-connect}=Click on the page to connect"
-  - "{sidebar-content}=Sidebar Content"
   - "{userList}=User List"
   - "{you-are-mute}=You have been muted by the server"
   - "{search-placeholder}=Search..."
   - "{user-count-label}=Players you can hear:"
-
-  # Texts for Settings
   - "{settings-title}=Settings"
   - "{settings-label}=Parameters of the audio client"
   - "{settings-microphone-device-label}=Microphone Device"
   - "{settings-close-button-label}=Close Settings"
-
-  # Texts for Audio Control Buttons and Labels
-  - "{ambient-volume-label}=Ambient Volume"
-  - "{voice-volume-label}=Voice Volume"
