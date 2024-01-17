@@ -304,7 +304,13 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
     const peerConnections = new Map();
     peerConnections.set("proximitychat", new Map());
 
+    // Map<String, Function>
+    const registeredPackets = new Map();
+    registerPackets();
+
+    // Map<UUID, AudioObject>
     const audioMap = new Map();
+
     let micStream;
     let playerId;
     const params = new URLSearchParams(window.location.search);
@@ -415,18 +421,272 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         setupAudioSystem()
     }
 
-    async function handlePacket(type, packet) {
-        /*    console.log("----------RECEIVING PACKET----------")
-            console.log(JSON.stringify(packet))
-            console.log("------------------------------------")*/
-        let from;
-        let to;
-        let pc;
-        let audio;
-        let id;
-        let audioObj;
-        let layerId;
+    setInterval(async () => {
+        audioMap.forEach((audioObj, uuid) => {
+            const loc = audioObj.location;
+            console.log("Spatialize audio", loc)
+            if (loc) {
+                spatializeAudio(audioObj.panner, loc)
+                if (distance(loc, clientLoc) >= audioObj.maxVoiceDistance) {
+                    audioObj.gainNode.gain.value = 0;
+                } else {
+                    audioObj.gainNode.gain.value = 1;
+                }
+            }
+        })
+    }, 25);
 
+    function registerPackets() {
+        registeredPackets.set("AddPeerPacket", async packet => {
+            if (muted) return
+            const from = packet.from;
+            const to = packet.to;
+            const layerId = packet.layerId;
+            let username = packet.username;
+            let pc;
+            switch (packet.rtcDesc.type) {
+                // Packet action from server
+                case "createoffer":
+                    pc = await createPeerConnection(layerId, from, username)
+                    const offer = await pc.createOffer()
+                    await pc.setLocalDescription(offer)
+
+                    const offerPacket = [
+                        {
+                            "type": "AddPeerPacket",
+                            "value": {
+                                "layerId": layerId,
+                                "from": playerId,
+                                "to": from,
+                                "username": "",
+                                "rtcDesc": {
+                                    "type": offer.type,
+                                    "sdp": offer.sdp,
+                                }
+                            }
+                        }
+                    ]
+                    /*console.log("Offer: " + JSON.stringify(offerPacket))*/
+
+                    console.log("Creating offer")
+                    ws.send(JSON.stringify(offerPacket))
+                    break
+                // Packet action from other user, check by server
+                // Receive offer
+                case "offer":
+                    pc = await createPeerConnection(layerId, from, username)
+                    const desc = new RTCSessionDescription(packet.rtcDesc);
+                    await pc.setRemoteDescription(desc)
+
+                    const answer = await pc.createAnswer()
+                    await pc.setLocalDescription(answer)
+
+                    const answerPacket = [
+                        {
+                            "type": "AddPeerPacket",
+                            "value": {
+                                "layerId": layerId,
+                                "from": to,
+                                "to": from,
+                                "username": "",
+                                "rtcDesc": {
+                                    "type": answer.type,
+                                    "sdp": answer.sdp,
+                                }
+                            }
+                        }
+                    ]
+
+                    ws.send(JSON.stringify(answerPacket))
+                    console.log("Receive OFFER, Sending answer")
+                    break
+                // Packet action from other user, check by server
+                // Receive answer
+                case "answer":
+                    pc = peerConnections.get(layerId).get(from).pc
+                    await pc.setRemoteDescription(new RTCSessionDescription(packet.rtcDesc))
+                    console.log("Receive answer")
+                    break
+            }
+        });
+        registeredPackets.set("RTCIcePacket", async packet => {
+            console.log("RECEIVING ICE CANDIDATE")
+            const from = packet.from;
+            const to = packet.to;
+            const layerId = packet.layerId;
+            console.log(from, to, layerId, packet)
+            const pc = peerConnections.get(layerId).get(from).pc
+            const iceCandidate = new RTCIceCandidate({
+                "candidate": packet.candidate.candidate,
+                "sdpMid": packet.candidate.sdpMid,
+                "sdpMLineIndex": packet.candidate.sdpMLineIndex
+            });
+
+            const candidate = new RTCIceCandidate(iceCandidate);
+
+            await pc.addIceCandidate(candidate)
+                .catch((error) => {
+                    console.error("Erreur with ICE candidate set : ", error);
+                });
+
+            console.log("ICE Candidate set")
+        });
+        registeredPackets.set("RemovePeerPacket", async packet => {
+            const layerId = packet.layerId;
+            const playerToRemoveId = packet.playerToRemove;
+            closePeerConnection(peerConnections.get(layerId).get(playerToRemoveId))
+        });
+        registeredPackets.set("UpdatePeersLocationsPacket", async packet => {
+            // Parse clientloc
+            clientLoc = packet.clientLoc;
+            // Parse peers info
+            const players = packet.playersAround;
+            const map = new Map();
+            for (const key in players) {
+                if (players.hasOwnProperty(key)) map.set(key, players[key]);
+            }
+
+            if (proximityChat)
+                peerConnections.forEach((layerMap, layerId) => {
+                    layerMap.forEach((peerObj, uuid) => {
+                        peerObj.loc = map.get(uuid)
+                        spatializeAudio(peerObj.panner, peerObj.loc)
+                    })
+                })
+        });
+        registeredPackets.set("UpdateAudioLocationPacket", async packet => {
+            console.log(packet)
+            const audioId = packet.audioId;
+            console.log("UpdateAudioLoc,", packet.newLocation)
+            audioMap.get(audioId).location = packet.newLocation;
+        });
+        registeredPackets.set("AddAudioPacket", async packet => {
+            const id = packet.uuid;
+            let panner;
+            let audioSource;
+            const link = encodeURI(packet.link)
+            const spatialInfo = packet.spatialInfo;
+            let maxVoiceDistance = 0;
+            let gainNode;
+            let audio;
+            if (spatialInfo) {
+                panner = new PannerNode(audioContext, {
+                    panningModel: "HRTF",
+                    distanceModel: spatialInfo.distanceModel,
+                    refDistance: Math.max(spatialInfo.refDistance, 0.1),
+                    rolloffFactor: spatialInfo.rolloffFactor,
+                    coneInnerAngle: 40,
+                    coneOuterAngle: 30,
+                    coneOuterGain: 0.4,
+                });
+
+                const url = link.startsWith("https") ? link : link.startsWith("http") ? 'https://corsproxy.io/?' + link : link;
+                const audioHtml = new Audio(url)
+                audioHtml.crossOrigin = "anonymous"
+                audioSource = audioContext.createMediaElementSource(audioHtml);
+                audio = audioSource.mediaElement;
+                maxVoiceDistance = spatialInfo.maxVoiceDistance;
+                gainNode = audioContext.createGain();
+
+                audioSource.connect(panner);
+                panner.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+            } else
+                audio = new Audio(link)
+
+            console.log("Playing " + id, " url", link)
+            audio.play()
+            const oldAudio = audioMap.get(id);
+            if (oldAudio) {
+                oldAudio.audio.pause();
+            }
+
+            audio.addEventListener('ended', function () {
+                console.log("Audio finished playing ", audioMap.get(id));
+                audioMap.delete(id)
+                if (gainNode) gainNode.disconnect();
+                const endAudioPacket =
+                    [
+                        {
+                            "type": "RemoveAudioPacket",
+                            "value": {
+                                "uuid": id,
+                                "fade": 0
+                            }
+                        }
+                    ]
+                ws.send(JSON.stringify(endAudioPacket))
+            });
+
+            const audioObj = {
+                audio: audio,
+                audioSource: audioSource,
+                panner: panner,
+                location: spatialInfo ? spatialInfo.location : null,
+                gainNode: gainNode,
+                maxVoiceDistance: maxVoiceDistance,
+                fadeInterval: null,
+            }
+            fadeIn(audio, packet.fadeIn, audioObj)
+            audioMap.set(id, audioObj)
+        });
+        registeredPackets.set("PausePlayAudioPacket", async packet => {
+            const audioObj = audioMap.get(packet.uuid);
+            const audio = audioObj.audio;
+            if (audio.paused)
+                fadeIn(audio, packet.fade, audioObj)
+            else
+                fadeOut(audio, packet.fade, audioObj)
+        });
+        registeredPackets.set("RemoveAudioPacket", async packet => {
+            const id = packet.uuid;
+            const audioObj = audioMap.get(id);
+            if (audioObj) {
+                console.log("Stop playing audio: " + id)
+                audioMap.delete(id)
+                fadeOut(audioObj.audio, packet.fade, () => {
+                    if (audioObj.panner) audioObj.panner.disconnect();
+                }, audioObj)
+            }
+        });
+        registeredPackets.set("TrustPacket", async packet => {
+            const serverInfo = packet.serverInfo;
+            maxDistance = serverInfo.maxDistance;
+            rolloffFactor = serverInfo.rolloffFactor;
+            refDistance = serverInfo.refDistance;
+            distanceModel = serverInfo.distanceModel;
+            playerId = serverInfo.playerId;
+            console.log("ServerInfo set")
+            serverInfoSet = true;
+            initWithServerInfo()
+        });
+        registeredPackets.set("ServerChangePacket", async packet => {
+            const serverName = packet.serverName;
+            console.log("Server change to " + serverName)
+            audioMap.forEach((audioObj, uuid) => {
+                const audio = audioObj.audio;
+                audio.pause();
+                audio.currentTime = 0;
+            })
+            audioMap.clear()
+        });
+        registeredPackets.set("MutePacket", async packet => {
+            const mute = packet.mute;
+            muted = mute;
+            if (mute) {
+                muteUser.classList.remove("hidden");
+                for (let value of peerConnections.values()) {
+                    for (let pc of value.values()) {
+                        closePeerConnection(pc);
+                    }
+                }
+            } else {
+                muteUser.classList.add("hidden")
+            }
+        });
+    }
+
+    async function handlePacket(type, packet) {
         if (type !== "TrustPacket") {
             if (!consent || !serverInfoSet) {
                 console.log("Delaying the Packet waiting for server response or user click (consent)...")
@@ -437,266 +697,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             }
         }
 
-        switch (type) {
-            case "AddPeerPacket":
-                if (muted) return
-                from = packet.from;
-                to = packet.to;
-                layerId = packet.layerId;
-                let username = packet.username;
-                switch (packet.rtcDesc.type) {
-                    // Packet action from server
-                    case "createoffer":
-                        pc = await createPeerConnection(layerId, from, username)
-                        const offer = await pc.createOffer()
-                        await pc.setLocalDescription(offer)
-
-                        const offerPacket = [
-                            {
-                                "type": "AddPeerPacket",
-                                "value": {
-                                    "layerId": layerId,
-                                    "from": playerId,
-                                    "to": from,
-                                    "username": "",
-                                    "rtcDesc": {
-                                        "type": offer.type,
-                                        "sdp": offer.sdp,
-                                    }
-                                }
-                            }
-                        ]
-                        /*console.log("Offer: " + JSON.stringify(offerPacket))*/
-
-                        console.log("Creating offer")
-                        ws.send(JSON.stringify(offerPacket))
-                        break
-                    // Packet action from other user, check by server
-                    // Receive offer
-                    case "offer":
-                        pc = await createPeerConnection(layerId, from, username)
-                        const desc = new RTCSessionDescription(packet.rtcDesc);
-                        await pc.setRemoteDescription(desc)
-
-                        const answer = await pc.createAnswer()
-                        await pc.setLocalDescription(answer)
-
-                        const answerPacket = [
-                            {
-                                "type": "AddPeerPacket",
-                                "value": {
-                                    "layerId": layerId,
-                                    "from": to,
-                                    "to": from,
-                                    "username": "",
-                                    "rtcDesc": {
-                                        "type": answer.type,
-                                        "sdp": answer.sdp,
-                                    }
-                                }
-                            }
-                        ]
-
-                        ws.send(JSON.stringify(answerPacket))
-                        console.log("Receive OFFER, Sending answer")
-                        break
-                    // Packet action from other user, check by server
-                    // Receive answer
-                    case "answer":
-                        pc = peerConnections.get(layerId).get(from).pc
-                        await pc.setRemoteDescription(new RTCSessionDescription(packet.rtcDesc))
-                        console.log("Receive answer")
-                        break
-                }
-                break
-            case "RTCIcePacket":
-                console.log("RECEIVING ICE CANDIDATE")
-                from = packet.from;
-                to = packet.to;
-                layerId = packet.layerId;
-                console.log(from, to, layerId, packet)
-                pc = peerConnections.get(layerId).get(from).pc
-                const iceCandidate = new RTCIceCandidate({
-                    "candidate": packet.candidate.candidate,
-                    "sdpMid": packet.candidate.sdpMid,
-                    "sdpMLineIndex": packet.candidate.sdpMLineIndex
-                });
-
-                const candidate = new RTCIceCandidate(iceCandidate);
-
-                await pc.addIceCandidate(candidate)
-                    .catch((error) => {
-                        console.error("Erreur with ICE candidate set : ", error);
-                    });
-
-                console.log("ICE Candidate set")
-                break
-            case "RemovePeerPacket":
-                layerId = packet.layerId;
-                const playerToRemoveId = packet.playerToRemove;
-                closePeerConnection(peerConnections.get(layerId).get(playerToRemoveId))
-                break
-            case "UpdateVocalPositionsPacket":
-                // Parse clientloc
-                clientLoc = packet.clientLoc;
-                // Parse peers info
-                const players = packet.playersAround;
-                const map = new Map();
-                for (const key in players) {
-                    if (players.hasOwnProperty(key)) map.set(key, players[key]);
-                }
-
-                audioMap.forEach((audioObj, uuid) => {
-                    const loc = audioObj.location;
-                    if (loc) {
-                        spatializeAudio(audioObj.panner, loc)
-                        if (distance(loc, clientLoc) >= audioObj.maxVoiceDistance) {
-                            audioObj.gainNode.gain.value = 0;
-                        } else {
-                            audioObj.gainNode.gain.value = 1;
-                        }
-                    }
-                })
-
-                if (proximityChat)
-                    peerConnections.forEach((layerMap, layerId) => {
-                        layerMap.forEach((peerObj, uuid) => {
-                            peerObj.loc = map.get(uuid)
-                            spatializeAudio(peerObj.panner, peerObj.loc)
-                        })
-                    })
-                break
-            case "AddAudioPacket":
-                id = packet.uuid;
-                let panner;
-                let audioSource;
-                const link = encodeURI(packet.link)
-                const spatialInfo = packet.spatialInfo;
-                let maxVoiceDistance = 0;
-                let gainNode;
-                if (spatialInfo) {
-                    panner = new PannerNode(audioContext, {
-                        panningModel: "HRTF",
-                        distanceModel: spatialInfo.distanceModel,
-                        refDistance: Math.max(spatialInfo.refDistance, 0.1),
-                        rolloffFactor: spatialInfo.rolloffFactor,
-                        coneInnerAngle: 40,
-                        coneOuterAngle: 30,
-                        coneOuterGain: 0.4,
-                    });
-
-                    const url = link.startsWith("https") ? link : link.startsWith("http") ? 'https://corsproxy.io/?' + link : link;
-                    const audioHtml = new Audio(url)
-                    audioHtml.crossOrigin = "anonymous"
-                    audioSource = audioContext.createMediaElementSource(audioHtml);
-                    audio = audioSource.mediaElement;
-                    maxVoiceDistance = spatialInfo.maxVoiceDistance;
-                    gainNode = audioContext.createGain();
-
-                    audioSource.connect(panner);
-                    panner.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                } else
-                    audio = new Audio(link)
-
-                console.log("Playing " + id, " url", link)
-                audio.play()
-                const oldAudio = audioMap.get(id);
-                if (oldAudio) {
-                    oldAudio.audio.pause();
-                }
-
-                audio.addEventListener('ended', function () {
-                    console.log("Audio finished playing ", audioMap.get(id));
-                    audioMap.delete(id)
-                    if (gainNode) gainNode.disconnect();
-                    const endAudioPacket =
-                        [
-                            {
-                                "type": "RemoveAudioPacket",
-                                "value": {
-                                    "uuid": id,
-                                    "fade": 0
-                                }
-                            }
-                        ]
-                    ws.send(JSON.stringify(endAudioPacket))
-                });
-
-                audioObj = {
-                    audio: audio,
-                    audioSource: audioSource,
-                    panner: panner,
-                    location: spatialInfo ? spatialInfo.location : null,
-                    gainNode: gainNode,
-                    maxVoiceDistance: maxVoiceDistance,
-                    fadeInterval: null,
-                }
-                fadeIn(audio, packet.fadeIn, audioObj)
-                audioMap.set(id, audioObj)
-                break
-            case "PausePlayAudioPacket":
-
-            function pausePlayAudioPacket() {
-                const audioObj = audioMap.get(packet.uuid);
-                audio = audioObj.audio;
-                if (audio.paused)
-                    fadeIn(audio, packet.fade, audioObj)
-                else
-                    fadeOut(audio, packet.fade, audioObj)
-            }
-
-                pausePlayAudioPacket()
-                break
-            case "RemoveAudioPacket":
-                id = packet.uuid;
-                audioObj = audioMap.get(id);
-                if (audioObj) {
-                    console.log("Stop playing audio: " + id)
-                    audioMap.delete(id)
-                    fadeOut(audioObj.audio, packet.fade, () => {
-                        if (audioObj.panner) audioObj.panner.disconnect();
-                    }, audioObj)
-                }
-                break
-            case "TrustPacket":
-                const serverInfo = packet.serverInfo;
-                maxDistance = serverInfo.maxDistance;
-                rolloffFactor = serverInfo.rolloffFactor;
-                refDistance = serverInfo.refDistance;
-                distanceModel = serverInfo.distanceModel;
-                playerId = serverInfo.playerId;
-                console.log("ServerInfo set")
-                serverInfoSet = true;
-                initWithServerInfo()
-                break;
-            case "ServerChangePacket":
-                const serverName = packet.serverName;
-                console.log("Server change to " + serverName)
-                audioMap.forEach((audioObj, uuid) => {
-                    const audio = audioObj.audio;
-                    audio.pause();
-                    audio.currentTime = 0;
-                })
-                audioMap.clear()
-                break
-            case "MutePacket":
-                const mute = packet.mute;
-                muted = mute;
-                if (mute) {
-                    muteUser.classList.remove("hidden");
-                    for (let value of peerConnections.values()) {
-                        for (let pc of value.values()) {
-                            closePeerConnection(pc);
-                        }
-                    }
-                } else {
-                    muteUser.classList.add("hidden")
-                }
-                break
-            default:
-                break;
-        }
+        registeredPackets.get(type)(packet);
     }
 
     function distance(location1, location2) {

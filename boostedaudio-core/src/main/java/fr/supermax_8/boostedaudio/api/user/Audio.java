@@ -1,22 +1,23 @@
 package fr.supermax_8.boostedaudio.api.user;
 
 import com.google.gson.annotations.Expose;
+import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
+import fr.supermax_8.boostedaudio.core.websocket.packets.UpdateAudioLocationPacket;
 import lombok.Getter;
 import org.wildfly.common.annotation.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 public class Audio {
 
     @Expose
     private final List<String> links;
-
-    @Nullable@Expose
+    @Expose
+    private final HashSet<UUID> currentListeners = new HashSet<>();
+    @Nullable
+    @Expose
     private final AudioSpatialInfo spatialInfo;
     @Expose
     private final UUID id;
@@ -41,16 +42,31 @@ public class Audio {
     }
 
     public String getLink() {
-        // Get random link from liste
+        // Get a random link from list
         return links.get(new Random().nextInt(links.size()));
     }
 
+    public void updateLocation(SerializableLocation location) {
+        spatialInfo.location = location;
+        UpdateAudioLocationPacket packet = new UpdateAudioLocationPacket(this, location);
+        for (UUID id : currentListeners) {
+            User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(id);
+            user.sendPacket(packet);
+        }
+    }
+
+    public void stop() {
+        for (UUID id : currentListeners) {
+            User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(id);
+            user.stopAudio(this);
+        }
+    }
 
     @Getter
     public static class AudioSpatialInfo {
 
         @Expose
-        private final SerializableLocation location;
+        protected SerializableLocation location;
         @Expose
         private final double maxVoiceDistance;
         @Expose

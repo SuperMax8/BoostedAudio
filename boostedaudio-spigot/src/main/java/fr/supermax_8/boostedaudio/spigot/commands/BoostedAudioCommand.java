@@ -1,20 +1,26 @@
 package fr.supermax_8.boostedaudio.spigot.commands;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.Limiter;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
+import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.gui.BoostedAudioGUI;
+import fr.supermax_8.boostedaudio.spigot.utils.InternalUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.StringUtil;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
 
@@ -175,6 +181,40 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                             if (user != null) user.stopAudio(link);
                         }
                     });
+                }
+                case "test" -> {
+                    String link = args[1];
+                    Player p = (Player) sender;
+                    User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
+                    Audio audio = user.playAudio(link,
+                            new Audio.AudioSpatialInfo(InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()), 15),
+                            350
+                    );
+                    double distance = 10;
+                    AtomicInteger angle = new AtomicInteger();
+                    AtomicInteger count = new AtomicInteger();
+                    Bukkit.getScheduler().runTaskTimerAsynchronously(BoostedAudioSpigot.getInstance(), t -> {
+                        if (count.get() == 20 * 20) {
+                            t.cancel();
+                            audio.stop();
+                            p.sendMessage("End");
+                            return;
+                        }
+                        double radians = Math.toRadians(angle.get());
+                        Location currentLocation = p.getLocation();
+                        double x = currentLocation.getX() + distance * Math.cos(radians);
+                        double z = currentLocation.getZ() + distance * Math.sin(radians);
+                        Location newLocation = new Location(currentLocation.getWorld(), x, currentLocation.getY(), z);
+                        audio.updateLocation(InternalUtils.bukkitLocationToSerializableLoc(newLocation));
+                        if (angle.get() >= 360) angle.set(0);
+                        else {
+                            angle.addAndGet(5);
+                        }
+                        Bukkit.getScheduler().runTask(BoostedAudioSpigot.getInstance(), () -> {
+                            newLocation.getWorld().spawnParticle(Particle.FLAME, newLocation, 10);
+                        });
+                        count.incrementAndGet();
+                    }, 0, 0);
                 }
                 default -> sendHelp(sender);
             }

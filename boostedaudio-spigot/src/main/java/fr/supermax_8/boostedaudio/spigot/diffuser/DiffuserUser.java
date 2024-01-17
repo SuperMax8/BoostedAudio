@@ -88,6 +88,7 @@ public class DiffuserUser implements User {
         BoostedAudioSpigot.sendServerPacket("playaudio",
                 playerId + ";" + BoostedAudioAPI.getAPI().getGson().toJson(audio)
         );
+        audio.getCurrentListeners().add(playerId);
     }
 
     @Override
@@ -132,6 +133,7 @@ public class DiffuserUser implements User {
         BoostedAudioSpigot.sendServerPacket("removeaudio",
                 playerId + ";" + BoostedAudioAPI.getAPI().getGson().toJson(audio)
         );
+        audio.getCurrentListeners().remove(playerId);
     }
 
     @Override
@@ -147,7 +149,7 @@ public class DiffuserUser implements User {
 
     @Override
     public void sendPacket(String packet) {
-        if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) BoostedAudioAPI.getAPI().info("SendingPacket: " + packet);
+        if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) BoostedAudioAPI.getAPI().debug("SendingPacket: " + packet);
         String message = playerId.toString() + ";" + packet;
         BoostedAudioSpigot.sendServerPacket("senduserpacket", message);
     }

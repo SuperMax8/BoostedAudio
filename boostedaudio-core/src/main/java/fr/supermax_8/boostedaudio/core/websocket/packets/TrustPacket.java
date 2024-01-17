@@ -5,8 +5,6 @@ import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.api.event.events.UserJoinEvent;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
-import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
-import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.core.Limiter;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
@@ -15,7 +13,6 @@ import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TrustPacket implements Packet {
 
@@ -41,7 +38,7 @@ public class TrustPacket implements Packet {
                 }
             }
 
-            newUser.checkMute();
+            newUser.applyMuteIfMute();
             manager.getUsers().put(playerId, newUser);
             manager.getSessionUsers().put(user.getSession(), Optional.of(newUser));
             BoostedAudioAPI.api.debug("New trusted: " + playerId);

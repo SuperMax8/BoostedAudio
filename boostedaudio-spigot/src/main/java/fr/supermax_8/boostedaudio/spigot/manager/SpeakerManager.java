@@ -6,6 +6,7 @@ import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.AroundManager;
 import fr.supermax_8.boostedaudio.spigot.utils.InternalUtils;
+import lombok.Getter;
 import org.bukkit.Location;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SpeakerManager {
 
     private final AroundManager manager = BoostedAudioSpigot.getInstance().getAroundManager();
+    @Getter
     public final ConcurrentHashMap<Location, Audio> speakers = new ConcurrentHashMap<>();
 
     public SpeakerManager() {
@@ -39,10 +41,6 @@ public class SpeakerManager {
     public void removeSpeaker(Location location) {
         manager.removeAround(location);
         speakers.remove(location);
-    }
-
-    public ConcurrentHashMap<Location, Audio> getSpeakers() {
-        return speakers;
     }
 
 }

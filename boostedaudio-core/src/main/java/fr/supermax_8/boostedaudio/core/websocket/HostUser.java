@@ -101,6 +101,7 @@ public class HostUser implements User {
         waitUntil();
         AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
         playingAudio.put(audio.getId(), audio);
+        audio.getCurrentListeners().add(playerId);
         sendPacket(packet);
     }
 
@@ -147,6 +148,7 @@ public class HostUser implements User {
         RemoveAudioPacket packet = new RemoveAudioPacket(audio.getId(), audio.getFadeOut());
         sendPacket(packet);
         playingAudio.remove(audio.getId());
+        audio.getCurrentListeners().remove(playerId);
     }
 
     @Override
@@ -181,7 +183,7 @@ public class HostUser implements User {
             VoiceChatManager.getMutedUsers().remove(playerId);
     }
 
-    public void checkMute() {
+    public void applyMuteIfMute() {
         VoiceChatManager.MuteUser usr = VoiceChatManager.getMutedUsers().get(playerId);
         if (usr != null) {
             muted = true;
