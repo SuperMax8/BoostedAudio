@@ -426,7 +426,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             const loc = audioObj.location;
             console.log("Spatialize audio", loc)
             if (loc) {
-                spatializeAudio(audioObj.panner, loc)
+                spatializeAudio(audioObj, loc)
                 if (distance(loc, clientLoc) >= audioObj.maxVoiceDistance) {
                     audioObj.gainNode.gain.value = 0;
                 } else {
@@ -550,7 +550,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 peerConnections.forEach((layerMap, layerId) => {
                     layerMap.forEach((peerObj, uuid) => {
                         peerObj.loc = map.get(uuid)
-                        spatializeAudio(peerObj.panner, peerObj.loc)
+                        spatializeAudio(peerObj, peerObj.loc)
                     })
                 })
         });
@@ -575,9 +575,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                     distanceModel: spatialInfo.distanceModel,
                     refDistance: Math.max(spatialInfo.refDistance, 0.1),
                     rolloffFactor: spatialInfo.rolloffFactor,
-                    coneInnerAngle: 40,
-                    coneOuterAngle: 30,
-                    coneOuterGain: 0.4,
+                    coneInnerAngle: 360,
+                    coneOuterAngle: 360,
+                    coneOuterGain: 1,
                 });
 
                 const url = link.startsWith("https") ? link : link.startsWith("http") ? 'https://corsproxy.io/?' + link : link;
@@ -587,6 +587,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 audio = audioSource.mediaElement;
                 maxVoiceDistance = spatialInfo.maxVoiceDistance;
                 gainNode = audioContext.createGain();
+
 
                 audioSource.connect(panner);
                 panner.connect(gainNode);
@@ -782,25 +783,31 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         fade()
     }
 
-    function spatializeAudio(panner, objToSpatialize) {
-        if (objToSpatialize == null) return
-        //console.log("Spatialize audio", objToSpatialize, panner)
+    function spatializeAudio(pannerObject, objToSpatialize) {
+        if (objToSpatialize == null) return;
+
+        console.log("Spatialize audio", objToSpatialize, pannerObject, clientLoc.yaw)
         // Calc peer loc relative to the client
         const x = objToSpatialize.x - clientLoc.x;
         const y = objToSpatialize.y - clientLoc.y;
         const z = objToSpatialize.z - clientLoc.z;
 
         // Calc yaw
-        const yaw = degrees_to_radians(-clientLoc.yaw)
+        const yawRadian = degrees_to_radians(-clientLoc.yaw)
+
+        const cosYaw = Math.cos(yawRadian)
+        const sinYaw = Math.sin(yawRadian)
 
         // Rotate
-        const newX = x * Math.cos(yaw) - z * Math.sin(yaw);
-        const newZ = x * Math.sin(yaw) + z * Math.cos(yaw);
+        const newX = x * cosYaw - z * sinYaw;
+        const newZ = x * sinYaw + z * cosYaw;
+
+        console.log(clientLoc.yaw + " | " + newX + " " + y + " " + newZ)
 
         // Set the values
-        panner.positionX.value = newX
-        panner.positionY.value = y
-        panner.positionZ.value = newZ
+        pannerObject.panner.positionX.value = newX
+        pannerObject.panner.positionY.value = y
+        pannerObject.panner.positionZ.value = newZ
     }
 
     function degrees_to_radians(degrees) {
@@ -819,9 +826,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             distanceModel: distanceModel,
             refDistance: Math.max(refDistance, 0.1),
             rolloffFactor: rolloffFactor,
-            coneInnerAngle: 40,
-            coneOuterAngle: 30,
-            coneOuterGain: 0.4,
+            coneInnerAngle: 360,
+            coneOuterAngle: 360,
+            coneOuterGain: 1,
         });
 
         const gain = audioContext.createGain();
