@@ -48,6 +48,7 @@ public class VoiceChatProcessor {
                 }
 
                 VoiceChatResult result = new VoiceChatResult(layerInfos);
+                //System.out.println("Result: " + result);
                 afterMath.accept(result);
             });
         } catch (Exception e) {

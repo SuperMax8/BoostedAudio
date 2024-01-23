@@ -138,6 +138,7 @@ public class VoiceChatManager {
                 peerLocations
         );
         user.sendPacket(updatePacket);
+        //System.out.println("UpdatePeersLocationsPacket for user " + user);
     }
 
 

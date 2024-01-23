@@ -302,7 +302,6 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
     // Map<String(layerId), Map<UUID, PeerConnectionContainer>>
     const peerConnections = new Map();
-    peerConnections.set("proximitychat", new Map());
 
     // Map<String, Function>
     const registeredPackets = new Map();
@@ -378,6 +377,12 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         settingsMenu.classList.add('hidden');
     });
 
+    function getLayerMap(layerId) {
+        if (!peerConnections.has(layerId)) peerConnections.set(layerId, new Map());
+        return peerConnections.get(layerId)
+    }
+
+
     // Search bar
     const search = document.getElementById("search");
     const userCount = document.getElementById("userCount");
@@ -392,7 +397,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         document.getElementById("voice").classList.add("hidden")
     } else {
         setInterval(() => {
-            userCount.textContent = peerConnections.get("proximitychat").size
+            userCount.textContent = getLayerMap("proximitychat").size
             const userElement = users.getElementsByClassName("user")
             if (search.value.length === 0) return
             for (let i = 0; i < userElement.length; i++) {
@@ -424,7 +429,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
     setInterval(async () => {
         audioMap.forEach((audioObj, uuid) => {
             const loc = audioObj.location;
-            console.log("Spatialize audio", loc)
+            //console.log("Spatialize audio", loc)
             if (loc) {
                 spatializeAudio(audioObj, loc)
                 if (distance(loc, clientLoc) >= audioObj.maxVoiceDistance) {
@@ -434,7 +439,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 }
             }
         })
-    }, 25);
+    }, 50);
 
     function registerPackets() {
         registeredPackets.set("AddPeerPacket", async packet => {
@@ -503,7 +508,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 // Packet action from other user, check by server
                 // Receive answer
                 case "answer":
-                    pc = peerConnections.get(layerId).get(from).pc
+                    pc = getLayerMap(layerId).get(from).pc
                     await pc.setRemoteDescription(new RTCSessionDescription(packet.rtcDesc))
                     console.log("Receive answer")
                     break
@@ -515,7 +520,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             const to = packet.to;
             const layerId = packet.layerId;
             console.log(from, to, layerId, packet)
-            const pc = peerConnections.get(layerId).get(from).pc
+            const pc = getLayerMap(layerId).get(from).pc
             const iceCandidate = new RTCIceCandidate({
                 "candidate": packet.candidate.candidate,
                 "sdpMid": packet.candidate.sdpMid,
@@ -534,11 +539,12 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         registeredPackets.set("RemovePeerPacket", async packet => {
             const layerId = packet.layerId;
             const playerToRemoveId = packet.playerToRemove;
-            closePeerConnection(peerConnections.get(layerId).get(playerToRemoveId))
+            closePeerConnection(getLayerMap(layerId).get(playerToRemoveId))
         });
         registeredPackets.set("UpdatePeersLocationsPacket", async packet => {
             // Parse clientloc
             clientLoc = packet.clientLoc;
+            //console.log("UpdateClientLoc")
             // Parse peers info
             const players = packet.playersAround;
             const map = new Map();
@@ -557,7 +563,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         registeredPackets.set("UpdateAudioLocationPacket", async packet => {
             console.log(packet)
             const audioId = packet.audioId;
-            console.log("UpdateAudioLoc,", packet.newLocation)
+            //console.log("UpdateAudioLoc,", packet.newLocation)
             audioMap.get(audioId).location = packet.newLocation;
         });
         registeredPackets.set("AddAudioPacket", async packet => {
@@ -647,6 +653,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 audioMap.delete(id)
                 fadeOut(audioObj.audio, packet.fade, () => {
                     if (audioObj.panner) audioObj.panner.disconnect();
+                    clearInterval(audioObj.lerpInterval);
                 }, audioObj)
             }
         });
@@ -783,14 +790,37 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         fade()
     }
 
-    function spatializeAudio(pannerObject, objToSpatialize) {
-        if (objToSpatialize == null) return;
+    function spatializeAudio(pannerObject, loc) {
+        if (!loc) return;
 
-        console.log("Spatialize audio", objToSpatialize, pannerObject, clientLoc.yaw)
+        pannerObject.t = 0;
+        if (!pannerObject.lerpInterval) {
+            pannerObject.lastLoc = loc;
+            pannerObject.currentLoc = loc;
+
+            pannerObject.lerpInterval = setInterval(() => {
+                const lerpLoc = {
+                    x : lerp(pannerObject.lastLoc.x, pannerObject.currentLoc.x, pannerObject.t),
+                    y : lerp(pannerObject.lastLoc.y, pannerObject.currentLoc.y, pannerObject.t),
+                    z : lerp(pannerObject.lastLoc.z, pannerObject.currentLoc.z, pannerObject.t)
+                };
+                spatializeAudio0(pannerObject, lerpLoc)
+                console.log("T: " + pannerObject.t + " ", lerpLoc)
+                pannerObject.t += 0.1;
+            }, 5);
+        } else {
+            pannerObject.lastLoc = pannerObject.currentLoc;
+            pannerObject.currentLoc = loc;
+        }
+    }
+
+    function spatializeAudio0(pannerObject, location) {
+        // console.log("Spatialize audio", objToSpatialize, pannerObject, clientLoc.yaw)
+        console.log(pannerObject, location)
         // Calc peer loc relative to the client
-        const x = objToSpatialize.x - clientLoc.x;
-        const y = objToSpatialize.y - clientLoc.y;
-        const z = objToSpatialize.z - clientLoc.z;
+        const x = location.x - clientLoc.x;
+        const y = location.y - clientLoc.y;
+        const z = location.z - clientLoc.z;
 
         // Calc yaw
         const yawRadian = degrees_to_radians(-clientLoc.yaw)
@@ -810,6 +840,10 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         pannerObject.panner.positionZ.value = newZ
     }
 
+    function lerp(start, end, t) {
+        return start * (1 - t) + end * t;
+    }
+
     function degrees_to_radians(degrees) {
         const pi = Math.PI;
         return degrees * (pi / 180);
@@ -818,7 +852,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
     async function createPeerConnection(layerId, peerId, username) {
         console.log("New RTCPeerConnection")
         let pc = new RTCPeerConnection(servers)
-        if (peerConnections.get(layerId).has(peerId)) closePeerConnection(peerConnections.get(layerId).get(peerId))
+        if (getLayerMap(layerId).has(peerId)) closePeerConnection(getLayerMap(layerId).get(peerId))
 
         // Init var
         const panner = new PannerNode(audioContext, {
@@ -869,8 +903,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             }
         }
 
-        if (!peerConnections.has(layerId)) peerConnections.set(layerId, new Map())
-        peerConnections.get(layerId).set(peerId, peerConnectionContainer)
+        getLayerMap(layerId).set(peerId, peerConnectionContainer)
 
         pc.onicecandidateerror = event => {
             console.error("Error ICE Candidate :", event);
@@ -998,7 +1031,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         if (peerConnectionContainer == null) return
         peerConnectionContainer.pc.close()
         if (peerConnectionContainer.element != null) peerConnectionContainer.element.remove()
-        peerConnections.get(peerConnectionContainer.layerId).delete(peerConnectionContainer.playerId)
+        getLayerMap(peerConnectionContainer.layerId).delete(peerConnectionContainer.playerId)
     }
 
     function htmlStringToElement(htmlString) {
