@@ -108,7 +108,7 @@ mutedSymbol: "§c🔇"
 notconnectedSymbol: ""
 
 # Don't use if you are not sure
-# If this is true it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
+# If this is true, it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
 # this property allows you to fully customize the client by modifying the code of the client
 customClient: false
 
@@ -135,4 +135,6 @@ clientConfig:
   - "{settings-title}=Settings"
   - "{settings-label}=Parameters of the audio client"
   - "{settings-microphone-device-label}=Microphone Device"
+  - "{settings-micThreshold-label}=Microphone sensitivity"
+  - "{settings-micThreshold-description}=Sensivity of the microphone in dB, the noise bellow this dB amount will be cancel, the bar moving represent your current mic volume"
   - "{settings-close-button-label}=Close Settings"
