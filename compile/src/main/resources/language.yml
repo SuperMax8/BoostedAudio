@@ -69,6 +69,9 @@ player_now_muted: "§7Player §f§l{0} §7is now muted !"
 player_already_unmuted: "§cPlayer is already unmuted"
 player_now_unmuted: "§7Player §f§l{0} §7is now unmuted !"
 
+youreNowMuted: "§cYou have muted yourself"
+youreNowUnMuted: "§7You have unmuted yourself"
+
 command_help: "§7Show this help"
 command_open_edition: "Open edition GUI"
 command_userlist: "List the players connected to the audio panel on the server, the players in red are muted"

@@ -48,6 +48,7 @@ public interface User {
     void sendPacket(String packet);
 
     boolean isMuted();
+    boolean isClientMuted();
 
     void setMuted(boolean muted, long endTime);
 

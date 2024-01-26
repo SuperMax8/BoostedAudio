@@ -18,6 +18,7 @@ import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioQRcodeCommand;
 import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
+import fr.supermax_8.boostedaudio.spigot.commands.MuteCommand;
 import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserUser;
 import fr.supermax_8.boostedaudio.spigot.manager.AudioManager;
 import fr.supermax_8.boostedaudio.spigot.manager.PlaceHoldersManager;
@@ -93,6 +94,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         getCommand("audio").setExecutor(new AudioCommandSpigot());
         getCommand("boostedaudio").setExecutor(new BoostedAudioCommand());
         getCommand("audioqrcode").setExecutor(new AudioQRcodeCommand());
+        getCommand("mute").setExecutor(new MuteCommand());
 
         checkForUpdates();
 

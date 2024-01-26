@@ -26,6 +26,7 @@ public class DiffuserUser implements User {
     private final UUID playerId;
 
     private final boolean muted;
+    private final boolean clientMuted;
 
     public DiffuserUser(HostUser user) {
         remotePeers = user.getRemotePeers();
@@ -33,6 +34,7 @@ public class DiffuserUser implements User {
         connectionToken = user.getConnectionToken();
         playerId = user.getPlayerId();
         muted = user.isMuted();
+        clientMuted = user.isClientMuted();
     }
 
     @Override
@@ -157,6 +159,11 @@ public class DiffuserUser implements User {
     @Override
     public boolean isMuted() {
         return muted;
+    }
+
+    @Override
+    public boolean isClientMuted() {
+        return clientMuted;
     }
 
     @Override

@@ -22,3 +22,7 @@ commands:
     permission: boostedaudio.admin
     aliases:
       - ba
+  mute:
+    aliases:
+      - mutetoggle
+      - mt

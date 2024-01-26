@@ -200,12 +200,14 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                     </div>
 
                     <div class="flex justify-center items-center relative m-5">
-                        <div id="speakingHalo" class="h-14 w-14 bg-emerald-500 absolute blur-lg opacity-80 rounded-full duration-300">
+                        <div id="speakingHalo"
+                             class="h-14 w-14 bg-emerald-500 absolute blur-lg opacity-80 rounded-full duration-300">
                         </div>
                         <svg id="muteButton" class="absolute z-10 h-12 w-12 text-white cursor-pointer
                     bg-secondary hover:bg-accent duration-300 font-bold rounded red-animation"
                              stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg" width="512.000000pt"
-                             height="512.000000pt" viewBox="0 0 512.000000 512.000000" preserveAspectRatio="xMidYMid meet">
+                             height="512.000000pt" viewBox="0 0 512.000000 512.000000"
+                             preserveAspectRatio="xMidYMid meet">
                             <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="currentColor"
                                stroke="currentColor">
                                 <path d="M2393 4786 c-401 -77 -709 -387 -778 -785 -12 -69 -15 -226 -15 -881 0 -848 2 -885 49 -1023 65 -188 194 -361 358 -480 70 -51 224 -123 319 -149 114 -31 354 -31 467 0 217 59 408 188 535 360 66 88 136 235 164 342 l23 85 0 865 0 865 -23 85 c-92 348 -367 620 -713 705 -90 22 -296 28 -386 11z m357 -335 c93 -29 185 -86 260 -161 75 -76 120 -148 158 -252 l27 -73 0 -845 0 -845 -27 -73 c-38 -104 -83 -176 -158 -252 -76 -76 -167 -132 -265 -163 -57 -18 -93 -22 -190 -22 -104 1 -130 5 -193 27 -104 37 -176 83 -252 158 -75 76 -120 147 -158 252 l-27 73 -3 812 c-3 888 -3 886 56 1014 83 181 253 321 444 364 86 20 243 13 328 -14z"/>
@@ -379,6 +381,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
     let refDistance;
     let distanceModel;
     let muted = false;
+    let serverMuted = false;
 
     // HTML elements
     const users = document.getElementById('users');
@@ -495,7 +498,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
     function registerPackets() {
         registeredPackets.set("AddPeerPacket", async packet => {
-            if (muted) return
+            if (serverMuted) return
             const from = packet.from;
             const to = packet.to;
             const layerId = packet.layerId;
@@ -729,9 +732,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             })
             audioMap.clear()
         });
-        registeredPackets.set("MutePacket", async packet => {
+        registeredPackets.set("ServerMutePacket", async packet => {
             const mute = packet.mute;
-            muted = mute;
+            serverMuted = mute;
             if (mute) {
                 muteUser.classList.remove("hidden");
                 for (let value of peerConnections.values()) {
@@ -742,6 +745,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             } else {
                 muteUser.classList.add("hidden")
             }
+        });
+        registeredPackets.set("ClientMutePacket", async packet => {
+            muteToggle();
         });
     }
 
@@ -1223,6 +1229,45 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             });
     }
 
+    function muteToggle() {
+        mute(!muted);
+    }
+
+    /**
+     * Mute the client
+     * @param bool
+     */
+    function mute(bool) {
+        if (bool) {
+            muteButton.classList.add('hidden');
+            mutedButton.classList.remove('hidden');
+            if (micStream)
+                micStream.getTracks().forEach(t => {
+                    t.enabled = false
+                })
+            else console.log("MicStream is null, this mean you browser certainly don't have access to your mic")
+            muted = true;
+        } else {
+            mutedButton.classList.add('hidden');
+            muteButton.classList.remove('hidden');
+            micStream.getTracks().forEach(t => {
+                t.enabled = true
+            })
+            muted = false;
+        }
+        const clientMutePacket =
+            [
+                {
+                    "type": "ClientMutePacket",
+                    "value": {
+                        "muted": muted
+                    }
+                }
+            ]
+        ws.send(JSON.stringify(clientMutePacket))
+    }
+
+
     function setupWithConsent() {
         if (consent) return
         consent = true;
@@ -1235,25 +1280,14 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             audioContext.createMediaStreamSource(micStream).connect(micGainNode);
             micGainNode.connect(micDestination);
 
-
             // Mute Button
             mutedButton.classList.add('hidden');
             muteButton.addEventListener('click', e => {
-                muteButton.classList.add('hidden');
-                mutedButton.classList.remove('hidden');
-                if (micStream)
-                    micStream.getTracks().forEach(t => {
-                        t.enabled = false
-                    })
-                else console.log("MicStream is null, this mean you browser certainly don't have access to your mic")
+                muteToggle();
             });
 
             mutedButton.addEventListener('click', e => {
-                mutedButton.classList.add('hidden');
-                muteButton.classList.remove('hidden');
-                micStream.getTracks().forEach(t => {
-                    t.enabled = true
-                })
+                muteToggle();
             });
 
             // Hark

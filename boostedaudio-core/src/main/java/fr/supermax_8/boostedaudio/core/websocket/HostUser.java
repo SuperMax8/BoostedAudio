@@ -8,10 +8,11 @@ import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
-import fr.supermax_8.boostedaudio.core.websocket.packets.MutePacket;
+import fr.supermax_8.boostedaudio.core.websocket.packets.ServerMutePacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
 import lombok.Getter;
+import lombok.Setter;
 import org.java_websocket.WebSocket;
 
 import java.util.HashSet;
@@ -35,6 +36,8 @@ public class HostUser implements User {
     private final UUID playerId;
     @Expose
     private boolean muted = false;
+    @Expose@Setter
+    private boolean clientMuted = false;
 
     private long waitUntil = 0;
 
@@ -173,10 +176,15 @@ public class HostUser implements User {
     }
 
     @Override
+    public boolean isClientMuted() {
+        return clientMuted;
+    }
+
+    @Override
     public void setMuted(boolean muted, long endTime) {
         if (this.muted == muted) return;
         this.muted = muted;
-        sendPacket(new MutePacket(muted));
+        sendPacket(new ServerMutePacket(muted));
         if (muted)
             VoiceChatManager.getMutedUsers().put(playerId, new VoiceChatManager.MuteUser(playerId, endTime));
         else
@@ -187,7 +195,7 @@ public class HostUser implements User {
         VoiceChatManager.MuteUser usr = VoiceChatManager.getMutedUsers().get(playerId);
         if (usr != null) {
             muted = true;
-            sendPacket(new MutePacket(true));
+            sendPacket(new ServerMutePacket(true));
         }
     }
 
