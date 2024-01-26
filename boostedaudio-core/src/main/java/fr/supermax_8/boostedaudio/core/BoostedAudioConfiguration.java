@@ -13,6 +13,7 @@ import lombok.Getter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class BoostedAudioConfiguration {
     private boolean sendOnConnect;
     private int sendOnConnectDelay;
     private boolean customClient;
-    private String connectionMessage;
+    private List<String> connectionMessage;
     private String connectionHoverMessage;
     private List<String> clientConfig;
     private String clientWebSocketLink;
@@ -121,7 +122,8 @@ public class BoostedAudioConfiguration {
 
         customClient = (boolean) config.get("customClient", false);
 
-        connectionMessage = (String) config.get("connectionMessage", "§6Join the audio client by clicking here!");
+        Object connectionMessageObj = config.get("connectionMessage");
+        connectionMessage = connectionMessageObj instanceof String ? Collections.singletonList((String) connectionMessageObj) : ((List<String>) connectionMessageObj);
         connectionHoverMessage = (String) config.get("connectionHoverMessage", "Click here");
 
         connectedSymbol = config.getString("connectedSymbol");

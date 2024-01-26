@@ -96,7 +96,9 @@ sendQRcodeOnConnect: true
 # Messages
 # If you want to add the generated url in the message for example geyser compatibility you can add the placeholder {link} in the message
 # connectionMessage: "§6Join the audio client by clicking here! Link: {link}"
-connectionMessage: "§6Join the audio client by clicking here!"
+# You can use a simple String or a list of strings here for lines
+connectionMessage:
+- "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"
 
 # QRcode map item name
