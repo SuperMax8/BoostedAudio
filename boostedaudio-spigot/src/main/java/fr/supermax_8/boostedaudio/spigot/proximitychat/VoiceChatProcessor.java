@@ -39,18 +39,31 @@ public class VoiceChatProcessor {
         if (userOnServer == null) return;
 
         try {
-            calculateUsersPeers(userOnServer, peers -> {
-                List<LayerInfo> layerInfos = new ArrayList<>();
-                // Process every layers
-                for (Map.Entry<String, VoiceLayer> entry : layers.entrySet()) {
-                    VoiceLayer layer = entry.getValue();
-                    layerInfos.add(processLayer(layer, userOnServer, peers));
-                }
+            if (BoostedAudioAPI.getAPI().getConfiguration().isVoiceChatEnabled())
+                calculateUsersPeers(userOnServer, peers -> {
+                    List<LayerInfo> layerInfos = new ArrayList<>();
+                    // Process every layers
+                    for (Map.Entry<String, VoiceLayer> entry : layers.entrySet()) {
+                        VoiceLayer layer = entry.getValue();
+                        layerInfos.add(processLayer(layer, userOnServer, peers));
+                    }
 
-                VoiceChatResult result = new VoiceChatResult(layerInfos);
-                //System.out.println("Result: " + result);
+                    VoiceChatResult result = new VoiceChatResult(layerInfos);
+                    //System.out.println("Result: " + result);
+                    afterMath.accept(result);
+                });
+            else {
+                // VoiceChat false support
+                HashMap<UUID, PlayerInfo> players = new HashMap<>();
+                userOnServer.values().forEach(usr -> {
+                    Player p = Bukkit.getPlayer(usr.getPlayerId());
+                    players.put(p.getUniqueId(), new PlayerInfo(InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()), true));
+                });
+
+                LayerInfo layerInfo = new LayerInfo(players, "clientLocs");
+                VoiceChatResult result = new VoiceChatResult(List.of(layerInfo));
                 afterMath.accept(result);
-            });
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

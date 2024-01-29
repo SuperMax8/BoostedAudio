@@ -170,6 +170,21 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             <p>{settings-micThreshold-description}</p>
             <input type="range" min="-100" max="0" step="0.01" value="0.5" class="sliderMicThreshold ring ring-primary"
                    id="sliderMicThreshold">
+
+            <label class="block font-bold mt-6">{settings-noiseSuppression-label}</label>
+            <div class="flex gap-x-1 items-center">
+                <input type="checkbox" id="noiseSuppression"
+                       class="accent-accent h-4 w-4 text-gray-800 rounded border-gray-300">
+                <label>{settings-noiseSuppression-description}</label>
+            </div>
+
+            <label class="block font-bold mt-6">{settings-echoCancellation-label}</label>
+            <div class="flex gap-x-1 items-center">
+                <input type="checkbox" id="echoCancellation"
+                       class="accent-accent h-4 w-4 text-gray-800 rounded border-gray-300">
+                <label>{settings-echoCancellation-description}</label>
+            </div>
+
             <!--Close Button-->
             <div class="mt-5 flex justify-center">
                 <button id="closeSettings"
@@ -201,7 +216,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
                     <div class="flex justify-center items-center relative m-5">
                         <div id="speakingHalo"
-                             class="h-14 w-14 bg-emerald-500 absolute blur-lg opacity-80 rounded-full duration-300">
+                             class="h-14 w-14 bg-emerald-500 absolute blur-lg opacity-80 rounded-full duration-300 hidden">
                         </div>
                         <svg id="muteButton" class="absolute z-10 h-12 w-12 text-white cursor-pointer
                     bg-secondary hover:bg-accent duration-300 font-bold rounded red-animation"
@@ -376,6 +391,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
     let clientLoc;
     let consent = false;
 
+    let currentDeviceId;
+    let noiseSuppression = true;
+    let echoCancellation = true;
     let maxDistance;
     let rolloffFactor;
     let refDistance;
@@ -449,6 +467,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         muteButton.classList.add("hidden")
         mutedButton.classList.add("hidden")
         document.getElementById("voice").classList.add("hidden")
+        document.getElementById("paramButton").classList.add("hidden")
     } else {
         setInterval(() => {
             userCount.textContent = getLayerMap("proximitychat").size
@@ -470,11 +489,25 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
     }
 
     async function askMic() {
-        micStream = await navigator.mediaDevices.getUserMedia({audio: true, noiseSuppression: true});
+        micStream = await getUserMic();
 
         connectionDiv.classList.add("hidden");
         populateMicrophoneOptions();
         setupWithConsent();
+    }
+
+
+    function getUserMic(deviceId) {
+        let constraints = {
+            audio: {
+                noiseSuppression: noiseSuppression,
+                echoCancellation: echoCancellation,
+                channelCount: 1,
+                autoGainControl: true
+            }
+        };
+        if (deviceId) constraints.audio.deviceId = deviceId;
+        return navigator.mediaDevices.getUserMedia(constraints);
     }
 
     function initWithServerInfo() {
@@ -1155,6 +1188,8 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         const savedVoiceVolume = getCookie('voice_volume');
         const savedAmbientVolume = getCookie('ambient_volume');
         const savedMicThreshold = getCookie('mic_threshold');
+        const savedNoiseSuppression = getCookie('noiseSuppression');
+        const savedEchoCancellation = getCookie('echoCancellation');
 
         voiceVolume = savedVoiceVolume ? parseFloat(savedVoiceVolume) / 100 : 1; // Valeur par défaut à 100 si pas de cookie
         ambientVolume = savedAmbientVolume ? parseFloat(savedAmbientVolume) / 100 : 0.666; // Valeur par défaut à 66.6 si pas de cookie
@@ -1164,15 +1199,46 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
         let micThre = savedMicThreshold ? savedMicThreshold : -80;
         micThreshold.value = micThre;
-        speechEvents.setThreshold(micThre);
+        if (speechEvents) speechEvents.setThreshold(micThre);
 
-        if (proximityChat)
+
+        // Noise params
+        const noiseSupp = savedNoiseSuppression ? (savedNoiseSuppression === "true") : true;
+        const echoCancell = savedEchoCancellation ? (savedEchoCancellation === "true") : true;
+
+        if (noiseSupp !== noiseSuppression || echoCancell !== echoCancellation) updateMic()
+
+        noiseSuppression = noiseSupp;
+        echoCancellation = echoCancell;
+
+        const noiseSuppressionEl = document.getElementById('noiseSuppression');
+        const echoCancellationEl = document.getElementById('echoCancellation');
+
+        noiseSuppressionEl.checked = noiseSuppression;
+        echoCancellationEl.checked = echoCancellation;
+
+        if (proximityChat) {
             voice.addEventListener('input', function () {
                 voiceVolume = parseFloat(this.value) / 100;
                 updateEveryVolume();
                 // Sauvegarder le nouveau volume dans les cookies
                 setCookie('voice_volume', this.value);
             });
+            noiseSuppressionEl.addEventListener('change', () => {
+                const bool = noiseSuppressionEl.checked;
+                if (noiseSuppression === bool) return;
+                noiseSuppression = bool;
+                setCookie('noiseSuppression', bool);
+                updateMic(currentDeviceId);
+            });
+            echoCancellationEl.addEventListener('change', () => {
+                const bool = echoCancellationEl.checked;
+                if (echoCancellation === bool) return;
+                echoCancellation = bool;
+                setCookie('echoCancellation', bool);
+                updateMic(currentDeviceId);
+            });
+        }
 
         ambient.addEventListener('input', function () {
             ambientVolume = parseFloat(this.value) / 100;
@@ -1191,42 +1257,53 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
         if (proximityChat)
             microphoneSelect.addEventListener("change", async () => {
-                try {
-                    const selectedDeviceId = microphoneSelect.value;
-                    console.log("New device selected: " + selectedDeviceId)
-                    const constraints = {audio: {deviceId: selectedDeviceId, noiseSuppression: true}};
-                    const isMuted = micStream.getTracks().at(0).enabled;
-                    micStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-                    micDestination = audioContext.createMediaStreamDestination();
-                    micGainNode = audioContext.createGain();
-                    audioContext.createMediaStreamSource(micStream).connect(micGainNode);
-                    micGainNode.connect(micDestination);
-
-                    audioContext.createMediaStreamSource(micStream).connect(micGainNode);
-                    const newAudioTrack = micStream.getAudioTracks()[0];
-                    newAudioTrack.enabled = isMuted;
-
-
-                    // Update all
-                    peerConnections.forEach((layerMap, id) => {
-                        layerMap.forEach((peerObj, id) => {
-                            const pc = peerObj.pc;
-                            const senders = pc.getSenders();
-                            const audioSender = senders.find(sender => sender.track.kind === 'audio');
-                            if (audioSender) {
-                                const currentAudioTrack = audioSender.track;
-                                currentAudioTrack.stop();
-                                const newTrack = micDestination.stream.getAudioTracks()[0];
-                                audioSender.replaceTrack(newTrack);
-                                console.log("replaceTrack", newTrack)
-                            }
-                        })
-                    });
-                } catch (error) {
-                    console.error("Error getting selected microphone stream:", error);
-                }
+                const selectedDeviceId = microphoneSelect.value;
+                updateMic(selectedDeviceId);
             });
+    }
+
+    async function updateMic(deviceId) {
+        try {
+            if (deviceId) {
+                console.log("New device selected: " + deviceId)
+                currentDeviceId = deviceId;
+            }
+            const oldGain = micGainNode.gain.value;
+            console.log("OldGain: ", oldGain)
+
+            const isMuted = micStream.getTracks().at(0).enabled;
+            micStream = await getUserMic(deviceId);
+
+            micDestination = audioContext.createMediaStreamDestination();
+            micGainNode = audioContext.createGain();
+            audioContext.createMediaStreamSource(micStream).connect(micGainNode);
+            micGainNode.connect(micDestination);
+
+            audioContext.createMediaStreamSource(micStream).connect(micGainNode);
+            const newAudioTrack = micStream.getAudioTracks()[0];
+            newAudioTrack.enabled = isMuted;
+
+            // Update all
+            peerConnections.forEach((layerMap, id) => {
+                layerMap.forEach((peerObj, id) => {
+                    const pc = peerObj.pc;
+                    const senders = pc.getSenders();
+                    const audioSender = senders.find(sender => sender.track.kind === 'audio');
+                    if (audioSender) {
+                        const currentAudioTrack = audioSender.track;
+                        currentAudioTrack.stop();
+                        const newTrack = micDestination.stream.getAudioTracks()[0];
+                        audioSender.replaceTrack(newTrack);
+                        console.log("replaceTrack", newTrack)
+                    }
+                })
+            });
+
+            if (oldGain !== undefined) micGainNode.gain.value = oldGain;
+            console.log("New gain: ", micGainNode.gain.value)
+        } catch (error) {
+            console.error("Error getting selected microphone stream:", error);
+        }
     }
 
     function muteToggle() {
@@ -1296,7 +1373,6 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             micGainNode.gain.value = 0;
 
             const speakingHalo = document.getElementById("speakingHalo");
-            speakingHalo.classList.add("hidden");
             speechEvents.on('speaking', () => {
                 console.log("speaking")
                 micGainNode.gain.value = 1;

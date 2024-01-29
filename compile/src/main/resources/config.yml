@@ -98,7 +98,7 @@ sendQRcodeOnConnect: true
 # connectionMessage: "§6Join the audio client by clicking here! Link: {link}"
 # You can use a simple String or a list of strings here for lines
 connectionMessage:
-- "§6Join the audio client by clicking here!"
+  - "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"
 
 # QRcode map item name
@@ -139,4 +139,8 @@ clientConfig:
   - "{settings-microphone-device-label}=Microphone Device"
   - "{settings-micThreshold-label}=Microphone sensitivity"
   - "{settings-micThreshold-description}=Sensivity of the microphone in dB, the noise bellow this dB amount will be cancel, the bar moving represent your current mic volume"
+  - "{settings-noiseSuppression-label}=Noise Suppression"
+  - "{settings-noiseSuppression-description}=Removes noise from your microphone audio"
+  - "{settings-echoCancellation-label}=Echo Cancellation"
+  - "{settings-echoCancellation-description}=Removes echo from your microphone audio"
   - "{settings-close-button-label}=Close Settings"
