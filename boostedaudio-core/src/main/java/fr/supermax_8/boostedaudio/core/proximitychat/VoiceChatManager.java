@@ -144,7 +144,7 @@ public class VoiceChatManager {
 
     public static class MuteUser {
 
-        private long muteEnd;
+        private final long muteEnd;
         @Getter
         private UUID playerId;
 
