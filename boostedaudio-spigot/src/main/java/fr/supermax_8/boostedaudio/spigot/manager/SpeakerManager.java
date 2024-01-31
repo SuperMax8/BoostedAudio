@@ -22,7 +22,7 @@ public class SpeakerManager {
 
     public void addSpeaker(Audio audio) {
         Location location = InternalUtils.serializableLocToBukkitLocation(audio.getSpatialInfo().getLocation());
-        speakers.put(location, audio);
+        speakers.put(new Location(location.getWorld(), location.getX(), location.getY(), location.getZ()), audio);
         manager.addAround(location, audio.getSpatialInfo().getMaxVoiceDistance(),
                 p -> {
                     User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());

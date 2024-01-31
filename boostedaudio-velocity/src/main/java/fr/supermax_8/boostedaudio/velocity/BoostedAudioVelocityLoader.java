@@ -14,7 +14,7 @@ import java.nio.file.Path;
 @Plugin(
         id = "boostedaudio",
         name = "BoostedAudioVelocity",
-        version = "2.12.3",
+        version = "2.13.0",
         description = "Velocity implementation of BoostedAudio, proximitychat and music plugin",
         authors = {"SuperMax_8"}
 )

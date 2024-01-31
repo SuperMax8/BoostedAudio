@@ -25,7 +25,7 @@ public interface User {
 
     Audio playAudio(String link, int fadeIn, int fadeOut);
 
-    Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop);
+    Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean syncronous);
 
     void playAudio(Audio audio);
 

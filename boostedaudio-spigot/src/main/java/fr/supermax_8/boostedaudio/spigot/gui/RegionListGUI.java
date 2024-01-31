@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
+import com.comphenix.protocol.scheduler.FoliaScheduler;
 import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
@@ -23,7 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RegionsGUI extends AbstractGUI {
+public class RegionListGUI extends AbstractGUI {
 
     private final RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
     private final InventoryScroll scroll;
@@ -31,7 +32,7 @@ public class RegionsGUI extends AbstractGUI {
     private LinkedHashMap<String, Audio> regionsOfWorld;
     private final World world;
 
-    public RegionsGUI(Player player, World world) {
+    public RegionListGUI(Player player, World world) {
         super(player, 54, Lang.get("regions_title", world.getName()), null);
         this.items = new ArrayList<>();
         this.world = world;
@@ -71,9 +72,9 @@ public class RegionsGUI extends AbstractGUI {
                 Lang.get("fadein", audio.getFadeIn()),
                 Lang.get("fadeout", audio.getFadeOut()),
                 Lang.get("loop", audio.isLoop()),
+                Lang.get("syncronous", audio.isSyncronous()),
                 "",
                 Lang.get("left_click_edit"),
-                Lang.get("right_click_copy_params"),
                 Lang.get("shift_right_to_remove")
         );
     }
@@ -92,97 +93,25 @@ public class RegionsGUI extends AbstractGUI {
                 scroll.previousClick();
                 break;
             case 45:
-                new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
-                    try {
-                        String[] output = s.split(";");
-                        String region;
-                        int fadeIn = 500;
-                        int fadeOut = 500;
-                        boolean loop = true;
-                        List<String> links = new ArrayList<>();
-                        if (output.length > 5) {
-                            region = output[0];
-                            fadeIn = Integer.parseInt(output[1]);
-                            fadeOut = Integer.parseInt(output[2]);
-                            loop = Boolean.parseBoolean(output[3]);
-                            links.addAll(Arrays.asList(output).subList(4, output.length));
-                        } else {
-                            links.add(output[0]);
-                            region = output[1];
-                            if (output.length > 2) {
-                                fadeIn = Integer.parseInt(output[2]);
-                                fadeOut = Integer.parseInt(output[3]);
-                                loop = Boolean.parseBoolean(output[4]);
-                            }
-                        }
-                        regionManager.addRegion(region, new Audio(links, null, UUID.randomUUID(), fadeIn, fadeOut, loop));
-                        owner.sendMessage("§aRegion audio added");
-                        BoostedAudioSpigot.getInstance().getAudioManager().saveData();
-                    } catch (Exception e) {
-                        owner.sendMessage(Lang.get("wrong_values"));
-                    }
-                }, Lang.get("region_create")
-                );
+                owner.closeInventory();
+                BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
+                    new RegionEditGUI(owner,this);
+                });
                 break;
             default:
                 int index = scroll.getListIndexFromSlot(slot);
                 if (index == -1) return;
                 Map.Entry<String, Audio> selectedRegion = (Map.Entry<String, Audio>) regionsOfWorld.entrySet().toArray()[index];
-                String params = params(selectedRegion.getKey(), selectedRegion.getValue());
-                if (event.isRightClick()) {
-                    owner.closeInventory();
 
-                    TextComponent component = new TextComponent(Lang.get("copy_clipboard"));
-
-                    component.setUnderlined(true);
-                    component.setColor(ChatColor.BOLD);
-                    try {
-                        component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, params));
-                    } catch (Throwable e) {
-
-                    }
-                    component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-                            Lang.get("click_copy_clipboard")).create()));
-                    return;
-                } else if (event.isLeftClick()) {
-                    TextComponent component = new TextComponent(Lang.get("region_modification"));
-
-                    component.setUnderlined(true);
-                    component.setColor(ChatColor.GOLD);
-                    component.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, params));
-                    component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-                            Lang.get("click_to_paste_chat")).create()));
-
-                    new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
-                        try {
-                            String[] output = s.split(";");
-                            String region = output[0];
-                            int fadeIn = Integer.parseInt(output[1]);
-                            int fadeOut = Integer.parseInt(output[2]);
-                            boolean loop = Boolean.parseBoolean(output[3]);
-                            List<String> links = new ArrayList<>(Arrays.asList(output).subList(4, output.length));
-
-                            regionManager.addRegion(region, new Audio(links, null, UUID.randomUUID(), fadeIn, fadeOut, loop));
-                            owner.sendMessage(Lang.get("region_audio_modified"));
-                            BoostedAudioSpigot.getInstance().getAudioManager().saveData();
-                        } catch (Exception e) {
-                            owner.sendMessage(Lang.get("wrong_values"));
-                        }
-                    }, component);
-                }
+                Audio audio = selectedRegion.getValue();
+                StringJoiner linksJoiner = new StringJoiner(";");
+                for (String s : audio.getLinks()) linksJoiner.add(s);
+                owner.closeInventory();
+                BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
+                    new RegionEditGUI(owner, this, selectedRegion.getKey(), linksJoiner.toString(), audio.getFadeIn(), audio.getFadeOut(), audio.isLoop(), audio.isSyncronous());
+                });
                 break;
         }
-    }
-
-    private String params(String region, Audio audio) {
-        List<String> params = new ArrayList<>() {{
-            add(region);
-            add(audio.getFadeIn() + "");
-            add(audio.getFadeOut() + "");
-            add(audio.isLoop() + "");
-            addAll(audio.getLinks());
-        }};
-        return String.join(";", params);
     }
 
     public void onShiftClickInCustomInv(InventoryClickEvent event) {
@@ -197,6 +126,7 @@ public class RegionsGUI extends AbstractGUI {
             if (event.getClick().equals(ClickType.SHIFT_RIGHT)) {
                 regionManager.removeRegion(selectedRegion.getKey());
                 setItems();
+                BoostedAudioSpigot.getInstance().getAudioManager().saveData();
             }
         }
     }

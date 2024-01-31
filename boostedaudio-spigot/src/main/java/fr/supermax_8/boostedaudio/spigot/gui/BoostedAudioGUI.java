@@ -2,7 +2,6 @@ package fr.supermax_8.boostedaudio.spigot.gui;
 
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
-import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
@@ -40,14 +39,14 @@ public class BoostedAudioGUI extends AbstractGUI {
                 owner.closeInventory();
                 new WorldSelectionGUI(owner, w -> {
                     owner.closeInventory();
-                    new SpeakersGUI(owner, w);
+                    new SpeakerListGUI(owner, w);
                 });
                 break;
             case 7:
                 owner.closeInventory();
                 new WorldSelectionGUI(owner, w -> {
                     owner.closeInventory();
-                    if (BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager() != null) new RegionsGUI(owner, w);
+                    if (BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager() != null) new RegionListGUI(owner, w);
                     else owner.sendMessage(Lang.get("worldguard_error"));
                 });
                 break;

@@ -6,9 +6,6 @@ import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
-import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
-import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
-import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 
 import java.util.Map;
@@ -64,23 +61,23 @@ public class DiffuserUser implements User {
 
     @Override
     public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fade) {
-        return playAudio(link, spatialInfo, fade, fade, false);
+        return playAudio(link, spatialInfo, fade, fade, false, false);
     }
 
     @Override
     public Audio playAudio(String link, int fade) {
-        return playAudio(link, null, fade, fade, false);
+        return playAudio(link, null, fade, fade, false, false);
     }
 
     @Override
     public Audio playAudio(String link, int fadeIn, int fadeOut) {
-        return playAudio(link, null, fadeIn, fadeOut, false);
+        return playAudio(link, null, fadeIn, fadeOut, false, false);
     }
 
     @Override
-    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop) {
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean syncronous) {
         UUID id = UUID.randomUUID();
-        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop);
+        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop, syncronous);
         playAudio(audio);
         return audio;
     }

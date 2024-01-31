@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RegionManager {
 
+    @Getter
     private static final WorldGuardWrapper api = WorldGuardWrapper.getInstance();
     @Getter
     private final HashMap<UUID, RegionInfo> infoMap = new HashMap<>();
@@ -107,10 +108,6 @@ public class RegionManager {
             this.lastRegions = lastRegions;
         }
 
-    }
-
-    public static WorldGuardWrapper getApi() {
-        return api;
     }
 
 }

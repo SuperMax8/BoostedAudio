@@ -138,15 +138,12 @@ public abstract class AbstractGUI implements InventoryHolder {
             drag.unregister();
             onClose(p);
             if (parent != null)
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (p.getOpenInventory().getType().equals(InventoryType.CHEST)) return;
-                        parent.setItems();
-                        p.openInventory(parent.inv);
-                        parent.initSelfListener();
-                    }
-                }.runTaskLater(BoostedAudioSpigot.getInstance(), 1);
+                BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
+                    if (p.getOpenInventory().getType().equals(InventoryType.CHEST)) return;
+                    parent.setItems();
+                    p.openInventory(parent.inv);
+                    parent.initSelfListener();
+                });
             return true;
         });
     }

@@ -36,7 +36,8 @@ public class HostUser implements User {
     private final UUID playerId;
     @Expose
     private boolean muted = false;
-    @Expose@Setter
+    @Expose
+    @Setter
     private boolean clientMuted = false;
 
     private long waitUntil = 0;
@@ -78,7 +79,7 @@ public class HostUser implements User {
 
     @Override
     public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fade) {
-        return playAudio(link, spatialInfo, fade, fade, false);
+        return playAudio(link, spatialInfo, fade, fade, false, false);
     }
 
     @Override
@@ -88,13 +89,13 @@ public class HostUser implements User {
 
     @Override
     public Audio playAudio(String link, int fadeIn, int fadeOut) {
-        return playAudio(link, null, fadeIn, fadeOut, false);
+        return playAudio(link, null, fadeIn, fadeOut, false, false);
     }
 
     @Override
-    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop) {
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean syncronous) {
         UUID id = UUID.randomUUID();
-        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop);
+        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop, syncronous);
         playAudio(audio);
         return audio;
     }
@@ -102,7 +103,7 @@ public class HostUser implements User {
     @Override
     public void playAudio(Audio audio) {
         waitUntil();
-        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
+        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.isSyncronous(), audio.getSpatialInfo());
         playingAudio.put(audio.getId(), audio);
         audio.getCurrentListeners().add(playerId);
         sendPacket(packet);

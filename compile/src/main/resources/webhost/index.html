@@ -659,6 +659,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             let audioSource;
             const link = encodeURI(packet.link)
             const spatialInfo = packet.spatialInfo;
+            const syncronous = packet.syncronous;
             let maxVoiceDistance = 0;
             let gainNode;
             let audio;
@@ -688,11 +689,21 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 audio = new Audio(link)
 
             console.log("Playing " + id, " url", link)
-            audio.play()
             const oldAudio = audioMap.get(id);
             if (oldAudio) {
                 oldAudio.audio.pause();
             }
+
+            if (syncronous) {
+                audio.addEventListener('loadedmetadata', () => {
+                    let durMs = this.duration * 1000;
+                    let ts = Date.now();
+                    let timeToPlaySecond = ts % durMs / 1000;
+                    audio.currentTime = timeToPlaySecond;
+                    audio.play();
+                    console.log("Start syncronous play at: " + timeToPlaySecond + "s")
+                });
+            } else audio.play();
 
             audio.addEventListener('ended', function () {
                 console.log("Audio finished playing ", audioMap.get(id));
@@ -1058,7 +1069,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
     function showUser(peerObj) {
         return new Promise(async (resolve, reject) => {
-            let userName = peerObj.username;
+            let username = peerObj.username;
 
             const element = htmlStringToElement(userTemplate)
             const nameElement = element.getElementsByClassName("username").item(0)
@@ -1104,8 +1115,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
             element.id = peerObj.playerId
 
-            nameElement.textContent = userName;
-            logoElement.src = "https://crafthead.net/avatar/" + userName;
+            nameElement.textContent = username;
+            const uuid = peerObj.playerId;
+            logoElement.src = {skinAPI};
 
             peerObj.element = element;
 

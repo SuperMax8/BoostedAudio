@@ -118,7 +118,14 @@ customClient: false
 # Custom placeholder in the client html, if you custom the client you even can add new placeholder if you need it,
 # inside placeholder you can use html directly (if the placeholder target is not a tag parameter)
 # if you want more customization with like images or things
+
+# Others skin api
+# https://cravatar.eu/avatar/
+# https://crafatar.com/
+# https://crafthead.net/
+# You can use the variables uuid or username, for the player name or uuid
 clientConfig:
+  - '{skinAPI}="https://cravatar.eu/avatar/" + username'
   - "{mainColor}=#262c3c"
   - "{primaryColor}=#202433"
   - "{secondaryColor}=#205295"

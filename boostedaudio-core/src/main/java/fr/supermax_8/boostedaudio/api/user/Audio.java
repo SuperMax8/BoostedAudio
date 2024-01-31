@@ -27,18 +27,21 @@ public class Audio {
     private final int fadeOut;
     @Expose
     private final boolean loop;
+    @Expose
+    private final boolean syncronous;
 
-    public Audio(String links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop) {
-        this(Collections.singletonList(links), spatialInfo, id, fadeIn, fadeOut, loop);
+    public Audio(String links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean syncronous) {
+        this(Collections.singletonList(links), spatialInfo, id, fadeIn, fadeOut, loop, syncronous);
     }
 
-    public Audio(List<String> links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop) {
+    public Audio(List<String> links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean syncronous) {
         this.links = links;
         this.spatialInfo = spatialInfo;
         this.id = id;
         this.fadeIn = fadeIn;
         this.fadeOut = fadeOut;
         this.loop = loop;
+        this.syncronous = syncronous;
     }
 
     public String getLink() {
