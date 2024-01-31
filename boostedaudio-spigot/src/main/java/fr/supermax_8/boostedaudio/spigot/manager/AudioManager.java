@@ -143,9 +143,9 @@ public class AudioManager {
         int fadeIn = section.getInt("fadeIn");
         int fadeOut = section.getInt("fadeOut");
         boolean loop = section.getBoolean("loop");
-        boolean syncronous = section.getBoolean("syncronous");
+        boolean synchronous = section.getBoolean("synchronous");
 
-        return new Audio(link, spatialInfo, UUID.randomUUID(), fadeIn, fadeOut, loop, syncronous);
+        return new Audio(link, spatialInfo, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous);
     }
 
     private void saveAudio(ConfigurationSection section, Audio audio) {
@@ -166,7 +166,7 @@ public class AudioManager {
         section.set("fadeIn", audio.getFadeIn());
         section.set("fadeOut", audio.getFadeOut());
         section.set("loop", audio.isLoop());
-        section.set("syncronous", audio.isSyncronous());
+        section.set("synchronous", audio.isSynchronous());
     }
 
 

@@ -70,7 +70,7 @@ public class SpeakerListGUI extends AbstractGUI {
                 Lang.get("refdistance", audio.getSpatialInfo().getRefDistance()),
                 Lang.get("rollofffactor", audio.getSpatialInfo().getRolloffFactor()),
                 Lang.get("loop", audio.isLoop()),
-                Lang.get("syncronous", audio.isSyncronous()),
+                Lang.get("synchronous", audio.isSynchronous()),
                 "",
                 Lang.get("left_click_edit"),
                 Lang.get("shift_right_to_remove")
@@ -110,11 +110,12 @@ public class SpeakerListGUI extends AbstractGUI {
                             selectedSpeaker.getFadeIn(),
                             selectedSpeaker.getFadeOut(),
                             selectedSpeaker.isLoop(),
-                            selectedSpeaker.isSyncronous(),
+                            selectedSpeaker.isSynchronous(),
                             selectedSpeaker.getSpatialInfo().getMaxVoiceDistance(),
                             selectedSpeaker.getSpatialInfo().getRefDistance(),
                             selectedSpeaker.getSpatialInfo().getRolloffFactor(),
-                            selectedSpeaker.getSpatialInfo().getDistanceModel()
+                            selectedSpeaker.getSpatialInfo().getDistanceModel(),
+                            selectedSpeaker.getSpatialInfo().getLocation()
                     );
                 });
                 break;
@@ -132,8 +133,8 @@ public class SpeakerListGUI extends AbstractGUI {
 
             if (event.getClick().equals(ClickType.SHIFT_RIGHT)) {
                 speakerManager.removeSpeaker(InternalUtils.serializableLocToBukkitLocation(selectedSpeaker.getSpatialInfo().getLocation()));
-                setItems();
                 BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+                setItems();
             }
         }
     }

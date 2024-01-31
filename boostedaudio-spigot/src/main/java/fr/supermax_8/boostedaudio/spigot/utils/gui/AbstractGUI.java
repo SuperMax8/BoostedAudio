@@ -23,10 +23,6 @@ public abstract class AbstractGUI implements InventoryHolder {
     protected Inventory inv;
     protected Player owner;
 
-    public AbstractGUI() {
-
-    }
-
     public AbstractGUI(AbstractGUI parent) {
         this.parent = parent;
     }
@@ -79,7 +75,7 @@ public abstract class AbstractGUI implements InventoryHolder {
         return owner;
     }
 
-    protected void initSelfListener() {
+    public void initSelfListener() {
         TemporaryListener<InventoryClickEvent> click = new TemporaryListener<>(InventoryClickEvent.class, EventPriority.NORMAL, e -> {
             Player p = (Player) e.getWhoClicked();
             if (!p.equals(owner)) return;

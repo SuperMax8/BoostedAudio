@@ -659,7 +659,8 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             let audioSource;
             const link = encodeURI(packet.link)
             const spatialInfo = packet.spatialInfo;
-            const syncronous = packet.syncronous;
+            const synchronous = packet.synchronous;
+            console.log(synchronous)
             let maxVoiceDistance = 0;
             let gainNode;
             let audio;
@@ -694,14 +695,13 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 oldAudio.audio.pause();
             }
 
-            if (syncronous) {
+            if (synchronous) {
                 audio.addEventListener('loadedmetadata', () => {
-                    let durMs = this.duration * 1000;
+                    let durMs = audio.duration * 1000;
                     let ts = Date.now();
                     let timeToPlaySecond = ts % durMs / 1000;
                     audio.currentTime = timeToPlaySecond;
                     audio.play();
-                    console.log("Start syncronous play at: " + timeToPlaySecond + "s")
                 });
             } else audio.play();
 
@@ -826,11 +826,11 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
     async function fadeIn(audio, duration, audioObj) {
         function fade() {
-            console.log(
+/*            console.log(
                 "Starting FadeIn " + duration,
                 "Audio Volume " + audio.volume,
                 "Ambient Volume " + ambientVolume, audioObj
-            )
+            )*/
 
             const interval = 10;
             const stepNb = duration / interval;
@@ -843,7 +843,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                     audio.volume = Math.min(ambientVolume, audio.volume + volumeStep);
                 } else {
                     clearInterval(fadeInterval);
-                    console.log("End FadeIn ", audioObj)
+                    /*console.log("End FadeIn ", audioObj)*/
                     audioObj.fadeInterval = null;
                 }
             }, interval);
@@ -852,7 +852,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
         if (audioObj.fadeInterval) {
             clearInterval(audioObj.fadeInterval)
-            console.log("Cancel Fade ", audioObj.fadeInterval)
+          /*  console.log("Cancel Fade ", audioObj.fadeInterval)*/
         }
         fade()
     }
@@ -863,11 +863,11 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             const stepNb = duration / interval;
             const volumeStep = ambientVolume / stepNb;
 
-            console.log(
+/*            console.log(
                 "Starting FadeOut " + duration,
                 "Audio Volume " + audio.volume,
                 "Ambient Volume " + ambientVolume, audioObj
-            )
+            )*/
 
             const fadeInterval = setInterval(() => {
                 if (audio.volume > 0) {
@@ -875,7 +875,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 } else {
                     audio.pause();
                     clearInterval(fadeInterval);
-                    console.log("End FadeOut ", audioObj)
+                  /*  console.log("End FadeOut ", audioObj)*/
                     audioObj.fadeInterval = null;
                     if (afterFade) afterFade()
                 }
@@ -885,7 +885,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
         if (audioObj.fadeInterval) {
             clearInterval(audioObj.fadeInterval)
-            console.log("Cancel Fade ", audioObj.fadeInterval)
+          /*  console.log("Cancel Fade ", audioObj.fadeInterval)*/
         }
         fade()
     }
@@ -1385,13 +1385,13 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
             const speakingHalo = document.getElementById("speakingHalo");
             speechEvents.on('speaking', () => {
-                console.log("speaking")
+                //console.log("speaking")
                 micGainNode.gain.value = 1;
                 speakingHalo.classList.remove("hidden");
             });
 
             speechEvents.on('stopped_speaking', () => {
-                console.log("stopped_speaking")
+                //console.log("stopped_speaking")
                 micGainNode.gain.value = 0;
                 speakingHalo.classList.add("hidden");
             });

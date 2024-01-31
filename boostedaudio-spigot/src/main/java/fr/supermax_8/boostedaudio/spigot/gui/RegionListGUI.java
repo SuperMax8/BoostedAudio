@@ -72,7 +72,7 @@ public class RegionListGUI extends AbstractGUI {
                 Lang.get("fadein", audio.getFadeIn()),
                 Lang.get("fadeout", audio.getFadeOut()),
                 Lang.get("loop", audio.isLoop()),
-                Lang.get("syncronous", audio.isSyncronous()),
+                Lang.get("synchronous", audio.isSynchronous()),
                 "",
                 Lang.get("left_click_edit"),
                 Lang.get("shift_right_to_remove")
@@ -108,7 +108,7 @@ public class RegionListGUI extends AbstractGUI {
                 for (String s : audio.getLinks()) linksJoiner.add(s);
                 owner.closeInventory();
                 BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
-                    new RegionEditGUI(owner, this, selectedRegion.getKey(), linksJoiner.toString(), audio.getFadeIn(), audio.getFadeOut(), audio.isLoop(), audio.isSyncronous());
+                    new RegionEditGUI(owner, this, selectedRegion.getKey(), linksJoiner.toString(), audio.getFadeIn(), audio.getFadeOut(), audio.isLoop(), audio.isSynchronous());
                 });
                 break;
         }

@@ -21,21 +21,24 @@ public class RegionEditGUI extends AbstractGUI {
 
     private String region = "", links = "";
     private int fadeIn, fadeOut;
-    private boolean loop, syncronous;
+    private boolean loop, synchronous;
+    private final AbstractGUI lastGui;
+    private boolean edit = false;
 
-    public RegionEditGUI(Player player, AbstractGUI lastGui, String region, String links, int fadeIn, int fadeOut, boolean loop, boolean syncronous) {
+    public RegionEditGUI(Player player, AbstractGUI lastGui, String region, String links, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
         this(player, lastGui);
         this.region = region;
         this.links = links;
         this.fadeIn = fadeIn;
         this.fadeOut = fadeOut;
         this.loop = loop;
-        this.syncronous = syncronous;
+        this.synchronous = synchronous;
         setItems();
     }
 
     public RegionEditGUI(Player player, AbstractGUI lastGui) {
         super(player, 18, "§6Edit Region", lastGui);
+        this.lastGui = lastGui;
         setItems();
         player.openInventory(getInventory());
     }
@@ -57,7 +60,7 @@ public class RegionEditGUI extends AbstractGUI {
         inv.setItem(2, ItemUtils.createItm(XMaterial.DISPENSER, Lang.get("fadein", fadeIn)));
         inv.setItem(3, ItemUtils.createItm(XMaterial.DROPPER, Lang.get("fadeout", fadeOut)));
         inv.setItem(4, ItemUtils.createItm(XMaterial.REPEATING_COMMAND_BLOCK, Lang.get("loop", loop)));
-        inv.setItem(5, ItemUtils.createItm(XMaterial.CLOCK, Lang.get("syncronous", syncronous)));
+        inv.setItem(5, ItemUtils.createItm(XMaterial.CLOCK, Lang.get("synchronous", synchronous)));
 
         inv.setItem(14, ItemUtils.createItm(XMaterial.EMERALD, Lang.get("confirm_edition")));
     }
@@ -67,13 +70,19 @@ public class RegionEditGUI extends AbstractGUI {
         switch (e.getSlot()) {
             case 0 -> {
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
+                    edit = true;
+                    initSelfListener();
                     owner.openInventory(inv);
                     region = s;
                     setItems();
                 }, Lang.get("enter_region"));
             }
             case 1 -> {
+                SpeakerEditGUI.sendLinksMessage(links, owner.spigot());
+
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
+                    edit = true;
+                    initSelfListener();
                     owner.openInventory(inv);
                     links = s;
                     setItems();
@@ -85,6 +94,7 @@ public class RegionEditGUI extends AbstractGUI {
                     case RIGHT -> fadeIn = Math.max(0, fadeIn - 50);
                     case MIDDLE, DROP, CONTROL_DROP -> fadeIn = 0;
                 }
+                setItems();
             }
             case 3 -> {
                 switch (e.getClick()) {
@@ -92,22 +102,32 @@ public class RegionEditGUI extends AbstractGUI {
                     case RIGHT -> fadeOut = Math.max(0, fadeOut - 50);
                     case MIDDLE, DROP, CONTROL_DROP -> fadeOut = 0;
                 }
+                setItems();
             }
-            case 4 -> loop = !loop;
-            case 5 -> syncronous = !syncronous;
-            case 14 -> {
-                owner.closeInventory();
+            case 4 -> {
+                loop = !loop;
+                setItems();
             }
+            case 5 -> {
+                synchronous = !synchronous;
+                setItems();
+            }
+            case 14 -> owner.closeInventory();
         }
-        setItems();
     }
 
 
     @Override
     public void onClose(Player p) {
+        if (edit) return;
         ArrayList<String> linkss = new ArrayList<>(Arrays.asList(links.split(";")));
-        regionManager.addRegion(region, new Audio(linkss, null, UUID.randomUUID(), fadeIn, fadeOut, loop, syncronous));
+        regionManager.addRegion(region, new Audio(linkss, null, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous));
         BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+        BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
+            lastGui.initSelfListener();
+            lastGui.setItems();
+            p.openInventory(lastGui.getInventory());
+        });
     }
 
 

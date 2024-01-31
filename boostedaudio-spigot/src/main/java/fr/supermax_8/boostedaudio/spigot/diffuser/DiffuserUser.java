@@ -75,9 +75,9 @@ public class DiffuserUser implements User {
     }
 
     @Override
-    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean syncronous) {
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
         UUID id = UUID.randomUUID();
-        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop, syncronous);
+        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
         playAudio(audio);
         return audio;
     }

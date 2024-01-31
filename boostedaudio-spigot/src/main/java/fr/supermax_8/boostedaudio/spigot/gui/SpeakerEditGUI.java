@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.spigot.gui;
 
 import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
+import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.SpeakerManager;
 import fr.supermax_8.boostedaudio.spigot.utils.InternalUtils;
@@ -9,6 +10,10 @@ import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
@@ -22,27 +27,29 @@ public class SpeakerEditGUI extends AbstractGUI {
 
     private String links = "", distanceModel = "";
     private int fadeIn, fadeOut;
-    private boolean loop, syncronous;
+    private boolean loop, synchronous;
     private double maxVoiceDistance, refFactor, refDistance;
-    private AbstractGUI lastGui;
+    private SerializableLocation location;
+    private final AbstractGUI lastGui;
     private boolean edit = false;
 
-    public SpeakerEditGUI(Player player, AbstractGUI lastGui, String links, int fadeIn, int fadeOut, boolean loop, boolean syncronous, double maxVoiceDistance, double refDistance, double refFactor, String distanceModel) {
+    public SpeakerEditGUI(Player player, AbstractGUI lastGui, String links, int fadeIn, int fadeOut, boolean loop, boolean synchronous, double maxVoiceDistance, double refDistance, double refFactor, String distanceModel, SerializableLocation location) {
         this(player, lastGui);
         this.links = links;
         this.fadeIn = fadeIn;
         this.fadeOut = fadeOut;
         this.loop = loop;
-        this.syncronous = syncronous;
+        this.synchronous = synchronous;
         this.maxVoiceDistance = maxVoiceDistance;
         this.refDistance = refDistance;
         this.refFactor = refFactor;
         this.distanceModel = distanceModel;
+        this.location = location;
         setItems();
     }
 
     public SpeakerEditGUI(Player player, AbstractGUI lastGui) {
-        super(player, 27, "§6Edit Speaker", null);
+        super(player, 18, "§6Edit Speaker", null);
         this.lastGui = lastGui;
         setItems();
         player.openInventory(getInventory());
@@ -64,7 +71,7 @@ public class SpeakerEditGUI extends AbstractGUI {
         inv.setItem(1, ItemUtils.createItm(XMaterial.DISPENSER, Lang.get("fadein", fadeIn)));
         inv.setItem(2, ItemUtils.createItm(XMaterial.DROPPER, Lang.get("fadeout", fadeOut)));
         inv.setItem(3, ItemUtils.createItm(XMaterial.REPEATING_COMMAND_BLOCK, Lang.get("loop", loop)));
-        inv.setItem(4, ItemUtils.createItm(XMaterial.CLOCK, Lang.get("syncronous", syncronous)));
+        inv.setItem(4, ItemUtils.createItm(XMaterial.CLOCK, Lang.get("synchronous", synchronous)));
 
         inv.setItem(9, ItemUtils.createItm(XMaterial.LEAD, Lang.get("maxdistance", maxVoiceDistance)));
 
@@ -82,7 +89,10 @@ public class SpeakerEditGUI extends AbstractGUI {
         switch (e.getSlot()) {
             case 0 -> {
                 edit = true;
+                sendLinksMessage(links, owner.spigot());
+
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
+                    initSelfListener();
                     owner.openInventory(inv);
                     links = s;
                     setItems();
@@ -91,6 +101,7 @@ public class SpeakerEditGUI extends AbstractGUI {
             case 9 -> {
                 edit = true;
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
+                    initSelfListener();
                     owner.openInventory(inv);
                     try {
                         maxVoiceDistance = Double.parseDouble(s);
@@ -110,6 +121,7 @@ public class SpeakerEditGUI extends AbstractGUI {
             case 10 -> {
                 edit = true;
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
+                    initSelfListener();
                     owner.openInventory(inv);
                     try {
                         s = s.toLowerCase();
@@ -129,6 +141,7 @@ public class SpeakerEditGUI extends AbstractGUI {
             case 11 -> {
                 edit = true;
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
+                    initSelfListener();
                     owner.openInventory(inv);
                     try {
                         double d = Double.parseDouble(s);
@@ -143,6 +156,7 @@ public class SpeakerEditGUI extends AbstractGUI {
             case 12 -> {
                 edit = true;
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
+                    initSelfListener();
                     owner.openInventory(inv);
                     try {
                         double d = Double.parseDouble(s);
@@ -175,19 +189,44 @@ public class SpeakerEditGUI extends AbstractGUI {
                 setItems();
             }
             case 4 -> {
-                syncronous = !syncronous;
+                synchronous = !synchronous;
                 setItems();
             }
             case 14 -> owner.closeInventory();
         }
     }
 
+    static void sendLinksMessage(String links, Player.Spigot spigot) {
+        TextComponent component = new TextComponent(Lang.get("links_copy_chat"));
+        try {
+            component.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, links));
+        } catch (Throwable ex) {
+        }
+        component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
+                "Click").create()));
+        spigot.sendMessage(component);
+    }
+
 
     @Override
     public void onClose(Player p) {
+        if (edit) return;
         ArrayList<String> linkss = new ArrayList<>(Arrays.asList(links.split(";")));
-        speakerManager.addSpeaker(new Audio(linkss, new Audio.AudioSpatialInfo(InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()), maxVoiceDistance, distanceModel, refDistance, refFactor), UUID.randomUUID(), fadeIn, fadeOut, loop, syncronous));
+        speakerManager.addSpeaker(new Audio(linkss, new Audio.AudioSpatialInfo(
+                location == null ? InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()) : location,
+                maxVoiceDistance, distanceModel, refDistance, refFactor),
+                UUID.randomUUID(),
+                fadeIn,
+                fadeOut,
+                loop,
+                synchronous
+        ));
         BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+        BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
+            lastGui.initSelfListener();
+            lastGui.setItems();
+            p.openInventory(lastGui.getInventory());
+        });
     }
 
 

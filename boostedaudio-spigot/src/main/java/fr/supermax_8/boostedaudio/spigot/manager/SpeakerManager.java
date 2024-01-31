@@ -40,7 +40,7 @@ public class SpeakerManager {
 
     public void removeSpeaker(Location location) {
         manager.removeAround(location);
-        speakers.remove(location);
+        speakers.remove(new Location(location.getWorld(), location.getX(), location.getY(), location.getZ()));
     }
 
 }

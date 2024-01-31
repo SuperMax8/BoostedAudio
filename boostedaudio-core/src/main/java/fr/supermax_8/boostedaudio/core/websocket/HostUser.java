@@ -93,9 +93,9 @@ public class HostUser implements User {
     }
 
     @Override
-    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean syncronous) {
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
         UUID id = UUID.randomUUID();
-        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop, syncronous);
+        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
         playAudio(audio);
         return audio;
     }
@@ -103,7 +103,7 @@ public class HostUser implements User {
     @Override
     public void playAudio(Audio audio) {
         waitUntil();
-        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.isSyncronous(), audio.getSpatialInfo());
+        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.isSynchronous(), audio.getSpatialInfo());
         playingAudio.put(audio.getId(), audio);
         audio.getCurrentListeners().add(playerId);
         sendPacket(packet);
