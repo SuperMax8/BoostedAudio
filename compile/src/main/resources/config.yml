@@ -32,7 +32,8 @@ mainProxyWebsocketLink: wss://localhost:8081
 secrets:
   - ""
 # The name of the server used on the proxy (only for diffuser servers)
-# The name of the spigot server (config of your mainProxy) OR a random name for another proxy
+# Diffuser Spigot: It's the name you see when you do /server
+# Diffuser Proxy: Use a random name
 proxyServerName: "lobby"
 
 # Web client
