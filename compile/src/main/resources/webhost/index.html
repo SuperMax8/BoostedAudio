@@ -341,7 +341,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             <!--Footer of the div-->
             <div class="relative p-2">
                 <!--DON'T REMOVE-->
-                <p class="z-10 absolute bottom-2 right-2">&copy; 2023 BoostedAudio. All rights reserved.</p>
+                <p class="z-10 absolute bottom-2 right-2 underline"><a href="https://www.spigotmc.org/resources/boostedaudio-%E2%9C%A8proximity-voice-chat-and-music.112942/">Powered by BoostedAudio</a></p>
             </div>
         </div>
     </div>
@@ -825,11 +825,11 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
     async function fadeIn(audio, duration, audioObj) {
         function fade() {
-/*            console.log(
-                "Starting FadeIn " + duration,
-                "Audio Volume " + audio.volume,
-                "Ambient Volume " + ambientVolume, audioObj
-            )*/
+            /*            console.log(
+                            "Starting FadeIn " + duration,
+                            "Audio Volume " + audio.volume,
+                            "Ambient Volume " + ambientVolume, audioObj
+                        )*/
 
             const interval = 10;
             const stepNb = duration / interval;
@@ -851,7 +851,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
         if (audioObj.fadeInterval) {
             clearInterval(audioObj.fadeInterval)
-          /*  console.log("Cancel Fade ", audioObj.fadeInterval)*/
+            /*  console.log("Cancel Fade ", audioObj.fadeInterval)*/
         }
         fade()
     }
@@ -862,11 +862,11 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             const stepNb = duration / interval;
             const volumeStep = ambientVolume / stepNb;
 
-/*            console.log(
-                "Starting FadeOut " + duration,
-                "Audio Volume " + audio.volume,
-                "Ambient Volume " + ambientVolume, audioObj
-            )*/
+            /*            console.log(
+                            "Starting FadeOut " + duration,
+                            "Audio Volume " + audio.volume,
+                            "Ambient Volume " + ambientVolume, audioObj
+                        )*/
 
             const fadeInterval = setInterval(() => {
                 if (audio.volume > 0) {
@@ -874,7 +874,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 } else {
                     audio.pause();
                     clearInterval(fadeInterval);
-                  /*  console.log("End FadeOut ", audioObj)*/
+                    /*  console.log("End FadeOut ", audioObj)*/
                     audioObj.fadeInterval = null;
                     if (afterFade) afterFade()
                 }
@@ -884,7 +884,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
         if (audioObj.fadeInterval) {
             clearInterval(audioObj.fadeInterval)
-          /*  console.log("Cancel Fade ", audioObj.fadeInterval)*/
+            /*  console.log("Cancel Fade ", audioObj.fadeInterval)*/
         }
         fade()
     }

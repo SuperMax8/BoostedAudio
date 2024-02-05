@@ -33,7 +33,7 @@ public class AudioCommandSpigot implements CommandExecutor {
     }
 
     public static void sendConnectMessage(Player p) {
-        CompletableFuture.runAsync(() -> {
+        BoostedAudioSpigot.getInstance().getScheduler().runAsync(t -> {
             BoostedAudioConfiguration config = BoostedAudioAPI.api.getConfiguration();
             if (config.isDiffuser()) {
                 BoostedAudioAPI.getAPI().debug("Sending audioTokenRequest for " + p.getName());

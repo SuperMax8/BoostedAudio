@@ -47,9 +47,11 @@ public class RegionListGUI extends AbstractGUI {
         items.clear();
 
         Map<String, Audio> regions = regionManager.getAudioRegions();
-        regionsOfWorld = new LinkedHashMap<>(regions.entrySet().stream().filter(
+        regionsOfWorld = new LinkedHashMap<>(
+                regions.entrySet().stream().filter(
                         entry -> RegionManager.getApi().getRegion(world, entry.getKey()).isPresent())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+        );
 
         for (Map.Entry<String, Audio> entry : regionsOfWorld.entrySet()) {
             String region = entry.getKey();

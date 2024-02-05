@@ -26,8 +26,8 @@ public class SpeakerEditGUI extends AbstractGUI {
     private final SpeakerManager speakerManager = BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager();
 
     private String links = "", distanceModel = "";
-    private int fadeIn, fadeOut;
-    private boolean loop, synchronous;
+    private int fadeIn = 300, fadeOut = 300;
+    private boolean loop = true, synchronous = false;
     private double maxVoiceDistance, refFactor, refDistance;
     private SerializableLocation location;
     private final AbstractGUI lastGui;

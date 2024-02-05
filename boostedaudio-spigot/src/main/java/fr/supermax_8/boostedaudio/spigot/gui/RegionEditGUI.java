@@ -20,8 +20,8 @@ public class RegionEditGUI extends AbstractGUI {
     private final RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
 
     private String region = "", links = "";
-    private int fadeIn, fadeOut;
-    private boolean loop, synchronous;
+    private int fadeIn = 300, fadeOut = 300;
+    private boolean loop = true, synchronous = true;
     private final AbstractGUI lastGui;
     private boolean edit = false;
 
@@ -37,7 +37,7 @@ public class RegionEditGUI extends AbstractGUI {
     }
 
     public RegionEditGUI(Player player, AbstractGUI lastGui) {
-        super(player, 18, "§6Edit Region", lastGui);
+        super(player, 18, "§6Edit Region", null);
         this.lastGui = lastGui;
         setItems();
         player.openInventory(getInventory());
@@ -45,6 +45,7 @@ public class RegionEditGUI extends AbstractGUI {
 
     @Override
     public void setItems() {
+        edit = false;
         inv.setItem(0, ItemUtils.createItm(XMaterial.MAP, Lang.get("region", region)));
 
         String[] linkss = links.split(";");
@@ -69,19 +70,19 @@ public class RegionEditGUI extends AbstractGUI {
         e.setCancelled(true);
         switch (e.getSlot()) {
             case 0 -> {
+                edit = true;
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
-                    edit = true;
                     initSelfListener();
                     owner.openInventory(inv);
-                    region = s;
+                    if (RegionManager.getApi().getRegion(owner.getWorld(), s).isPresent())
+                        region = s;
                     setItems();
                 }, Lang.get("enter_region"));
             }
             case 1 -> {
+                edit = true;
                 SpeakerEditGUI.sendLinksMessage(links, owner.spigot());
-
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
-                    edit = true;
                     initSelfListener();
                     owner.openInventory(inv);
                     links = s;
@@ -120,9 +121,11 @@ public class RegionEditGUI extends AbstractGUI {
     @Override
     public void onClose(Player p) {
         if (edit) return;
-        ArrayList<String> linkss = new ArrayList<>(Arrays.asList(links.split(";")));
-        regionManager.addRegion(region, new Audio(linkss, null, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous));
-        BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+        if (!region.isEmpty()) {
+            ArrayList<String> linkss = new ArrayList<>(Arrays.asList(links.split(";")));
+            regionManager.addRegion(region, new Audio(linkss, null, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous));
+            BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+        }
         BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
             lastGui.initSelfListener();
             lastGui.setItems();
