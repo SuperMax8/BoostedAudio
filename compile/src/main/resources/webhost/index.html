@@ -341,7 +341,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             <!--Footer of the div-->
             <div class="relative p-2">
                 <!--DON'T REMOVE-->
-                <p class="z-10 absolute bottom-2 right-2 underline"><a href="https://www.spigotmc.org/resources/boostedaudio-%E2%9C%A8proximity-voice-chat-and-music.112942/">Powered by BoostedAudio</a></p>
+                <p class="z-10 absolute bottom-2 right-2 underline"><a
+                        href="https://www.spigotmc.org/resources/boostedaudio-%E2%9C%A8proximity-voice-chat-and-music.112942/">Powered
+                    by BoostedAudio</a></p>
             </div>
         </div>
     </div>
@@ -653,6 +655,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             //console.log("UpdateAudioLoc,", packet.newLocation)
             audioMap.get(audioId).location = packet.newLocation;
         });
+        registeredPackets.set("ChangeAudioTimePacket", async packet => {
+            audioMap.get(packet.audioId).audio.currentTime = packet.timeToPlay;
+        });
         registeredPackets.set("AddAudioPacket", async packet => {
             const id = packet.uuid;
             let panner;
@@ -804,7 +809,11 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             }
         }
 
-        registeredPackets.get(type)(packet);
+        try {
+            registeredPackets.get(type)(packet);
+        } catch (e) {
+            console.log("Error packet processing", type, packet, e);
+        }
     }
 
     function distance(location1, location2) {
