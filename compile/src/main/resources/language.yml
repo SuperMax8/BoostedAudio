@@ -20,6 +20,9 @@ next_desc: "§7Click to show next"
 file_in_dir: "§8File in directory: {0}"
 click_to_open: "§7Click to open"
 
+download_start: "§7Download starting..."
+download_end: "§2Download end ! Link (Click to copy the link): §7{0}"
+
 path: "§7Path: {0}"
 left_click_copy: "§7Left click to copy path"
 right_click_volume: "§9Right click to modify audio file gain (volume)"

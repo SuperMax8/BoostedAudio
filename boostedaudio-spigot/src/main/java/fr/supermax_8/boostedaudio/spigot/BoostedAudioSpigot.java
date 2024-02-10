@@ -10,10 +10,10 @@ import fr.supermax_8.boostedaudio.core.multiserv.DiffuserWebSocketClient;
 import fr.supermax_8.boostedaudio.core.multiserv.ServerPacketListener;
 import fr.supermax_8.boostedaudio.core.multiserv.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
-import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
 import fr.supermax_8.boostedaudio.core.utils.DataVisualisationUtils;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
+import fr.supermax_8.boostedaudio.core.utils.MediaDownloader;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioQRcodeCommand;
@@ -48,6 +48,8 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
 
@@ -320,7 +322,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         return getDescription().getVersion();
     }
 
-
     public static String getServerVersion() {
         Server server = Bukkit.getServer();
         return server.getVersion().toLowerCase();
@@ -332,6 +333,16 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             return f.parse(Bukkit.getBukkitVersion()).doubleValue();
         } catch (ParseException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void downloadAudio(String mediaLink, Consumer<String> whenDownloadedNewLink) {
+        if (instance.configuration.isDiffuser()) {
+            instance.hostRequester.request("downloadaudio", mediaLink, whenDownloadedNewLink, String.class);
+        } else {
+            File dir = new File(instance.configuration.getDataFolder(), "webhost" + File.separator + "audio" + File.separator + "downloaded");
+            String fileName = MediaDownloader.download(mediaLink, "wav", dir);
+            whenDownloadedNewLink.accept("audio/downloaded/" + fileName);
         }
     }
 

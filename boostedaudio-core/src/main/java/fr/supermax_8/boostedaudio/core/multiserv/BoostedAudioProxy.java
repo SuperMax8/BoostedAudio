@@ -11,6 +11,7 @@ import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
+import fr.supermax_8.boostedaudio.core.utils.MediaDownloader;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
@@ -174,6 +175,14 @@ public class BoostedAudioProxy {
         registerServerListener("disconnect", (message, serverId) -> {
             UUID uuid = UUID.fromString(message);
             onDisconnect(uuid);
+        });
+
+        registerServerListener("downloadaudio", (message, serverId) -> {
+            CompletableFuture.runAsync(() -> {
+                File dir = new File(configuration.getDataFolder(), "webhost" + File.separator + "audio" + File.separator + "downloaded");
+                String fileName = MediaDownloader.download(message, "wav", dir);
+                sendServerPacket(serverId, "downloadaudio", "audio/downloaded/" + fileName);
+            });
         });
     }
 
