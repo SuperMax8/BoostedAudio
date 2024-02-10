@@ -63,14 +63,14 @@ public class Audio {
     }
 
     public void stop() {
-        for (UUID id : currentListeners) {
+        for (UUID id : new LinkedList<>(currentListeners)) {
             User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(id);
             user.stopAudio(this);
         }
     }
 
     private void sendPacketToListeners(Packet packet) {
-        for (UUID id : currentListeners) {
+        for (UUID id : new LinkedList<>(currentListeners)) {
             User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(id);
             user.sendPacket(packet);
         }

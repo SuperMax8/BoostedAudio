@@ -26,11 +26,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+@Getter
 public class BoostedAudioProxy {
 
-    @Getter
     private BoostedAudioHost host;
-    @Getter
     private BoostedAudioConfiguration configuration;
     private VoiceChatManager voiceChatManager;
     private DiffuserWebSocketClient diffuserWebSocketClient;
