@@ -42,7 +42,7 @@ public class HttpUtils {
             }
             // parse the file name from the header field
             String filename = fieldValue.substring(fieldValue.indexOf("filename=\"") + 10, fieldValue.length() - 1);
-            filename = filename.replaceAll(" ", "_").replaceAll("[^a-zA-Z0-9.]", "");
+            filename = filename.replaceAll(" ", "_").replaceAll("[^a-zA-Z0-9._]", "");
 
             File saveDirFile = new File(saveDir);
             if (!saveDirFile.exists()) saveDirFile.mkdirs();
