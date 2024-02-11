@@ -34,5 +34,9 @@ public class HostRequester {
         BoostedAudioSpigot.sendServerPacket(channel, input);
     }
 
+    public void clear() {
+        waitingRequests.clear();
+    }
+
 
 }

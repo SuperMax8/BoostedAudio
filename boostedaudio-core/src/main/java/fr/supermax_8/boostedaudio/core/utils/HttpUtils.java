@@ -7,8 +7,6 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 
 public class HttpUtils {
 
@@ -35,6 +33,7 @@ public class HttpUtils {
             URL url = new URL(fileURL);
             // open the connection
             URLConnection con = url.openConnection();
+
             // get and verify the header field
             String fieldValue = con.getHeaderField("Content-Disposition");
             if (fieldValue == null || !fieldValue.contains("filename=\"")) {
@@ -50,11 +49,47 @@ public class HttpUtils {
             File download = new File(saveDir, filename);
 
             // open the stream and download
-            ReadableByteChannel rbc = Channels.newChannel(con.getInputStream());
-            try (FileOutputStream fos = new FileOutputStream(download)) {
-                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+//            ReadableByteChannel rbc = Channels.newChannel(con.getInputStream());
+//            try (FileOutputStream fos = new FileOutputStream(download)) {
+//                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+//            }
+
+            int fileSize = con.getContentLength();
+
+            int fileSizekB = fileSize / 1024;
+
+            long startTime = System.currentTimeMillis();
+            int intervalInfo = 10;
+            int progress = 0;
+
+            try (FileOutputStream outputStream = new FileOutputStream(download); InputStream inputStream = con.getInputStream()) {
+                byte[] buffer = new byte[1024]; // Buffer for reading data from the input stream
+                int bytesRead;
+                long totalBytesRead = 0;
+
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                    totalBytesRead += bytesRead;
+                    int currentProgress = (int) ((totalBytesRead * 100) / fileSize);
+                    long elapsedTime = System.currentTimeMillis() - startTime;
+                    double downloadSpeed = (totalBytesRead / 1024.0) / (elapsedTime / 1000.0); // in KB/s
+
+                    double estimatedTime = (fileSizekB - ((double) totalBytesRead / 1024)) / downloadSpeed;
+
+                    if (estimatedTime >= 200) intervalInfo = 1;
+                    else if (estimatedTime >= 100) intervalInfo = 2;
+                    else if (estimatedTime >= 50) intervalInfo = 10;
+                    else if (estimatedTime >= 10) intervalInfo = 15;
+                    else if (estimatedTime >= 5) intervalInfo = 20;
+                    else if (estimatedTime >= 2) intervalInfo = 50;
+
+                    if ((currentProgress % intervalInfo == 0 || currentProgress == 100) && currentProgress != progress)
+                        System.out.println("Download Progress: " + currentProgress + "%, Etimated Time: " + String.format("%.2f", estimatedTime) + "s, Download Speed: " + String.format("%.2f", downloadSpeed) + " KB/s");
+                    progress = currentProgress;
+                }
             }
-            System.out.println("File " + filename + "download complete");
+
+            System.out.println("File " + filename + " download complete");
             return download;
         } catch (IOException e) {
             e.printStackTrace();

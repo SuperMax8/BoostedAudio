@@ -232,6 +232,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                     try {
                         if (diffuserWebSocketClient != null) diffuserWebSocketClient.close();
                         BoostedAudioAPI.getAPI().debug("Diffuser try to connect...");
+                        hostRequester.clear();
                         diffuserWebSocketClient = new DiffuserWebSocketClient(new URI(configuration.getMainProxyWebsocketLink()));
                         diffuserWebSocketClient.connect();
                     } catch (URISyntaxException e) {

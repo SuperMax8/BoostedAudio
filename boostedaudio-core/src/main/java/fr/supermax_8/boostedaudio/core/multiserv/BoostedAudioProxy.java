@@ -181,6 +181,7 @@ public class BoostedAudioProxy {
             CompletableFuture.runAsync(() -> {
                 File dir = new File(configuration.getDataFolder(), "webhost" + File.separator + "audio" + File.separator + "downloaded");
                 String fileName = MediaDownloader.download(message, BoostedAudioAPI.getAPI().getConfiguration().getAudioDownloaderFormat(), dir);
+                System.out.println("DL ended");
                 sendServerPacket(serverId, "downloadaudio", "audio/downloaded/" + fileName);
             });
         });
