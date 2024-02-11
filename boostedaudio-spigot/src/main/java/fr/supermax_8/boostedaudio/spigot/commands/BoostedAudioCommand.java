@@ -263,6 +263,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 "§7/boostedaudio mute " + Lang.get("command_mute"),
                 "§7/boostedaudio unmute " + Lang.get("command_unmute"),
                 "",
+                "§7/boostedaudio download " + Lang.get("command_download"),
                 "§7/boostedaudio play " + Lang.get("command_play1"),
                 "§7/boostedaudio play " + Lang.get("command_play2"),
                 "§7/boostedaudio playradius " + Lang.get("command_playradius1"),
@@ -281,7 +282,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
         switch (args.length) {
             case 1 -> {
                 arg = args[0];
-                completions = Arrays.asList("help", "edit", "userlist", "mute", "unmute", "play", "playradius", "stop", "stopradius");
+                completions = Arrays.asList("help", "edit", "userlist", "mute", "unmute", "download", "play", "playradius", "stop", "stopradius");
             }
             case 2 -> {
                 arg = args[1];

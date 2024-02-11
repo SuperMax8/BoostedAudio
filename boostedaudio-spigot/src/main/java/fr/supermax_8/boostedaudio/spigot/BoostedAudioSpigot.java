@@ -155,6 +155,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             voiceChatProcessor.getLayers().put("proximitychat", new VoiceLayer(true, 0, null, "proximitychat"));
 
         scheduler.runLaterAsync(this::initMetrics, 20 * 60);
+        BoostedAudioAPIImpl.startStat(() -> Bukkit.getOnlinePlayers().size());
     }
 
     @Override
@@ -341,7 +342,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             instance.hostRequester.request("downloadaudio", mediaLink, whenDownloadedNewLink, String.class);
         } else {
             File dir = new File(instance.configuration.getDataFolder(), "webhost" + File.separator + "audio" + File.separator + "downloaded");
-            String fileName = MediaDownloader.download(mediaLink, "wav", dir);
+            String fileName = MediaDownloader.download(mediaLink, BoostedAudioAPI.getAPI().getConfiguration().getAudioDownloaderFormat(), dir);
             whenDownloadedNewLink.accept("audio/downloaded/" + fileName);
         }
     }

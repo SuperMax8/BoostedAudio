@@ -94,8 +94,14 @@ sendOnConnectDelay: 30
 # Send a packet map in the second hand
 sendQRcodeOnConnect: true
 
+# The file format of the audio
+# wav, m4a, webm, ogg, mp3, flac
+# Using, for example, mp3 can reduce the file size and the time to download
+# Using flac or wav can up the audio quality and size
+audioDownloaderFormat: "wav"
+
 # Messages
-# If you want to add the generated url in the message for example geyser compatibility you can add the placeholder {link} in the message
+# If you want to add the generated url in the message, for example, geyser compatibility you can add the placeholder {link} in the message
 # connectionMessage: "§6Join the audio client by clicking here! Link: {link}"
 # You can use a simple String or a list of strings here for lines
 connectionMessage:

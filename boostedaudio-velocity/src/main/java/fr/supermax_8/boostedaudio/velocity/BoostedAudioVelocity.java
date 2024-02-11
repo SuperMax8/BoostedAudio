@@ -43,6 +43,7 @@ public class BoostedAudioVelocity {
             }
         };
         boostedAudioProxy = new BoostedAudioProxy(dataDirectory.toFile(), getPluginVersion());
+        BoostedAudioAPIImpl.startStat(server::getPlayerCount);
     }
 
     private String getPluginVersion() {

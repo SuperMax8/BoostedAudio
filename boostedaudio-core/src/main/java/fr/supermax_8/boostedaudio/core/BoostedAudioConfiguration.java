@@ -51,6 +51,7 @@ public class BoostedAudioConfiguration {
     private List<String> clientConfig;
     private String clientWebSocketLink;
     private boolean notification;
+    private String audioDownloaderFormat;
 
     private boolean sendQRcodeOnConnect;
     private String qrCodeTitle;
@@ -113,6 +114,9 @@ public class BoostedAudioConfiguration {
         distanceModel = (String) config.get("voicechat.distanceModel", "exponential");
         refDistance = ((Number) config.get("voicechat.refDistance", 4)).floatValue();
         rolloffFactor = ((Number) config.get("voicechat.rolloffFactor", 1)).floatValue();
+
+        audioDownloaderFormat = config.getString("audioDownloaderFormat", "wav");
+
 
         sendOnConnect = (boolean) config.get("sendOnConnect", true);
         sendOnConnectDelay = (int) config.get("sendOnConnectDelay", 30);
@@ -190,6 +194,5 @@ public class BoostedAudioConfiguration {
             }
         }
     }
-
 
 }
