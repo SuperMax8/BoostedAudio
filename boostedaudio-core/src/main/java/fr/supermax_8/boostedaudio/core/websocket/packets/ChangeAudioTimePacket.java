@@ -4,17 +4,22 @@ import fr.supermax_8.boostedaudio.api.packet.Packet;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 
-public class MutePacket implements Packet {
+import java.util.UUID;
 
-    private final boolean mute;
+public class ChangeAudioTimePacket implements Packet {
 
-    public MutePacket(boolean mute) {
-        this.mute = mute;
+    private final float timeToPlay;
+    private final UUID audioId;
+
+    public ChangeAudioTimePacket(float timeToPlay, UUID audioId) {
+        this.timeToPlay = timeToPlay;
+        this.audioId = audioId;
     }
+
 
     @Override
     public void onReceive(HostUser session, AudioWebSocketServer server) {
-        session.close();
+
     }
 
 

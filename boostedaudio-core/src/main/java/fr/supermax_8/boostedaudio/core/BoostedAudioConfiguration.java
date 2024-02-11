@@ -13,6 +13,7 @@ import lombok.Getter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,11 +46,12 @@ public class BoostedAudioConfiguration {
     private boolean sendOnConnect;
     private int sendOnConnectDelay;
     private boolean customClient;
-    private String connectionMessage;
+    private List<String> connectionMessage;
     private String connectionHoverMessage;
     private List<String> clientConfig;
     private String clientWebSocketLink;
     private boolean notification;
+    private String audioDownloaderFormat;
 
     private boolean sendQRcodeOnConnect;
     private String qrCodeTitle;
@@ -113,6 +115,9 @@ public class BoostedAudioConfiguration {
         refDistance = ((Number) config.get("voicechat.refDistance", 4)).floatValue();
         rolloffFactor = ((Number) config.get("voicechat.rolloffFactor", 1)).floatValue();
 
+        audioDownloaderFormat = config.getString("audioDownloaderFormat", "wav");
+
+
         sendOnConnect = (boolean) config.get("sendOnConnect", true);
         sendOnConnectDelay = (int) config.get("sendOnConnectDelay", 30);
 
@@ -121,7 +126,8 @@ public class BoostedAudioConfiguration {
 
         customClient = (boolean) config.get("customClient", false);
 
-        connectionMessage = (String) config.get("connectionMessage", "§6Join the audio client by clicking here!");
+        Object connectionMessageObj = config.get("connectionMessage");
+        connectionMessage = connectionMessageObj instanceof String ? Collections.singletonList((String) connectionMessageObj) : ((List<String>) connectionMessageObj);
         connectionHoverMessage = (String) config.get("connectionHoverMessage", "Click here");
 
         connectedSymbol = config.getString("connectedSymbol");
@@ -188,6 +194,5 @@ public class BoostedAudioConfiguration {
             }
         }
     }
-
 
 }

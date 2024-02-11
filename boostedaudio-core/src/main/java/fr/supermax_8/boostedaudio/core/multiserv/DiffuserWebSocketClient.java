@@ -88,6 +88,9 @@ public class DiffuserWebSocketClient extends WebSocketClient {
     public void send(String text) {
         if (connected)
             super.send(text);
+/*        if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) {
+            BoostedAudioAPI.getAPI().debug("Sending packet -> Connected: " + connected + " Packet: " + text);
+        }*/
     }
 
     public static void registerListener(String channel, ServerPacketListener listener) {

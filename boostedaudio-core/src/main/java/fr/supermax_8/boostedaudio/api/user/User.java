@@ -25,7 +25,7 @@ public interface User {
 
     Audio playAudio(String link, int fadeIn, int fadeOut);
 
-    Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop);
+    Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean synchronous);
 
     void playAudio(Audio audio);
 
@@ -48,6 +48,7 @@ public interface User {
     void sendPacket(String packet);
 
     boolean isMuted();
+    boolean isClientMuted();
 
     void setMuted(boolean muted, long endTime);
 

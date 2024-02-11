@@ -19,6 +19,10 @@ commands:
     aliases:
       - musicqrcode
   boostedaudio:
-    permission: boostedaudio.admin
+    permission: boostedaudio.command
     aliases:
       - ba
+  mute:
+    aliases:
+      - mutetoggle
+      - mt

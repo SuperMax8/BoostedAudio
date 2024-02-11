@@ -20,4 +20,13 @@ public class LayerInfo {
     }
 
 
+    @Override
+    public String toString() {
+        return "LayerInfo{" +
+                "layerId='" + layerId + '\'' +
+                ", playersInfo=" + playersInfo +
+                '}';
+    }
+
+
 }

@@ -32,7 +32,8 @@ mainProxyWebsocketLink: wss://localhost:8081
 secrets:
   - ""
 # The name of the server used on the proxy (only for diffuser servers)
-# The name of the spigot server (config of your mainProxy) OR a random name for another proxy
+# Diffuser Spigot: It's the name you see when you do /server
+# Diffuser Proxy: Use a random name
 proxyServerName: "lobby"
 
 # Web client
@@ -93,10 +94,18 @@ sendOnConnectDelay: 30
 # Send a packet map in the second hand
 sendQRcodeOnConnect: true
 
+# The file format of the audio
+# wav, m4a, webm, ogg, mp3, flac
+# Using, for example, mp3 can reduce the file size and the time to download
+# Using flac or wav can up the audio quality and size
+audioDownloaderFormat: "wav"
+
 # Messages
-# If you want to add the generated url in the message for example geyser compatibility you can add the placeholder {link} in the message
+# If you want to add the generated url in the message, for example, geyser compatibility you can add the placeholder {link} in the message
 # connectionMessage: "§6Join the audio client by clicking here! Link: {link}"
-connectionMessage: "§6Join the audio client by clicking here!"
+# You can use a simple String or a list of strings here for lines
+connectionMessage:
+  - "§6Join the audio client by clicking here!"
 connectionHoverMessage: "Click here"
 
 # QRcode map item name
@@ -108,7 +117,7 @@ mutedSymbol: "§c🔇"
 notconnectedSymbol: ""
 
 # Don't use if you are not sure
-# If this is true it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
+# If this is true, it means that the plugin will no longer auto params the client (modify the index.html in webhost directory)
 # this property allows you to fully customize the client by modifying the code of the client
 customClient: false
 
@@ -116,7 +125,14 @@ customClient: false
 # Custom placeholder in the client html, if you custom the client you even can add new placeholder if you need it,
 # inside placeholder you can use html directly (if the placeholder target is not a tag parameter)
 # if you want more customization with like images or things
+
+# Others skin api
+# https://cravatar.eu/avatar/
+# https://crafatar.com/
+# https://crafthead.net/
+# You can use the variables uuid or username, for the player name or uuid
 clientConfig:
+  - '{skinAPI}="https://cravatar.eu/avatar/" + username'
   - "{mainColor}=#262c3c"
   - "{primaryColor}=#202433"
   - "{secondaryColor}=#205295"
@@ -135,4 +151,10 @@ clientConfig:
   - "{settings-title}=Settings"
   - "{settings-label}=Parameters of the audio client"
   - "{settings-microphone-device-label}=Microphone Device"
+  - "{settings-micThreshold-label}=Microphone sensitivity"
+  - "{settings-micThreshold-description}=Sensivity of the microphone in dB, the noise bellow this dB amount will be cancel, the bar moving represent your current mic volume"
+  - "{settings-noiseSuppression-label}=Noise Suppression"
+  - "{settings-noiseSuppression-description}=Removes noise from your microphone audio"
+  - "{settings-echoCancellation-label}=Echo Cancellation"
+  - "{settings-echoCancellation-description}=Removes echo from your microphone audio"
   - "{settings-close-button-label}=Close Settings"

@@ -14,4 +14,11 @@ public class VoiceChatResult {
         return layers;
     }
 
+    @Override
+    public String toString() {
+        return "VoiceChatResult{" +
+                "layers=" + layers +
+                '}';
+    }
+
 }

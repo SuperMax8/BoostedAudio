@@ -6,9 +6,6 @@ import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
-import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
-import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
-import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 
 import java.util.Map;
@@ -26,6 +23,7 @@ public class DiffuserUser implements User {
     private final UUID playerId;
 
     private final boolean muted;
+    private final boolean clientMuted;
 
     public DiffuserUser(HostUser user) {
         remotePeers = user.getRemotePeers();
@@ -33,6 +31,7 @@ public class DiffuserUser implements User {
         connectionToken = user.getConnectionToken();
         playerId = user.getPlayerId();
         muted = user.isMuted();
+        clientMuted = user.isClientMuted();
     }
 
     @Override
@@ -62,23 +61,23 @@ public class DiffuserUser implements User {
 
     @Override
     public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fade) {
-        return playAudio(link, spatialInfo, fade, fade, false);
+        return playAudio(link, spatialInfo, fade, fade, false, false);
     }
 
     @Override
     public Audio playAudio(String link, int fade) {
-        return playAudio(link, null, fade, fade, false);
+        return playAudio(link, null, fade, fade, false, false);
     }
 
     @Override
     public Audio playAudio(String link, int fadeIn, int fadeOut) {
-        return playAudio(link, null, fadeIn, fadeOut, false);
+        return playAudio(link, null, fadeIn, fadeOut, false, false);
     }
 
     @Override
-    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop) {
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
         UUID id = UUID.randomUUID();
-        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop);
+        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
         playAudio(audio);
         return audio;
     }
@@ -88,6 +87,7 @@ public class DiffuserUser implements User {
         BoostedAudioSpigot.sendServerPacket("playaudio",
                 playerId + ";" + BoostedAudioAPI.getAPI().getGson().toJson(audio)
         );
+        audio.getCurrentListeners().add(playerId);
     }
 
     @Override
@@ -132,6 +132,7 @@ public class DiffuserUser implements User {
         BoostedAudioSpigot.sendServerPacket("removeaudio",
                 playerId + ";" + BoostedAudioAPI.getAPI().getGson().toJson(audio)
         );
+        audio.getCurrentListeners().remove(playerId);
     }
 
     @Override
@@ -147,7 +148,7 @@ public class DiffuserUser implements User {
 
     @Override
     public void sendPacket(String packet) {
-        if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) BoostedAudioAPI.getAPI().info("SendingPacket: " + packet);
+        if (BoostedAudioAPI.getAPI().getConfiguration().isDebugMode()) BoostedAudioAPI.getAPI().debug("SendingPacket: " + packet);
         String message = playerId.toString() + ";" + packet;
         BoostedAudioSpigot.sendServerPacket("senduserpacket", message);
     }
@@ -155,6 +156,11 @@ public class DiffuserUser implements User {
     @Override
     public boolean isMuted() {
         return muted;
+    }
+
+    @Override
+    public boolean isClientMuted() {
+        return clientMuted;
     }
 
     @Override

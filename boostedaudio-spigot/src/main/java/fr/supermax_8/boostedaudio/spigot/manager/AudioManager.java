@@ -4,6 +4,7 @@ import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -16,7 +17,9 @@ import java.util.UUID;
 
 public class AudioManager {
 
+    @Getter
     private final RegionManager regionManager;
+    @Getter
     private final SpeakerManager speakerManager;
     private File data;
 
@@ -52,7 +55,7 @@ public class AudioManager {
         FileConfiguration speakersConfig = YamlConfiguration.loadConfiguration(new File(data, "speakers.yml"));
         for (String key : speakersConfig.getKeys(false)) {
             ConfigurationSection section = speakersConfig.getConfigurationSection(key);
-            Audio audio = parseAudio(section.getConfigurationSection("audio")); // Vous devez également implémenter la logique pour analyser l'audio.
+            Audio audio = parseAudio(section.getConfigurationSection("audio"));
             if (audio == null) continue;
             speakerManager.addSpeaker(audio);
             BoostedAudioAPI.api.debug("Loaded speaker: " + audio.getId());
@@ -140,8 +143,9 @@ public class AudioManager {
         int fadeIn = section.getInt("fadeIn");
         int fadeOut = section.getInt("fadeOut");
         boolean loop = section.getBoolean("loop");
+        boolean synchronous = section.getBoolean("synchronous");
 
-        return new Audio(link, spatialInfo, UUID.randomUUID(), fadeIn, fadeOut, loop);
+        return new Audio(link, spatialInfo, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous);
     }
 
     private void saveAudio(ConfigurationSection section, Audio audio) {
@@ -162,15 +166,8 @@ public class AudioManager {
         section.set("fadeIn", audio.getFadeIn());
         section.set("fadeOut", audio.getFadeOut());
         section.set("loop", audio.isLoop());
+        section.set("synchronous", audio.isSynchronous());
     }
 
-
-    public RegionManager getRegionManager() {
-        return regionManager;
-    }
-
-    public SpeakerManager getSpeakerManager() {
-        return speakerManager;
-    }
 
 }

@@ -6,12 +6,17 @@ import fr.supermax_8.boostedaudio.core.Limiter;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.gui.BoostedAudioGUI;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -19,8 +24,7 @@ import java.util.concurrent.CompletableFuture;
 public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("boostedaudio.admin")) return false;
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         try {
             if (args.length == 0) {
                 sendHelp(sender);
@@ -28,7 +32,6 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
             }
             switch (args[0].toLowerCase()) {
                 case "help" -> sendHelp(sender);
-
 /*                case "reload":
                     sender.sendMessage("§7Plugin reload...");
                     *//*BoostedAudioHost.getInstance().reload();*//*
@@ -36,9 +39,27 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     break;*/
                 case "edit" -> {
                     if (!(sender instanceof Player p)) return false;
+                    if (!sender.hasPermission("boostedaudio.admin")) return false;
                     new BoostedAudioGUI(p);
                 }
+                case "download" -> {
+                    if (!sender.hasPermission("boostedaudio.admin")) return false;
+                    sender.sendMessage(Lang.get("download_start"));
+                    CompletableFuture.runAsync(() -> {
+                        BoostedAudioSpigot.downloadAudio(args[1], audioLink -> {
+                            TextComponent component = new TextComponent(Lang.get("download_end", audioLink));
+                            try {
+                                component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, audioLink));
+                            } catch (Throwable ex) {
+                            }
+                            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
+                                    Lang.get("click_copy_clipboard")).create()));
+                            sender.spigot().sendMessage(component);
+                        });
+                    });
+                }
                 case "play" -> {
+                    if (!sender.hasPermission("boostedaudio.audio")) return false;
                     String link = args[1];
                     int fade;
                     if (args.length == 4) {
@@ -46,7 +67,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                         fade = Integer.parseInt(args[3]);
                         try {
                             BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).playAudio(link, fade);
-                        } catch (Exception e) {
+                        } catch (Exception ignored) {
                         }
                     } else {
                         try {
@@ -61,6 +82,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     }
                 }
                 case "playradius" -> {
+                    if (!sender.hasPermission("boostedaudio.audio")) return false;
                     String link;
                     int radius;
                     Location loc;
@@ -95,12 +117,13 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     });
                 }
                 case "stop" -> {
+                    if (!sender.hasPermission("boostedaudio.audio")) return false;
                     String link = args[1];
                     if (args.length == 3) {
                         Player p = Bukkit.getPlayer(args[2]);
                         try {
                             BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId()).stopAudio(link);
-                        } catch (Exception e) {
+                        } catch (Exception ignored) {
                         }
                     } else {
                         BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().forEach(((uuid, user) -> {
@@ -108,44 +131,8 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                         }));
                     }
                 }
-                case "userlist" -> {
-                    sender.sendMessage(Lang.get("users_on_server"));
-                    StringJoiner joiner = new StringJoiner("§8, ");
-                    BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().values().forEach(u -> {
-                        joiner.add((u.isMuted() ? "§c§l" : "§f§l") + Bukkit.getPlayer(u.getPlayerId()).getName());
-                    });
-                    sender.sendMessage(joiner.toString());
-                }
-                case "mute" -> {
-                    String player = args[1];
-                    Player p = Bukkit.getPlayer(player);
-                    try {
-                        User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
-                        if (user.isMuted()) {
-                            sender.sendMessage(Lang.get("player_already_muted"));
-                            return false;
-                        }
-                        long endTime = (long) (System.currentTimeMillis() + 1000 * 60 * Float.parseFloat(args[2]));
-                        user.setMuted(true, endTime);
-                        sender.sendMessage(Lang.get("player_now_muted", p.getName()));
-                    } catch (Exception e) {
-                    }
-                }
-                case "unmute" -> {
-                    String player = args[1];
-                    Player p = Bukkit.getPlayer(player);
-                    try {
-                        User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
-                        if (!user.isMuted()) {
-                            sender.sendMessage(Lang.get("player_already_unmuted"));
-                            return false;
-                        }
-                        user.setMuted(false, 0);
-                        sender.sendMessage(Lang.get("player_now_unmuted", p.getName()));
-                    } catch (Exception e) {
-                    }
-                }
                 case "stopradius" -> {
+                    if (!sender.hasPermission("boostedaudio.audio")) return false;
                     String link;
                     int radius;
                     Location loc;
@@ -176,6 +163,80 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                         }
                     });
                 }
+                case "userlist" -> {
+                    if (!sender.hasPermission("boostedaudio.userlist")) return false;
+                    sender.sendMessage(Lang.get("users_on_server"));
+                    StringJoiner joiner = new StringJoiner("§8, ");
+                    BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().values().forEach(u -> {
+                        joiner.add((u.isMuted() ? "§c§l" : "§f§l") + Bukkit.getPlayer(u.getPlayerId()).getName());
+                    });
+                    sender.sendMessage(joiner.toString());
+                }
+                case "mute" -> {
+                    if (!sender.hasPermission("boostedaudio.mute")) return false;
+                    String player = args[1];
+                    Player p = Bukkit.getPlayer(player);
+                    try {
+                        User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
+                        if (user.isMuted()) {
+                            sender.sendMessage(Lang.get("player_already_muted"));
+                            return false;
+                        }
+                        long endTime = (long) (System.currentTimeMillis() + 1000 * 60 * Float.parseFloat(args[2]));
+                        user.setMuted(true, endTime);
+                        sender.sendMessage(Lang.get("player_now_muted", p.getName()));
+                    } catch (Exception ignored) {
+                    }
+                }
+                case "unmute" -> {
+                    if (!sender.hasPermission("boostedaudio.mute")) return false;
+                    String player = args[1];
+                    Player p = Bukkit.getPlayer(player);
+                    try {
+                        User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
+                        if (!user.isMuted()) {
+                            sender.sendMessage(Lang.get("player_already_unmuted"));
+                            return false;
+                        }
+                        user.setMuted(false, 0);
+                        sender.sendMessage(Lang.get("player_now_unmuted", p.getName()));
+                    } catch (Exception ignored) {
+                    }
+                }
+                /*case "test" -> {
+                    String link = args[1];
+                    Player p = (Player) sender;
+                    User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
+                    Audio audio = user.playAudio(link,
+                            new Audio.AudioSpatialInfo(InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()), 15),
+                            350
+                    );
+                    double distance = 10;
+                    AtomicInteger angle = new AtomicInteger();
+                    AtomicInteger count = new AtomicInteger();
+                    Bukkit.getScheduler().runTaskTimerAsynchronously(BoostedAudioSpigot.getInstance(), t -> {
+                        if (count.get() == 20 * 20) {
+                            t.cancel();
+                            audio.stop();
+                            p.sendMessage("End");
+                            return;
+                        }
+                        double radians = Math.toRadians(angle.get());
+                        Location currentLocation = p.getLocation();
+                        double x = currentLocation.getX() + distance * Math.cos(radians);
+                        double z = currentLocation.getZ() + distance * Math.sin(radians);
+                        Location newLocation = new Location(currentLocation.getWorld(), x, currentLocation.getY(), z);
+                        audio.updateLocation(InternalUtils.bukkitLocationToSerializableLoc(newLocation));
+                        if (angle.get() >= 360) angle.set(0);
+                        else {
+                            angle.addAndGet(5);
+                        }
+                        Bukkit.getScheduler().runTask(BoostedAudioSpigot.getInstance(), () -> {
+                            newLocation.getWorld().spawnParticle(Particle.FLAME, newLocation, 10);
+                        });
+                        count.incrementAndGet();
+                    }, 0, 0);
+                }*/
                 default -> sendHelp(sender);
             }
         } catch (Exception e) {
@@ -202,6 +263,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 "§7/boostedaudio mute " + Lang.get("command_mute"),
                 "§7/boostedaudio unmute " + Lang.get("command_unmute"),
                 "",
+                "§7/boostedaudio download " + Lang.get("command_download"),
                 "§7/boostedaudio play " + Lang.get("command_play1"),
                 "§7/boostedaudio play " + Lang.get("command_play2"),
                 "§7/boostedaudio playradius " + Lang.get("command_playradius1"),
@@ -220,7 +282,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
         switch (args.length) {
             case 1 -> {
                 arg = args[0];
-                completions = Arrays.asList("help", "edit", "userlist", "mute", "unmute", "play", "playradius", "stop", "stopradius");
+                completions = Arrays.asList("help", "edit", "userlist", "mute", "unmute", "download", "play", "playradius", "stop", "stopradius");
             }
             case 2 -> {
                 arg = args[1];

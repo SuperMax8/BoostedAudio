@@ -2,8 +2,8 @@ package fr.supermax_8.boostedaudio.bungee;
 
 import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
-import fr.supermax_8.boostedaudio.core.multiserv.BoostedAudioProxy;
 import fr.supermax_8.boostedaudio.core.InternalAPI;
+import fr.supermax_8.boostedaudio.core.multiserv.BoostedAudioProxy;
 import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
@@ -42,6 +42,7 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
 
         boostedAudioProxy = new BoostedAudioProxy(getDataFolder(), getPluginVersion());
         ProxyServer.getInstance().getPluginManager().registerListener(this, this);
+        BoostedAudioAPIImpl.startStat(() -> ProxyServer.getInstance().getOnlineCount());
     }
 
 

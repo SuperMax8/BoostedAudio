@@ -10,14 +10,15 @@ import fr.supermax_8.boostedaudio.core.multiserv.DiffuserWebSocketClient;
 import fr.supermax_8.boostedaudio.core.multiserv.ServerPacketListener;
 import fr.supermax_8.boostedaudio.core.multiserv.UsersFromUuids;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
-import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
 import fr.supermax_8.boostedaudio.core.utils.DataVisualisationUtils;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
+import fr.supermax_8.boostedaudio.core.utils.MediaDownloader;
 import fr.supermax_8.boostedaudio.core.utils.UpdateChecker;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioQRcodeCommand;
 import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
+import fr.supermax_8.boostedaudio.spigot.commands.MuteCommand;
 import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserUser;
 import fr.supermax_8.boostedaudio.spigot.manager.AudioManager;
 import fr.supermax_8.boostedaudio.spigot.manager.PlaceHoldersManager;
@@ -47,6 +48,8 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
 
@@ -93,6 +96,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         getCommand("audio").setExecutor(new AudioCommandSpigot());
         getCommand("boostedaudio").setExecutor(new BoostedAudioCommand());
         getCommand("audioqrcode").setExecutor(new AudioQRcodeCommand());
+        getCommand("mute").setExecutor(new MuteCommand());
 
         checkForUpdates();
 
@@ -151,6 +155,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             voiceChatProcessor.getLayers().put("proximitychat", new VoiceLayer(true, 0, null, "proximitychat"));
 
         scheduler.runLaterAsync(this::initMetrics, 20 * 60);
+        BoostedAudioAPIImpl.startStat(() -> Bukkit.getOnlinePlayers().size());
     }
 
     @Override
@@ -227,6 +232,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                     try {
                         if (diffuserWebSocketClient != null) diffuserWebSocketClient.close();
                         BoostedAudioAPI.getAPI().debug("Diffuser try to connect...");
+                        hostRequester.clear();
                         diffuserWebSocketClient = new DiffuserWebSocketClient(new URI(configuration.getMainProxyWebsocketLink()));
                         diffuserWebSocketClient.connect();
                     } catch (URISyntaxException e) {
@@ -318,7 +324,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         return getDescription().getVersion();
     }
 
-
     public static String getServerVersion() {
         Server server = Bukkit.getServer();
         return server.getVersion().toLowerCase();
@@ -330,6 +335,16 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             return f.parse(Bukkit.getBukkitVersion()).doubleValue();
         } catch (ParseException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void downloadAudio(String mediaLink, Consumer<String> whenDownloadedNewLink) {
+        if (instance.configuration.isDiffuser()) {
+            instance.hostRequester.request("downloadaudio", mediaLink, whenDownloadedNewLink, String.class);
+        } else {
+            File dir = new File(instance.configuration.getDataFolder(), "webhost" + File.separator + "audio" + File.separator + "downloaded");
+            String fileName = MediaDownloader.download(mediaLink, BoostedAudioAPI.getAPI().getConfiguration().getAudioDownloaderFormat(), dir);
+            whenDownloadedNewLink.accept("audio/downloaded/" + fileName);
         }
     }
 

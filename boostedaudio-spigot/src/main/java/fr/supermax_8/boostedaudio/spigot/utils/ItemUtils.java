@@ -23,6 +23,10 @@ public class ItemUtils {
         return itm;
     }
 
+    public static ItemStack createItm(XMaterial mat, String name, String... lore) {
+        return createItm(mat.parseMaterial() == null ? Material.DEAD_BUSH : mat.parseMaterial(), name, lore);
+    }
+
     public static void sendHandPacket(final Player player, final ItemStack mapiiitem) {
         int slot = XMaterial.getVersion() > 8 ? 45 : player.getInventory().getHeldItemSlot();
         PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.SET_SLOT);

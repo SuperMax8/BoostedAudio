@@ -24,12 +24,15 @@ public class AddAudioPacket implements Packet {
      */
     private int fadeOut;
 
-    public AddAudioPacket(UUID uuid, String link, int fadeIn, int fadeOut, Audio.AudioSpatialInfo spatialInfo) {
+    private boolean synchronous;
+
+    public AddAudioPacket(UUID uuid, String link, int fadeIn, int fadeOut, boolean synchronous, Audio.AudioSpatialInfo spatialInfo) {
         this.uuid = uuid;
         this.link = link;
         this.spatialInfo = spatialInfo;
         this.fadeIn = fadeIn;
         this.fadeOut = fadeOut;
+        this.synchronous = synchronous;
     }
 
     @Override

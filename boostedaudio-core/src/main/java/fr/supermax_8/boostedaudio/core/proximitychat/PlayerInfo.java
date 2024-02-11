@@ -32,4 +32,15 @@ public class PlayerInfo {
         return peers;
     }
 
+
+    @Override
+    public String toString() {
+        return "PlayerInfo{" +
+                "peers=" + peers +
+                ", location=" + location +
+                ", muted=" + muted +
+                '}';
+    }
+
+
 }

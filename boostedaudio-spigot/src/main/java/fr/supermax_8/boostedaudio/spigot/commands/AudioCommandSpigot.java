@@ -33,7 +33,7 @@ public class AudioCommandSpigot implements CommandExecutor {
     }
 
     public static void sendConnectMessage(Player p) {
-        CompletableFuture.runAsync(() -> {
+        BoostedAudioSpigot.getInstance().getScheduler().runAsync(t -> {
             BoostedAudioConfiguration config = BoostedAudioAPI.api.getConfiguration();
             if (config.isDiffuser()) {
                 BoostedAudioAPI.getAPI().debug("Sending audioTokenRequest for " + p.getName());
@@ -60,15 +60,17 @@ public class AudioCommandSpigot implements CommandExecutor {
             }
             BoostedAudioConfiguration config = BoostedAudioAPI.api.getConfiguration();
 
-            String textString = config.getConnectionMessage().replace("{link}", link);
-            TextComponent text = XMaterial.supports(16) ? MessageUtils.colorFormatToTextComponent(new StringBuilder(textString)) : new TextComponent(textString);
+            for (String line : config.getConnectionMessage()) {
+                String textString = line.replace("{link}", link);
+                TextComponent text = XMaterial.supports(16) ? MessageUtils.colorFormatToTextComponent(new StringBuilder(textString)) : new TextComponent(textString);
 
-            text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
-            text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(config.getConnectionHoverMessage())).toString()).create()));
+                text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
+                text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(config.getConnectionHoverMessage())).toString()).create()));
+                p.spigot().sendMessage(text);
+            }
 
             if (BoostedAudioAPI.api.getConfiguration().isDebugMode())
                 BoostedAudioAPI.getAPI().debug("Sending connection message to " + p.getName() + " : " + link);
-            p.spigot().sendMessage(text);
             if (config.isSendQRcodeOnConnect()) QrCodeGenerator.sendMap(link, p);
         } catch (Throwable e) {
             e.printStackTrace();

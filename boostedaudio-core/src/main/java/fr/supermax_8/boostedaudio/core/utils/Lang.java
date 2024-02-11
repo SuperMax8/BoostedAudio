@@ -18,6 +18,7 @@ public class Lang {
 
     public static String get(String id, Object... obj) {
         String text = lang.get(id);
+        if (text == null) return "CALL THE DEV THERE IS A PROBLEM";
         if (obj.length == 0) return text;
 
         StringBuilder textBuilder = new StringBuilder(lang.get(id));

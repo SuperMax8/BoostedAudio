@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RegionManager {
 
+    @Getter
     private static final WorldGuardWrapper api = WorldGuardWrapper.getInstance();
     @Getter
     private final HashMap<UUID, RegionInfo> infoMap = new HashMap<>();
@@ -62,14 +63,16 @@ public class RegionManager {
             for (String region : highestPriorityRegionsString) {
                 if (!lastRegionsString.contains(region)) {
                     // To add
-                    user.playAudio(audioRegions.get(region));
+                    Audio audio = audioRegions.get(region);
+                    if (audio != null) user.playAudio(audio);
                 }
             }
 
             for (String region : lastRegionsString) {
                 if (!highestPriorityRegionsString.contains(region)) {
                     // To remove
-                    user.stopAudio(audioRegions.get(region));
+                    Audio audio = audioRegions.get(region);
+                    if (audio != null) user.stopAudio(audio);
                 }
             }
 
@@ -107,10 +110,6 @@ public class RegionManager {
             this.lastRegions = lastRegions;
         }
 
-    }
-
-    public static WorldGuardWrapper getApi() {
-        return api;
     }
 
 }

@@ -4,7 +4,7 @@ import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
-import fr.supermax_8.boostedaudio.core.websocket.packets.UpdateVocalPositionsPacket;
+import fr.supermax_8.boostedaudio.core.websocket.packets.UpdatePeersLocationsPacket;
 import lombok.Getter;
 
 import java.util.*;
@@ -133,17 +133,18 @@ public class VoiceChatManager {
     }
 
     private void sendUpdatePositions(User user, SerializableLocation playerLocation, Map<UUID, SerializableLocation> peerLocations) {
-        UpdateVocalPositionsPacket updatePacket = new UpdateVocalPositionsPacket(
+        UpdatePeersLocationsPacket updatePacket = new UpdatePeersLocationsPacket(
                 playerLocation,
                 peerLocations
         );
         user.sendPacket(updatePacket);
+        //System.out.println("UpdatePeersLocationsPacket for user " + user);
     }
 
 
     public static class MuteUser {
 
-        private long muteEnd;
+        private final long muteEnd;
         @Getter
         private UUID playerId;
 

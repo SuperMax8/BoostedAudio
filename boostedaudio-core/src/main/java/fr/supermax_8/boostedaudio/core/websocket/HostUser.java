@@ -8,10 +8,11 @@ import fr.supermax_8.boostedaudio.api.user.Audio;
 import fr.supermax_8.boostedaudio.api.user.User;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
 import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
-import fr.supermax_8.boostedaudio.core.websocket.packets.MutePacket;
+import fr.supermax_8.boostedaudio.core.websocket.packets.ServerMutePacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
 import lombok.Getter;
+import lombok.Setter;
 import org.java_websocket.WebSocket;
 
 import java.util.HashSet;
@@ -35,6 +36,9 @@ public class HostUser implements User {
     private final UUID playerId;
     @Expose
     private boolean muted = false;
+    @Expose
+    @Setter
+    private boolean clientMuted = false;
 
     private long waitUntil = 0;
 
@@ -75,7 +79,7 @@ public class HostUser implements User {
 
     @Override
     public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fade) {
-        return playAudio(link, spatialInfo, fade, fade, false);
+        return playAudio(link, spatialInfo, fade, fade, false, false);
     }
 
     @Override
@@ -85,13 +89,13 @@ public class HostUser implements User {
 
     @Override
     public Audio playAudio(String link, int fadeIn, int fadeOut) {
-        return playAudio(link, null, fadeIn, fadeOut, false);
+        return playAudio(link, null, fadeIn, fadeOut, false, false);
     }
 
     @Override
-    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop) {
+    public Audio playAudio(String link, Audio.AudioSpatialInfo spatialInfo, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
         UUID id = UUID.randomUUID();
-        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop);
+        Audio audio = new Audio(link, spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
         playAudio(audio);
         return audio;
     }
@@ -99,8 +103,9 @@ public class HostUser implements User {
     @Override
     public void playAudio(Audio audio) {
         waitUntil();
-        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
+        AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.isSynchronous(), audio.getSpatialInfo());
         playingAudio.put(audio.getId(), audio);
+        audio.getCurrentListeners().add(playerId);
         sendPacket(packet);
     }
 
@@ -147,6 +152,7 @@ public class HostUser implements User {
         RemoveAudioPacket packet = new RemoveAudioPacket(audio.getId(), audio.getFadeOut());
         sendPacket(packet);
         playingAudio.remove(audio.getId());
+        audio.getCurrentListeners().remove(playerId);
     }
 
     @Override
@@ -171,21 +177,26 @@ public class HostUser implements User {
     }
 
     @Override
+    public boolean isClientMuted() {
+        return clientMuted;
+    }
+
+    @Override
     public void setMuted(boolean muted, long endTime) {
         if (this.muted == muted) return;
         this.muted = muted;
-        sendPacket(new MutePacket(muted));
+        sendPacket(new ServerMutePacket(muted));
         if (muted)
             VoiceChatManager.getMutedUsers().put(playerId, new VoiceChatManager.MuteUser(playerId, endTime));
         else
             VoiceChatManager.getMutedUsers().remove(playerId);
     }
 
-    public void checkMute() {
+    public void applyMuteIfMute() {
         VoiceChatManager.MuteUser usr = VoiceChatManager.getMutedUsers().get(playerId);
         if (usr != null) {
             muted = true;
-            sendPacket(new MutePacket(true));
+            sendPacket(new ServerMutePacket(true));
         }
     }
 

@@ -32,7 +32,7 @@ public class RemoveAudioPacket implements Packet {
             return;
         }
         if (audio.isLoop()) {
-            AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.getSpatialInfo());
+            AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.isSynchronous(), audio.getSpatialInfo());
             session.sendPacket(packet);
         } else audioMap.remove(audio.getId());
     }

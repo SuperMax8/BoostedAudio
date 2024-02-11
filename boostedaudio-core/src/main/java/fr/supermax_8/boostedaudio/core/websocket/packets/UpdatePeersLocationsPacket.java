@@ -9,12 +9,12 @@ import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import java.util.Map;
 import java.util.UUID;
 
-public class UpdateVocalPositionsPacket implements Packet {
+public class UpdatePeersLocationsPacket implements Packet {
 
     private final SerializableLocation clientLoc;
     private final Map<UUID, SerializableLocation> playersAround;
 
-    public UpdateVocalPositionsPacket(SerializableLocation clientLoc, Map<UUID, SerializableLocation> playersAround) {
+    public UpdatePeersLocationsPacket(SerializableLocation clientLoc, Map<UUID, SerializableLocation> playersAround) {
         this.clientLoc = clientLoc;
         this.playersAround = playersAround;
     }

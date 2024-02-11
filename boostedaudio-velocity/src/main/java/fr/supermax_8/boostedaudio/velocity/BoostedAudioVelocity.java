@@ -17,7 +17,7 @@ import java.util.UUID;
 public class BoostedAudioVelocity {
 
     private static String fqsfdsqfdsq = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
-    private static final String version = "2.11.3";
+    private static final String version = "2.14.0";
     private Logger logger;
     private final ProxyServer server;
     private final Path dataDirectory;
@@ -43,6 +43,7 @@ public class BoostedAudioVelocity {
             }
         };
         boostedAudioProxy = new BoostedAudioProxy(dataDirectory.toFile(), getPluginVersion());
+        BoostedAudioAPIImpl.startStat(server::getPlayerCount);
     }
 
     private String getPluginVersion() {

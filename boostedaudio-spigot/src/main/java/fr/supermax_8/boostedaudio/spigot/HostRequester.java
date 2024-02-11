@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.spigot;
 
+import com.google.gson.JsonSyntaxException;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 
 import java.util.LinkedList;
@@ -18,8 +19,12 @@ public class HostRequester {
                     List<Consumer> consumers = waitingRequests.get(channel);
                     if (consumers.isEmpty()) return;
                     Consumer consumer = consumers.remove(0);
-                    R r = BoostedAudioAPI.api.getGson().fromJson(message, requestedClass);
-                    consumer.accept(r);
+                    try {
+                        R r = BoostedAudioAPI.api.getGson().fromJson(message, requestedClass);
+                        consumer.accept(r);
+                    } catch (JsonSyntaxException e) {
+                        consumer.accept(message);
+                    }
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
@@ -27,6 +32,10 @@ public class HostRequester {
         }
         waitingRequests.computeIfAbsent(channel, k -> new LinkedList<>()).add(whenReceived);
         BoostedAudioSpigot.sendServerPacket(channel, input);
+    }
+
+    public void clear() {
+        waitingRequests.clear();
     }
 
 
