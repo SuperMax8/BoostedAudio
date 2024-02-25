@@ -71,12 +71,12 @@ public class BoostedAudioConfiguration {
 
     private void load(File configFile) throws IOException {
         dataFolder = configFile.getParentFile();
-        try {
+/*        try {
             // ConfigUpdater.update(ResourceUtils::getResourceAsStream, "config.yml", configFile);
             //LazyConfigUpdater.update(CrossConfiguration.newConfig().load(configFile), ResourceUtils.getResourceAsStream("config.yml"), configFile);
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
 
         YamlDocument config = YamlDocument.create(
                 configFile,

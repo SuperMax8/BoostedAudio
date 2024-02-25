@@ -119,16 +119,21 @@ public class VoiceChatManager {
     }
 
     private void processPositionUpdate(LayerInfo layerInfo) {
-        for (Map.Entry<UUID, PlayerInfo> entry : new HashSet<>(layerInfo.getPlayersInfo().entrySet())) {
+        Map<UUID, PlayerInfo> playerInfoMap = layerInfo.getPlayersInfo();
+        for (Map.Entry<UUID, PlayerInfo> entry : new HashSet<>(playerInfoMap.entrySet())) {
             UUID playerId = entry.getKey();
             PlayerInfo playerInfo = entry.getValue();
             ConcurrentHashMap<UUID, User> users = AudioWebSocketServer.getInstance().manager.getUsers();
             User user = users.get(playerId);
 
-            sendUpdatePositions(user, playerInfo.getLocation(), playerInfo.getPeers().stream().collect(Collectors.toMap(
-                    peerId -> peerId,
-                    peerId -> layerInfo.getPlayersInfo().get(peerId).getLocation()
-            )));
+            Map<UUID, SerializableLocation> peerLocations = new HashMap<>();
+            for (UUID id : playerInfo.getPeers()) {
+                PlayerInfo info = playerInfoMap.get(id);
+                if (info != null)
+                    peerLocations.put(id, info.getLocation());
+            }
+
+            sendUpdatePositions(user, playerInfo.getLocation(), peerLocations);
         }
     }
 

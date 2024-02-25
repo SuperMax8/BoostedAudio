@@ -34,10 +34,10 @@ public class RTCIcePacket implements Packet {
             if (remoteUser != null) {
                 remoteUser.sendPacket(this);
             }
-        } else {
-           /* user.getSession().close();
-            BoostedAudio.debug("KickICE");*/
-        }
+        } /*else {
+           *//* user.getSession().close();
+            BoostedAudio.debug("KickICE");*//*
+        }*/
     }
 
     public static class Adapter implements JsonSerializer<RTCIcePacket>, JsonDeserializer<RTCIcePacket> {

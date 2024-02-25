@@ -134,7 +134,7 @@ public class SpeakerEditGUI extends AbstractGUI {
                         }
                         distanceModel = s;
                         setItems();
-                    } catch (Exception ex) {
+                    } catch (Exception ignored) {
                     }
                 }, Lang.get("enter_distanceModel"));
             }

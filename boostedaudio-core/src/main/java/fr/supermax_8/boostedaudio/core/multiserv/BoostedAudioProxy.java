@@ -81,7 +81,7 @@ public class BoostedAudioProxy {
                     }
                 }
                 BoostedAudioAPI.getAPI().info("WRONG BUNGEE SECRET : " + serverName + " " + webSocket.getRemoteSocketAddress().toString());
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
             return false;
         };
