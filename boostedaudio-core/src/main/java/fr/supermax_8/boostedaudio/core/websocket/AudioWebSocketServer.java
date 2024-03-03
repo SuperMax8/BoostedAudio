@@ -69,7 +69,7 @@ public class AudioWebSocketServer extends WebSocketServer {
                     for (UUID id : entry.getValue()) {
                         HostUser usr = (HostUser) manager.getUsers().get(id);
                         if (usr == null) continue;
-                        new PeerConnection(realUser.getPlayerId(), usr.getPlayerId(), layerId).unLink();
+                        new PeerConnection(realUser.getPlayerId(), usr.getPlayerId(), layerId, false).unLink();
                     }
                 }
 

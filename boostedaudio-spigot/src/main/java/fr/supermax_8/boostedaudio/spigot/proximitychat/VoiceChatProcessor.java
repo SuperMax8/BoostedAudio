@@ -18,7 +18,6 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -60,7 +59,7 @@ public class VoiceChatProcessor {
                     players.put(p.getUniqueId(), new PlayerInfo(InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()), true));
                 });
 
-                LayerInfo layerInfo = new LayerInfo(players, "clientLocs");
+                LayerInfo layerInfo = new LayerInfo(players, "clientLocs", false);
                 VoiceChatResult result = new VoiceChatResult(List.of(layerInfo));
                 afterMath.accept(result);
             }
@@ -82,15 +81,14 @@ public class VoiceChatProcessor {
             UUID userId = user.getPlayerId();
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(userId);
             // Kick from panel if offline
-            if (!offlinePlayer.isOnline()) {
-                continue;
-            }
+            if (!offlinePlayer.isOnline()) continue;
 
             // Check if player is inside the layer
             if (predicate != null) {
                 if (predicate.test(user.getPlayerId())) playersInside.add(userId);
                 else playersInside.remove(userId);
             } else if (layer.isAudioSpatialized()) playersInside.add(userId);
+
 
             SerializableLocation pLoc = InternalUtils.bukkitLocationToSerializableLoc(offlinePlayer.getPlayer().getLocation());
             // Put result
@@ -103,10 +101,14 @@ public class VoiceChatProcessor {
                     if (playersInside.contains(peer))
                         playerInfo.getPeers().add(peer);
                 }
-            } else result.put(userId, new PlayerInfo(playersInside.stream().toList(), pLoc, user.isMuted()));
+            } else {
+                Set<UUID> peersOfPlayer = new HashSet<>(playersInside);
+                peersOfPlayer.remove(userId);
+                result.put(userId, new PlayerInfo(peersOfPlayer, pLoc, user.isMuted()));
+            }
         }
 
-        return new LayerInfo(result, layer.getId());
+        return new LayerInfo(result, layer.getId(), layer.isAudioSpatialized());
     }
 
     private void calculateUsersPeers(Map<UUID, User> connectedUser, Consumer<Map<UUID, List<UUID>>> afterMath) {

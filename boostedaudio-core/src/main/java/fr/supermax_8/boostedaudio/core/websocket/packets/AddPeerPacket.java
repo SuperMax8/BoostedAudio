@@ -16,13 +16,15 @@ public class AddPeerPacket implements Packet {
     private final UUID to;
     private String username;
     private final String layerId;
+    private final boolean spatialized;
 
-    public AddPeerPacket(String layerId, RTCDescription rtcDesc, UUID from, UUID to, String username) {
+    public AddPeerPacket(String layerId, RTCDescription rtcDesc, UUID from, UUID to, String username, boolean spatialized) {
         this.layerId = layerId;
         this.rtcDesc = rtcDesc;
         this.from = from;
         this.to = to;
         this.username = username;
+        this.spatialized = spatialized;
     }
 
     /**

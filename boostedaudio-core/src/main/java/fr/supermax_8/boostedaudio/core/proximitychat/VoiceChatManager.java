@@ -75,13 +75,13 @@ public class VoiceChatManager {
                     for (UUID peer : oldPeersOfUser) {
                         User peerUsr = users.get(peer);
                         if (peerUsr != null)
-                            toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId()));
+                            toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId(), layerInfo.isSpatialized()));
                     }
                 }
                 continue;
             }
 
-            List<UUID> newPeersOfUser = playerInfo.getPeers();
+            Set<UUID> newPeersOfUser = playerInfo.getPeers();
 
             if (newPeersOfUser == null || oldPeersOfUser == null) continue;
 
@@ -89,7 +89,7 @@ public class VoiceChatManager {
                 if (!oldPeersOfUser.contains(peer)) {
                     User peerUsr = users.get(peer);
                     if (peerUsr != null)
-                        toLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId()));
+                        toLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId(), layerInfo.isSpatialized()));
                 }
             }
 
@@ -97,7 +97,7 @@ public class VoiceChatManager {
                 if (!newPeersOfUser.contains(peer)) {
                     User peerUsr = users.get(peer);
                     if (peerUsr != null)
-                        toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId()));
+                        toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId(), layerInfo.isSpatialized()));
                 }
             }
 
@@ -105,16 +105,6 @@ public class VoiceChatManager {
             // processPeers(users, user, layerInfo.getLayerId(), toLink, newPeersOfUser, oldPeersOfUser);
             // Player to remove
             // processPeers(users, user, layerInfo.getLayerId(), toUnLink, oldPeersOfUser, newPeersOfUser);
-        }
-    }
-
-    private void processPeers(ConcurrentHashMap<UUID, User> users, HostUser user, String layerId, Set<PeerConnection> links, Collection<UUID> peers1, Collection<UUID> peers2) {
-        for (UUID peer : peers1) {
-            if (!peers2.contains(peer)) {
-                User peerUsr = users.get(peer);
-                if (peerUsr != null)
-                    links.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerId));
-            }
         }
     }
 
