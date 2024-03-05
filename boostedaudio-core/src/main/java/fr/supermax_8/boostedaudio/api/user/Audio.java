@@ -48,7 +48,17 @@ public class Audio {
 
     public String getLink() {
         // Get a random link from list
-        return links.get(new Random().nextInt(links.size()));
+        return getLink(links);
+    }
+
+    public String getLink(String oldLink) {
+        List<String> l = new ArrayList<>(links);
+        l.remove(oldLink);
+        return getLink(l);
+    }
+
+    private String getLink(List<String> list) {
+        return list.get(new Random().nextInt(list.size()));
     }
 
     public void updateTime(float timeToPlay) {
