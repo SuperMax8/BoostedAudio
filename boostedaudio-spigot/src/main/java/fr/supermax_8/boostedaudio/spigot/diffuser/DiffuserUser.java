@@ -2,8 +2,8 @@ package fr.supermax_8.boostedaudio.spigot.diffuser;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
-import fr.supermax_8.boostedaudio.api.user.User;
-import fr.supermax_8.boostedaudio.api.user.Audio;
+import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;

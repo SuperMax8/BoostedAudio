@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.spigot.commands.AudioCommandSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;

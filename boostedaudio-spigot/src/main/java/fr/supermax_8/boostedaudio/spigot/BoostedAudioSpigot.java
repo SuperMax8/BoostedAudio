@@ -4,7 +4,7 @@ import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.ServerImplementation;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.*;
 import fr.supermax_8.boostedaudio.core.multiserv.DiffuserWebSocketClient;
 import fr.supermax_8.boostedaudio.core.multiserv.ServerPacketListener;
@@ -48,7 +48,6 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public final class BoostedAudioSpigot extends JavaPlugin {

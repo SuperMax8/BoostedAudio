@@ -4,7 +4,7 @@ import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.api.event.events.VoiceChatLinkEvent;
 import fr.supermax_8.boostedaudio.api.event.events.VoiceChatUnlinkEvent;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;

@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.manager;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;

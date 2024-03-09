@@ -1,20 +1,13 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
-import com.comphenix.protocol.scheduler.FoliaScheduler;
-import fr.supermax_8.boostedaudio.api.user.Audio;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
-import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;

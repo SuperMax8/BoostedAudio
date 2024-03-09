@@ -1,8 +1,9 @@
-package fr.supermax_8.boostedaudio.api.user;
+package fr.supermax_8.boostedaudio.api.audio;
 
 import com.google.gson.annotations.Expose;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.packets.ChangeAudioTimePacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.UpdateAudioLocationPacket;

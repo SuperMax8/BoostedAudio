@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.manager;
 
-import fr.supermax_8.boostedaudio.api.user.User;
-import fr.supermax_8.boostedaudio.api.user.Audio;
+import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

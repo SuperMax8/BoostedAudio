@@ -3,7 +3,7 @@ package fr.supermax_8.boostedaudio.core.websocket.packets;
 import com.google.gson.*;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 

@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.commands;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.core.websocket.packets.ClientMutePacket;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
