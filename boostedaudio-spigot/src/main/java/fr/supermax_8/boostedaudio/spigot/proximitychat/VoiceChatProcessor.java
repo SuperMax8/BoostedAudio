@@ -121,7 +121,7 @@ public class VoiceChatProcessor {
             Bukkit.getScheduler().runTask(BoostedAudioSpigot.getInstance(), () -> afterMath.accept(getPeerMap(connectedUser)));
     }
 
-    private HashMap<UUID, List<UUID>> getPeerMap(Map<UUID, User> connectedUser) {
+    private Map<UUID, List<UUID>> getPeerMap(Map<UUID, User> connectedUser) {
         // UUID OF A USER, LIST OF PEERS OF THE USER
         HashMap<UUID, List<UUID>> peerMap = new HashMap<>();
 
@@ -132,9 +132,9 @@ public class VoiceChatProcessor {
         return peerMap;
     }
 
-    private HashMap<UUID, List<UUID>> getPeerMapFolia(Map<UUID, User> connectedUser) {
+    private Map<UUID, List<UUID>> getPeerMapFolia(Map<UUID, User> connectedUser) {
         // UUID OF A USER, LIST OF PEERS OF THE USER
-        HashMap<UUID, List<UUID>> peerMap = new HashMap<>();
+        ConcurrentHashMap<UUID, List<UUID>> peerMap = new ConcurrentHashMap<>();
         CountDownLatch cd = new CountDownLatch(connectedUser.size());
 
         for (User user : connectedUser.values()) {
@@ -143,10 +143,10 @@ public class VoiceChatProcessor {
                 cd.countDown();
                 continue;
             }
-            BoostedAudioSpigot.getInstance().getScheduler().runAtEntity(player, task -> {
+            BoostedAudioSpigot.getInstance().getScheduler().runAtEntityWithFallback(player, task -> {
                 getPeerPlayer(player, connectedUser, user, peerMap);
                 cd.countDown();
-            });
+            }, cd::countDown);
         }
 
         try {
@@ -157,7 +157,7 @@ public class VoiceChatProcessor {
         return peerMap;
     }
 
-    private void getPeerPlayer(Player player, Map<UUID, User> connectedUser, User user, HashMap<UUID, List<UUID>> peerMap) {
+    private void getPeerPlayer(Player player, Map<UUID, User> connectedUser, User user, Map<UUID, List<UUID>> peerMap) {
         LinkedList<UUID> peers = new LinkedList<>();
         for (Entity entity : player.getNearbyEntities(maxDistance, maxDistance, maxDistance)) {
             if (entity.getType() != EntityType.PLAYER) continue;
