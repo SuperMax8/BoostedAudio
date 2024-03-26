@@ -3,6 +3,7 @@ package fr.supermax_8.boostedaudio.spigot.manager;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.api.audio.Audio;
+import fr.supermax_8.boostedaudio.api.audio.PlayList;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -21,6 +22,8 @@ public class AudioManager {
     private final RegionManager regionManager;
     @Getter
     private final SpeakerManager speakerManager;
+    @Getter
+    private final PlayListManager playListManager;
     private File data;
 
     public AudioManager() {
@@ -32,6 +35,7 @@ public class AudioManager {
         }
         regionManager = regionManager1;
         speakerManager = new SpeakerManager();
+        playListManager = new PlayListManager();
         loadData();
     }
 
@@ -105,10 +109,15 @@ public class AudioManager {
     }
 
     private Audio parseAudio(ConfigurationSection section) {
-        List<String> link = section.getStringList("link");
-        if (link.isEmpty()) {
-            BoostedAudioAPI.api.info("No audio links found in the configuration file. !!");
-            return null;
+        PlayList playList;
+        if (section.contains("playlist")) {
+            
+        } else {
+            List<String> link = section.getStringList("link");
+            if (link.isEmpty()) {
+                BoostedAudioAPI.api.info("No audio links found in the configuration file. !!");
+                return null;
+            }
         }
         Audio.AudioSpatialInfo spatialInfo = null;
         if (section.contains("spatialInfo")) {
@@ -149,7 +158,9 @@ public class AudioManager {
     }
 
     private void saveAudio(ConfigurationSection section, Audio audio) {
-        section.set("link", audio.getLinks());
+        PlayList list = audio.getPlayList();
+        if (list.getId() == null) section.set("link", list.getLinks());
+        else section.set("playlist", list.getId());
 
         Audio.AudioSpatialInfo spatialInfo = audio.getSpatialInfo();
         if (spatialInfo != null) {

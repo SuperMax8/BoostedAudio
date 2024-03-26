@@ -57,7 +57,7 @@ public class SpeakerListGUI extends AbstractGUI {
 
     private ItemStack createSpeakerItem(Audio audio) {
         return ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(), "§l" + audio.getId(),
-                Lang.get("link", audio.getLinks()),
+                audio.getPlayList().getId() == null ? Lang.get("link", audio.getPlayList().getId()) : Lang.get("link", audio.getPlayList().getLinks()),
                 Lang.get("location", audio.getSpatialInfo().getLocation()),
                 Lang.get("maxdistance", audio.getSpatialInfo().getMaxVoiceDistance()),
                 Lang.get("distancemodel", audio.getSpatialInfo().getDistanceModel()),
@@ -96,7 +96,7 @@ public class SpeakerListGUI extends AbstractGUI {
                 Audio selectedSpeaker = speakersOfWorld.get(index);
 
                 StringJoiner linksJoiner = new StringJoiner(";");
-                for (String s : selectedSpeaker.getLinks()) linksJoiner.add(s);
+                for (String s : selectedSpeaker.getPlayList().getLinks()) linksJoiner.add(s);
                 owner.closeInventory();
                 BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
                     new SpeakerEditGUI(owner, this,

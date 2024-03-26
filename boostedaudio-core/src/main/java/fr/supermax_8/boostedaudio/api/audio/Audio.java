@@ -16,7 +16,7 @@ import java.util.*;
 public class Audio {
 
     @Expose
-    private final List<String> links;
+    private final PlayList playList;
     @Expose
     private final HashSet<UUID> currentListeners = new HashSet<>();
     @Nullable
@@ -38,7 +38,12 @@ public class Audio {
     }
 
     public Audio(List<String> links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
-        this.links = links;
+        this(new PlayList(links), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
+    }
+
+
+    public Audio(PlayList playList, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
+        this.playList = playList;
         this.spatialInfo = spatialInfo;
         this.id = id;
         this.fadeIn = fadeIn;
@@ -49,11 +54,11 @@ public class Audio {
 
     public String getLink() {
         // Get a random link from list
-        return getLink(links);
+        return getLink(playList.getLinks());
     }
 
     public String getLink(String oldLink) {
-        List<String> l = new ArrayList<>(links);
+        List<String> l = new ArrayList<>(playList.getLinks());
         l.remove(oldLink);
         return getLink(l);
     }
