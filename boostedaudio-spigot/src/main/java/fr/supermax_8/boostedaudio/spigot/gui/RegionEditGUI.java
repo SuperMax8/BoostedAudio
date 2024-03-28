@@ -123,8 +123,8 @@ public class RegionEditGUI extends AbstractGUI {
         if (edit) return;
         if (!region.isEmpty()) {
             ArrayList<String> linkss = new ArrayList<>(Arrays.asList(links.split(";")));
-            regionManager.addRegion(region, new Audio(linkss, null, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous));
-            BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+            regionManager.addRegion(region, new Audio(linkss, null, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous), true);
+            //BoostedAudioSpigot.getInstance().getAudioManager().saveData();
         }
         BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
             lastGui.initSelfListener();

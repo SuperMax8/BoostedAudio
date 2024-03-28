@@ -126,8 +126,8 @@ public class SpeakerListGUI extends AbstractGUI {
             Audio selectedSpeaker = speakersOfWorld.get(index);
 
             if (event.getClick().equals(ClickType.SHIFT_RIGHT)) {
-                speakerManager.removeSpeaker(InternalUtils.serializableLocToBukkitLocation(selectedSpeaker.getSpatialInfo().getLocation()));
-                BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+                speakerManager.removeSpeaker(InternalUtils.serializableLocToBukkitLocation(selectedSpeaker.getSpatialInfo().getLocation()), true);
+                //BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                 setItems();
             }
         }

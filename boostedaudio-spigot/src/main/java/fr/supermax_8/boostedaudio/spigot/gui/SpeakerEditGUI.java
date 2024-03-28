@@ -220,8 +220,8 @@ public class SpeakerEditGUI extends AbstractGUI {
                 fadeOut,
                 loop,
                 synchronous
-        ));
-        BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+        ), true);
+        //BoostedAudioSpigot.getInstance().getAudioManager().saveData();
         BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
             lastGui.initSelfListener();
             lastGui.setItems();

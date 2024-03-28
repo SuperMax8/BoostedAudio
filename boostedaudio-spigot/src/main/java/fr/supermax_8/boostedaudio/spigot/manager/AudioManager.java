@@ -6,14 +6,12 @@ import fr.supermax_8.boostedaudio.api.audio.Audio;
 import fr.supermax_8.boostedaudio.api.audio.PlayList;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import lombok.Getter;
-import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class AudioManager {
@@ -40,33 +38,16 @@ public class AudioManager {
     }
 
      public void loadData() {
+        BoostedAudioAPI.api.debug("Loading data...");
         data = new File(BoostedAudioSpigot.getInstance().getDataFolder(), "data");
         data.mkdirs();
 
-        BoostedAudioAPI.api.debug("Loading data...");
-        if (regionManager != null) {
-            FileConfiguration regions = YamlConfiguration.loadConfiguration(new File(data, "regions.yml"));
-            regions.getKeys(false).forEach(s -> {
-                ConfigurationSection section = regions.getConfigurationSection(s);
-                String region = section.getString("region");
-                Audio audio = parseAudio(section.getConfigurationSection("audio"));
-                if (audio == null) return;
-                regionManager.addRegion(region, audio);
-                BoostedAudioAPI.api.debug("Loaded region: " + region);
-            });
-        }
-
-        FileConfiguration speakersConfig = YamlConfiguration.loadConfiguration(new File(data, "speakers.yml"));
-        for (String key : speakersConfig.getKeys(false)) {
-            ConfigurationSection section = speakersConfig.getConfigurationSection(key);
-            Audio audio = parseAudio(section.getConfigurationSection("audio"));
-            if (audio == null) continue;
-            speakerManager.addSpeaker(audio);
-            BoostedAudioAPI.api.debug("Loaded speaker: " + audio.getId());
-        }
+        playListManager.load(data);
+        speakerManager.load(data);
+        if (regionManager != null) regionManager.load(data);
     }
 
-    public void saveData() {
+/*     public void saveData() {
         BoostedAudioAPI.api.info("Saved...");
         if (regionManager != null) {
             File regionFile = new File(data, "regions.yml");
@@ -106,18 +87,19 @@ public class AudioManager {
         } catch (Exception e) {
         }
         BoostedAudioAPI.api.info("Saved!");
-    }
+    } */
 
-    private Audio parseAudio(ConfigurationSection section) {
+    public static Audio parseAudio(ConfigurationSection section) {
         PlayList playList;
         if (section.contains("playlist")) {
-            
+            playList = BoostedAudioSpigot.getInstance().getAudioManager().playListManager.get(section.getString("playlist"));
         } else {
             List<String> link = section.getStringList("link");
             if (link.isEmpty()) {
                 BoostedAudioAPI.api.info("No audio links found in the configuration file. !!");
                 return null;
             }
+            playList = new PlayList(link);
         }
         Audio.AudioSpatialInfo spatialInfo = null;
         if (section.contains("spatialInfo")) {
@@ -154,10 +136,10 @@ public class AudioManager {
         boolean loop = section.getBoolean("loop");
         boolean synchronous = section.getBoolean("synchronous");
 
-        return new Audio(link, spatialInfo, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous);
+        return new Audio(playList, spatialInfo, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous);
     }
 
-    private void saveAudio(ConfigurationSection section, Audio audio) {
+    public static void saveAudio(ConfigurationSection section, Audio audio) {
         PlayList list = audio.getPlayList();
         if (list.getId() == null) section.set("link", list.getLinks());
         else section.set("playlist", list.getId());
