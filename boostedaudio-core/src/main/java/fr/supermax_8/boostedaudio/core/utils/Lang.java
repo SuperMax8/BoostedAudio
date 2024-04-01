@@ -24,7 +24,7 @@ public class Lang {
         StringBuilder textBuilder = new StringBuilder(lang.get(id));
         int count = 0;
         for (Object o : obj) {
-            replaceAll(textBuilder, "{" + count + "}", o.toString());
+            if (o != null) replaceAll(textBuilder, "{" + count + "}", o.toString());
             count++;
         }
         return textBuilder.toString();

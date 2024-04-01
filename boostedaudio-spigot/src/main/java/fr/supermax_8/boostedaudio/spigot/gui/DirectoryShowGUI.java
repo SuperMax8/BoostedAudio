@@ -43,7 +43,7 @@ public class DirectoryShowGUI extends AbstractGUI {
 
     @Override
     public void setItems() {
-        setItems(baseDir);
+        setItems(currentDir);
     }
 
     private void setItems(File directory) {
@@ -153,7 +153,7 @@ public class DirectoryShowGUI extends AbstractGUI {
         if (index == -1) return;
         File file = files.get(index);
         file.delete();
-        setItems();
+        setItems(currentDir);
     }
 
     @Override

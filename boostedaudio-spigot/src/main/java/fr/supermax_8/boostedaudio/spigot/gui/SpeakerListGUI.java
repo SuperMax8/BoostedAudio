@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
 import fr.supermax_8.boostedaudio.api.audio.Audio;
+import fr.supermax_8.boostedaudio.api.audio.PlayList;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.SpeakerManager;
@@ -57,7 +58,7 @@ public class SpeakerListGUI extends AbstractGUI {
 
     private ItemStack createSpeakerItem(Audio audio) {
         return ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(), "§l" + audio.getId(),
-                audio.getPlayList().getId() == null ? Lang.get("link", audio.getPlayList().getId()) : Lang.get("link", audio.getPlayList().getLinks()),
+                audio.getPlayList().getId() != null ? Lang.get("link_or_playlist", audio.getPlayList().getId()) : Lang.get("link_or_playlist", audio.getPlayList().getLinks()),
                 Lang.get("location", audio.getSpatialInfo().getLocation()),
                 Lang.get("maxdistance", audio.getSpatialInfo().getMaxVoiceDistance()),
                 Lang.get("distancemodel", audio.getSpatialInfo().getDistanceModel()),
@@ -96,7 +97,11 @@ public class SpeakerListGUI extends AbstractGUI {
                 Audio selectedSpeaker = speakersOfWorld.get(index);
 
                 StringJoiner linksJoiner = new StringJoiner(";");
-                for (String s : selectedSpeaker.getPlayList().getLinks()) linksJoiner.add(s);
+                String playlistId = selectedSpeaker.getPlayList().getId();
+                if (playlistId == null)
+                    for (String s : selectedSpeaker.getPlayList().getLinks()) linksJoiner.add(s);
+                else linksJoiner.add(playlistId);
+
                 owner.closeInventory();
                 BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
                     new SpeakerEditGUI(owner, this,

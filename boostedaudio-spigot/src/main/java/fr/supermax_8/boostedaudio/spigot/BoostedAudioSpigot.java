@@ -37,6 +37,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.wildfly.common.annotation.Nullable;
 
+import javax.swing.plaf.synth.Region;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -147,6 +148,10 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                         e.printStackTrace();
                     }
                 }, 0, 0);
+
+            // Plugin reload handle
+            for (Player p : Bukkit.getOnlinePlayers())
+                new PlayerListener().join(new PlayerJoinEvent(p, ""));
         });
 
         voiceChatProcessor = new VoiceChatProcessor();

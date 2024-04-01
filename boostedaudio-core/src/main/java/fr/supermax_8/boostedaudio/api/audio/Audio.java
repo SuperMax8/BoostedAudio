@@ -33,8 +33,8 @@ public class Audio {
     @Expose
     private final boolean synchronous;
 
-    public Audio(String links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
-        this(Collections.singletonList(links), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
+    public Audio(String link, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
+        this(Collections.singletonList(link), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
     }
 
     public Audio(List<String> links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {

@@ -25,7 +25,7 @@ public class SpeakerEditGUI extends AbstractGUI {
 
     private final SpeakerManager speakerManager = BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager();
 
-    private String links = "", distanceModel = "";
+    private String linksOrPlayList = "", distanceModel = "";
     private int fadeIn = 300, fadeOut = 300;
     private boolean loop = true, synchronous = false;
     private double maxVoiceDistance, refFactor, refDistance;
@@ -33,9 +33,9 @@ public class SpeakerEditGUI extends AbstractGUI {
     private final AbstractGUI lastGui;
     private boolean edit = false;
 
-    public SpeakerEditGUI(Player player, AbstractGUI lastGui, String links, int fadeIn, int fadeOut, boolean loop, boolean synchronous, double maxVoiceDistance, double refDistance, double refFactor, String distanceModel, SerializableLocation location) {
+    public SpeakerEditGUI(Player player, AbstractGUI lastGui, String linksOrPlayList, int fadeIn, int fadeOut, boolean loop, boolean synchronous, double maxVoiceDistance, double refDistance, double refFactor, String distanceModel, SerializableLocation location) {
         this(player, lastGui);
-        this.links = links;
+        this.linksOrPlayList = linksOrPlayList;
         this.fadeIn = fadeIn;
         this.fadeOut = fadeOut;
         this.loop = loop;
@@ -58,13 +58,13 @@ public class SpeakerEditGUI extends AbstractGUI {
     @Override
     public void setItems() {
         edit = false;
-        String[] linkss = links.split(";");
+        String[] linkss = linksOrPlayList.split(";");
         for (int i = 0; i < linkss.length; i++) {
             linkss[i] = "§7- §f" + linkss[i];
         }
         inv.setItem(0, ItemUtils.createItm(
                         XMaterial.NOTE_BLOCK,
-                        Lang.get("link", ""),
+                        Lang.get("link_or_playlist", ""),
                         linkss
                 )
         );
@@ -89,14 +89,14 @@ public class SpeakerEditGUI extends AbstractGUI {
         switch (e.getSlot()) {
             case 0 -> {
                 edit = true;
-                sendLinksMessage(links, owner.spigot());
+                sendLinksMessage(linksOrPlayList, owner.spigot());
 
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
                     initSelfListener();
                     owner.openInventory(inv);
-                    links = s;
+                    linksOrPlayList = s;
                     setItems();
-                }, Lang.get("enter_links"));
+                }, Lang.get("enter_links_or_playlist"));
             }
             case 9 -> {
                 edit = true;
@@ -207,12 +207,26 @@ public class SpeakerEditGUI extends AbstractGUI {
         spigot.sendMessage(component);
     }
 
+    private boolean isPlayList() {
+        return BoostedAudioSpigot.getInstance().getAudioManager().getPlayListManager().get(linksOrPlayList) != null;
+    }
 
     @Override
     public void onClose(Player p) {
         if (edit) return;
-        ArrayList<String> linkss = new ArrayList<>(Arrays.asList(links.split(";")));
-        speakerManager.addSpeaker(new Audio(linkss, new Audio.AudioSpatialInfo(
+        ArrayList<String> linkss = new ArrayList<>(Arrays.asList(linksOrPlayList.split(";")));
+        Audio newAudio;
+        if (isPlayList())
+            newAudio = new Audio(BoostedAudioSpigot.getInstance().getAudioManager().getPlayListManager().get(linksOrPlayList), new Audio.AudioSpatialInfo(
+                    location == null ? InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()) : location,
+                    maxVoiceDistance, distanceModel, refDistance, refFactor),
+                    UUID.randomUUID(),
+                    fadeIn,
+                    fadeOut,
+                    loop,
+                    synchronous
+            );
+        else newAudio = new Audio(linkss, new Audio.AudioSpatialInfo(
                 location == null ? InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()) : location,
                 maxVoiceDistance, distanceModel, refDistance, refFactor),
                 UUID.randomUUID(),
@@ -220,7 +234,9 @@ public class SpeakerEditGUI extends AbstractGUI {
                 fadeOut,
                 loop,
                 synchronous
-        ), true);
+        );
+
+        speakerManager.addSpeaker(newAudio, true);
         //BoostedAudioSpigot.getInstance().getAudioManager().saveData();
         BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
             lastGui.initSelfListener();

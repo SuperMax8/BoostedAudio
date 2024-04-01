@@ -23,8 +23,11 @@ public class AudioManager {
     @Getter
     private final PlayListManager playListManager;
     private File data;
+    private static AudioManager instance;
 
     public AudioManager() {
+        instance = this;
+        playListManager = new PlayListManager();
         RegionManager regionManager1;
         try {
             regionManager1 = RegionManager.create();
@@ -33,11 +36,10 @@ public class AudioManager {
         }
         regionManager = regionManager1;
         speakerManager = new SpeakerManager();
-        playListManager = new PlayListManager();
         loadData();
     }
 
-     public void loadData() {
+    public void loadData() {
         BoostedAudioAPI.api.debug("Loading data...");
         data = new File(BoostedAudioSpigot.getInstance().getDataFolder(), "data");
         data.mkdirs();
@@ -47,52 +49,15 @@ public class AudioManager {
         if (regionManager != null) regionManager.load(data);
     }
 
-/*     public void saveData() {
-        BoostedAudioAPI.api.info("Saved...");
-        if (regionManager != null) {
-            File regionFile = new File(data, "regions.yml");
-            FileConfiguration regions = YamlConfiguration.loadConfiguration(regionFile);
-            regions.getKeys(false).forEach(s -> regions.set(s, null));
-            int count = 0;
-            for (Map.Entry<String, Audio> entry : regionManager.getAudioRegions().entrySet()) {
-                String region = entry.getKey();
-                Audio audio = entry.getValue();
-                regions.set(count + ".region", region);
-                saveAudio(regions.createSection(count + ".audio"), audio);
-                count++;
-            }
-            try {
-                regions.save(regionFile);
-            } catch (Exception e) {
-            }
-        }
-
-        File speakerFile = new File(data, "speakers.yml");
-        FileConfiguration speakers = YamlConfiguration.loadConfiguration(speakerFile);
-        speakers.getKeys(false).forEach(s -> speakers.set(s, null));
-        int count = 0;
-        for (Map.Entry<Location, Audio> entry : speakerManager.speakers.entrySet()) {
-            ConfigurationSection section = speakers.createSection(count + "");
-            Location location = entry.getKey();
-            section.set("world", location.getWorld().getName());
-            section.set("x", location.getX());
-            section.set("y", location.getY());
-            section.set("z", location.getZ());
-            Audio audio = entry.getValue();
-            saveAudio(section.createSection("audio"), audio);
-            count++;
-        }
-        try {
-            speakers.save(speakerFile);
-        } catch (Exception e) {
-        }
-        BoostedAudioAPI.api.info("Saved!");
-    } */
-
     public static Audio parseAudio(ConfigurationSection section) {
         PlayList playList;
         if (section.contains("playlist")) {
-            playList = BoostedAudioSpigot.getInstance().getAudioManager().playListManager.get(section.getString("playlist"));
+            String playListId = section.getString("playlist");
+            playList = instance.playListManager.get(playListId);
+            if (playList == null) {
+                BoostedAudioAPI.getAPI().info("Playlist " + playListId + " not found");
+                playList = new PlayList(List.of());
+            }
         } else {
             List<String> link = section.getStringList("link");
             if (link.isEmpty()) {

@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.manager;
 
 import java.io.File;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Location;
@@ -22,22 +23,49 @@ public class SpeakerManager {
     @Getter
     public final ConcurrentHashMap<Location, Audio> speakers = new ConcurrentHashMap<>();
     private FileConfiguration speakersConfig;
+    private File speakerConfigFile;
 
     public SpeakerManager() {
     }
 
     public void load(File dataFolder) {
         speakers.clear();
-        speakersConfig = YamlConfiguration.loadConfiguration(new File(dataFolder, "speakers.yml"));
-        for (String key : speakersConfig.getKeys(false)) {
+        speakerConfigFile = new File(dataFolder, "speakers.yml");
+        speakersConfig = YamlConfiguration.loadConfiguration(speakerConfigFile);
+        Set<String> keys = speakersConfig.getKeys(false);
+        if (keys.contains("0")) {
+            convertToV2();
+            keys = speakersConfig.getKeys(false);
+        }
+
+        for (String key : keys) {
             ConfigurationSection section = speakersConfig.getConfigurationSection(key);
-            Audio audio = AudioManager.parseAudio(section.getConfigurationSection("audio"));
-            if (audio == null) continue;
-            addSpeaker(audio, false);
-            BoostedAudioAPI.api.debug("Loaded speaker: " + audio.getId());
+            try {
+                Audio audio = AudioManager.parseAudio(section.getConfigurationSection("audio"));
+                if (audio == null) continue;
+                addSpeaker(audio, false);
+                BoostedAudioAPI.api.debug("Loaded speaker: " + audio.getId());
+            } catch (Exception e) {
+                BoostedAudioAPI.api.info("Problem while loading speaker: " + section.getName() + ", please check the config of it");
+                e.printStackTrace();
+            }
         }
     }
 
+    private void convertToV2() {
+        speakersConfig.getKeys(false).forEach(key -> {
+            ConfigurationSection oldsection = speakersConfig.getConfigurationSection(key);
+            Audio audio = AudioManager.parseAudio(oldsection.getConfigurationSection("audio"));
+            speakersConfig.set(key, null);
+            ConfigurationSection section = speakersConfig.createSection(audio.getSpatialInfo().getLocation().toString());
+            AudioManager.saveAudio(section.createSection("audio"), audio);
+        });
+        try {
+            speakersConfig.save(speakerConfigFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public void addSpeaker(Audio audio, boolean saveInConfig) {
         Location location = InternalUtils.serializableLocToBukkitLocation(audio.getSpatialInfo().getLocation());
@@ -56,17 +84,27 @@ public class SpeakerManager {
                 p -> BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId())
         );
         if (saveInConfig) {
-
-            speakersConfig
+            AudioManager.saveAudio(speakersConfig.createSection(audio.getSpatialInfo().getLocation().toString()), audio);
+            try {
+                speakersConfig.save(speakerConfigFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    
 
     public void removeSpeaker(Location location, boolean removeInConfig) {
         manager.removeAround(location);
         speakers.remove(new Location(location.getWorld(), location.getX(), location.getY(), location.getZ()));
-
+        if (removeInConfig) {
+            speakersConfig.set(InternalUtils.bukkitLocationToSerializableLoc(location).toString(), null);
+            try {
+                speakersConfig.save(speakerConfigFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

@@ -62,7 +62,7 @@ public class RegionListGUI extends AbstractGUI {
 
     private ItemStack createRegionItem(String region, Audio audio) {
         return ItemUtils.createItm(XMaterial.MAP.parseMaterial(), "§l" + region,
-                Lang.get("link", audio.getPlayList().getLinks()),
+                Lang.get("link_or_playlist", audio.getPlayList().getId() != null ? audio.getPlayList().getId() : audio.getPlayList().getLinks()),
                 Lang.get("region", region),
                 Lang.get("fadein", audio.getFadeIn()),
                 Lang.get("fadeout", audio.getFadeOut()),
@@ -99,8 +99,13 @@ public class RegionListGUI extends AbstractGUI {
                 Map.Entry<String, Audio> selectedRegion = (Map.Entry<String, Audio>) regionsOfWorld.entrySet().toArray()[index];
 
                 Audio audio = selectedRegion.getValue();
+
                 StringJoiner linksJoiner = new StringJoiner(";");
-                for (String s : audio.getPlayList().getLinks()) linksJoiner.add(s);
+                String playlistId = audio.getPlayList().getId();
+                if (playlistId == null)
+                    for (String s : audio.getPlayList().getLinks()) linksJoiner.add(s);
+                else linksJoiner.add(playlistId);
+
                 owner.closeInventory();
                 BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
                     new RegionEditGUI(owner, this, selectedRegion.getKey(), linksJoiner.toString(), audio.getFadeIn(), audio.getFadeOut(), audio.isLoop(), audio.isSynchronous());

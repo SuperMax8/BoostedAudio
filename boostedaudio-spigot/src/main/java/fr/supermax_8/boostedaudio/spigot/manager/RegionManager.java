@@ -31,6 +31,8 @@ public class RegionManager {
     private final HashMap<UUID, RegionInfo> infoMap = new HashMap<>();
 
     private final ConcurrentHashMap<String, Audio> audioRegions = new ConcurrentHashMap<>();
+    private FileConfiguration regionsConfig;
+    private File regionsConfigFile;
 
     private String data = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
 
@@ -40,16 +42,39 @@ public class RegionManager {
 
     public void load(File dataFolder) {
         audioRegions.clear();
-        FileConfiguration regions = YamlConfiguration.loadConfiguration(new File(data, "regions.yml"));
-        regions.getKeys(false).forEach(s -> {
-            ConfigurationSection section = regions.getConfigurationSection(s);
-            String region = section.getString("region");
-            Audio audio = AudioManager.parseAudio(section.getConfigurationSection("audio"));
-            if (audio == null)
-                return;
-            addRegion(region, audio, false);
-            BoostedAudioAPI.api.debug("Loaded region: " + region);
+        regionsConfigFile = new File(dataFolder, "regions.yml");
+        regionsConfig = YamlConfiguration.loadConfiguration(regionsConfigFile);
+        if (regionsConfig.getKeys(false).contains("0")) convertToV2();
+
+        for (String region : regionsConfig.getKeys(false)) {
+            try {
+                ConfigurationSection section = regionsConfig.getConfigurationSection(region);
+                Audio audio = AudioManager.parseAudio(section.getConfigurationSection("audio"));
+                if (audio == null)
+                    return;
+                addRegion(region, audio, false);
+                BoostedAudioAPI.api.debug("Loaded region: " + region);
+            } catch (Exception e) {
+                BoostedAudioAPI.api.info("Problem while loading region audio: " + region + ", please check the config of it");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void convertToV2() {
+        regionsConfig.getKeys(false).forEach(key -> {
+            ConfigurationSection oldsection = regionsConfig.getConfigurationSection(key);
+            String region = oldsection.getString("region");
+            Audio audio = AudioManager.parseAudio(oldsection.getConfigurationSection("audio"));
+            regionsConfig.set(key, null);
+            ConfigurationSection section = regionsConfig.createSection(region);
+            AudioManager.saveAudio(section.createSection("audio"), audio);
         });
+        try {
+            regionsConfig.save(regionsConfigFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void tick(Map<UUID, User> connectedUsers) {
@@ -115,10 +140,27 @@ public class RegionManager {
 
     public void addRegion(String region, Audio audio, boolean addInConfig) {
         audioRegions.put(region, audio);
+        if (addInConfig) {
+            ConfigurationSection section = regionsConfig.createSection(region);
+            AudioManager.saveAudio(section.createSection("audio"), audio);
+            try {
+                regionsConfig.save(regionsConfigFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void removeRegion(String region, boolean removeInConfig) {
         audioRegions.remove(region);
+        if (removeInConfig) {
+            regionsConfig.set(region, null);
+            try {
+                regionsConfig.save(regionsConfigFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static RegionManager create() {
