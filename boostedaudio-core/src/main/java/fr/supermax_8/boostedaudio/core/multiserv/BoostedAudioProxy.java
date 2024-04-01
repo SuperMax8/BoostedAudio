@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
-import fr.supermax_8.boostedaudio.api.user.Audio;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
@@ -81,7 +81,7 @@ public class BoostedAudioProxy {
                     }
                 }
                 BoostedAudioAPI.getAPI().info("WRONG BUNGEE SECRET : " + serverName + " " + webSocket.getRemoteSocketAddress().toString());
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
             return false;
         };

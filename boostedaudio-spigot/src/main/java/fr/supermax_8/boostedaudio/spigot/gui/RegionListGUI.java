@@ -1,20 +1,13 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
-import com.comphenix.protocol.scheduler.FoliaScheduler;
-import fr.supermax_8.boostedaudio.api.user.Audio;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
-import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -69,7 +62,7 @@ public class RegionListGUI extends AbstractGUI {
 
     private ItemStack createRegionItem(String region, Audio audio) {
         return ItemUtils.createItm(XMaterial.MAP.parseMaterial(), "§l" + region,
-                Lang.get("link", audio.getLinks()),
+                Lang.get("link_or_playlist", audio.getPlayList().getId() != null ? audio.getPlayList().getId() : audio.getPlayList().getLinks()),
                 Lang.get("region", region),
                 Lang.get("fadein", audio.getFadeIn()),
                 Lang.get("fadeout", audio.getFadeOut()),
@@ -106,8 +99,13 @@ public class RegionListGUI extends AbstractGUI {
                 Map.Entry<String, Audio> selectedRegion = (Map.Entry<String, Audio>) regionsOfWorld.entrySet().toArray()[index];
 
                 Audio audio = selectedRegion.getValue();
+
                 StringJoiner linksJoiner = new StringJoiner(";");
-                for (String s : audio.getLinks()) linksJoiner.add(s);
+                String playlistId = audio.getPlayList().getId();
+                if (playlistId == null)
+                    for (String s : audio.getPlayList().getLinks()) linksJoiner.add(s);
+                else linksJoiner.add(playlistId);
+
                 owner.closeInventory();
                 BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
                     new RegionEditGUI(owner, this, selectedRegion.getKey(), linksJoiner.toString(), audio.getFadeIn(), audio.getFadeOut(), audio.isLoop(), audio.isSynchronous());
@@ -126,9 +124,9 @@ public class RegionListGUI extends AbstractGUI {
             Map.Entry<String, Audio> selectedRegion = (Map.Entry<String, Audio>) regionsOfWorld.entrySet().toArray()[index];
 
             if (event.getClick().equals(ClickType.SHIFT_RIGHT)) {
-                regionManager.removeRegion(selectedRegion.getKey());
+                regionManager.removeRegion(selectedRegion.getKey(), true);
                 setItems();
-                BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+                //BoostedAudioSpigot.getInstance().getAudioManager().saveData();
             }
         }
     }

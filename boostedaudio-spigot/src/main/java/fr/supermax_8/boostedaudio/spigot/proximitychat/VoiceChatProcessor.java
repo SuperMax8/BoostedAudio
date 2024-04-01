@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.proximitychat;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.proximitychat.LayerInfo;
 import fr.supermax_8.boostedaudio.core.proximitychat.PlayerInfo;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatResult;
@@ -17,8 +17,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -40,7 +42,7 @@ public class VoiceChatProcessor {
 
         try {
             if (BoostedAudioAPI.getAPI().getConfiguration().isVoiceChatEnabled())
-                calculateUsersPeers(userOnServer, peers -> {
+                calculateUsersPeers(new HashMap<>(userOnServer), peers -> {
                     List<LayerInfo> layerInfos = new ArrayList<>();
                     // Process every layers
                     for (Map.Entry<String, VoiceLayer> entry : layers.entrySet()) {
@@ -60,7 +62,7 @@ public class VoiceChatProcessor {
                     players.put(p.getUniqueId(), new PlayerInfo(InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()), true));
                 });
 
-                LayerInfo layerInfo = new LayerInfo(players, "clientLocs");
+                LayerInfo layerInfo = new LayerInfo(players, "clientLocs", false);
                 VoiceChatResult result = new VoiceChatResult(List.of(layerInfo));
                 afterMath.accept(result);
             }
@@ -82,15 +84,14 @@ public class VoiceChatProcessor {
             UUID userId = user.getPlayerId();
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(userId);
             // Kick from panel if offline
-            if (!offlinePlayer.isOnline()) {
-                continue;
-            }
+            if (!offlinePlayer.isOnline()) continue;
 
             // Check if player is inside the layer
             if (predicate != null) {
                 if (predicate.test(user.getPlayerId())) playersInside.add(userId);
                 else playersInside.remove(userId);
             } else if (layer.isAudioSpatialized()) playersInside.add(userId);
+
 
             SerializableLocation pLoc = InternalUtils.bukkitLocationToSerializableLoc(offlinePlayer.getPlayer().getLocation());
             // Put result
@@ -103,46 +104,60 @@ public class VoiceChatProcessor {
                     if (playersInside.contains(peer))
                         playerInfo.getPeers().add(peer);
                 }
-            } else result.put(userId, new PlayerInfo(playersInside.stream().toList(), pLoc, user.isMuted()));
+            } else {
+                Set<UUID> peersOfPlayer = new HashSet<>(playersInside);
+                peersOfPlayer.remove(userId);
+                result.put(userId, new PlayerInfo(peersOfPlayer, pLoc, user.isMuted()));
+            }
         }
 
-        return new LayerInfo(result, layer.getId());
+        return new LayerInfo(result, layer.getId(), layer.isAudioSpatialized());
     }
 
     private void calculateUsersPeers(Map<UUID, User> connectedUser, Consumer<Map<UUID, List<UUID>>> afterMath) {
-        BoostedAudioSpigot.getInstance().getScheduler().runNextTick(task -> {
-            afterMath.accept(getPeerMap(connectedUser));
-        });
+        if (BoostedAudioSpigot.getInstance().getFolia().isFolia())
+            CompletableFuture.runAsync(() -> afterMath.accept(getPeerMapFolia(connectedUser)));
+        else
+            Bukkit.getScheduler().runTask(BoostedAudioSpigot.getInstance(), () -> afterMath.accept(getPeerMap(connectedUser)));
     }
 
-    private HashMap<UUID, List<UUID>> getPeerMap(Map<UUID, User> connectedUser) {
+    private Map<UUID, List<UUID>> getPeerMap(Map<UUID, User> connectedUser) {
         // UUID OF A USER, LIST OF PEERS OF THE USER
         HashMap<UUID, List<UUID>> peerMap = new HashMap<>();
-        AtomicInteger done = new AtomicInteger();
-        int finish = 0;
 
         for (User user : connectedUser.values()) {
             Player player = Bukkit.getPlayer(user.getPlayerId());
-            if (player == null) continue;
-            finish++;
-            if (BoostedAudioSpigot.getInstance().getFolia().isFolia())
-                BoostedAudioSpigot.getInstance().getScheduler().runAtEntity(player, task -> {
-                    getPeerPlayer(player, connectedUser, user, peerMap, done);
-                });
-            else
-                getPeerPlayer(player, connectedUser, user, peerMap, done);
-        }
-        while (finish != done.get()) {
-            try {
-                Thread.sleep(1);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            if (player != null) getPeerPlayer(player, connectedUser, user, peerMap);
         }
         return peerMap;
     }
 
-    private void getPeerPlayer(Player player, Map<UUID, User> connectedUser, User user, HashMap<UUID, List<UUID>> peerMap, AtomicInteger done) {
+    private Map<UUID, List<UUID>> getPeerMapFolia(Map<UUID, User> connectedUser) {
+        // UUID OF A USER, LIST OF PEERS OF THE USER
+        ConcurrentHashMap<UUID, List<UUID>> peerMap = new ConcurrentHashMap<>();
+        CountDownLatch cd = new CountDownLatch(connectedUser.size());
+
+        for (User user : connectedUser.values()) {
+            Player player = Bukkit.getPlayer(user.getPlayerId());
+            if (player == null) {
+                cd.countDown();
+                continue;
+            }
+            BoostedAudioSpigot.getInstance().getScheduler().runAtEntityWithFallback(player, task -> {
+                getPeerPlayer(player, connectedUser, user, peerMap);
+                cd.countDown();
+            }, cd::countDown);
+        }
+
+        try {
+            cd.await(50, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return peerMap;
+    }
+
+    private void getPeerPlayer(Player player, Map<UUID, User> connectedUser, User user, Map<UUID, List<UUID>> peerMap) {
         LinkedList<UUID> peers = new LinkedList<>();
         for (Entity entity : player.getNearbyEntities(maxDistance, maxDistance, maxDistance)) {
             if (entity.getType() != EntityType.PLAYER) continue;
@@ -150,7 +165,6 @@ public class VoiceChatProcessor {
             if (connectedUser.containsKey(id)) peers.add(id);
         }
         peerMap.put(user.getPlayerId(), peers);
-        done.getAndIncrement();
     }
 
 

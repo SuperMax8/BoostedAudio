@@ -4,7 +4,7 @@ import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.ServerImplementation;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.*;
 import fr.supermax_8.boostedaudio.core.multiserv.DiffuserWebSocketClient;
 import fr.supermax_8.boostedaudio.core.multiserv.ServerPacketListener;
@@ -37,6 +37,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.wildfly.common.annotation.Nullable;
 
+import javax.swing.plaf.synth.Region;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -48,7 +49,6 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
@@ -148,6 +148,10 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                         e.printStackTrace();
                     }
                 }, 0, 0);
+
+            // Plugin reload handle
+            for (Player p : Bukkit.getOnlinePlayers())
+                new PlayerListener().join(new PlayerJoinEvent(p, ""));
         });
 
         voiceChatProcessor = new VoiceChatProcessor();

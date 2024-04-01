@@ -1,8 +1,9 @@
-package fr.supermax_8.boostedaudio.api.user;
+package fr.supermax_8.boostedaudio.api.audio;
 
 import com.google.gson.annotations.Expose;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.packets.ChangeAudioTimePacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.UpdateAudioLocationPacket;
@@ -15,7 +16,7 @@ import java.util.*;
 public class Audio {
 
     @Expose
-    private final List<String> links;
+    private final PlayList playList;
     @Expose
     private final HashSet<UUID> currentListeners = new HashSet<>();
     @Nullable
@@ -32,12 +33,17 @@ public class Audio {
     @Expose
     private final boolean synchronous;
 
-    public Audio(String links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
-        this(Collections.singletonList(links), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
+    public Audio(String link, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
+        this(Collections.singletonList(link), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
     }
 
     public Audio(List<String> links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
-        this.links = links;
+        this(new PlayList(links), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
+    }
+
+
+    public Audio(PlayList playList, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
+        this.playList = playList;
         this.spatialInfo = spatialInfo;
         this.id = id;
         this.fadeIn = fadeIn;
@@ -48,7 +54,17 @@ public class Audio {
 
     public String getLink() {
         // Get a random link from list
-        return links.get(new Random().nextInt(links.size()));
+        return getLink(playList.getLinks());
+    }
+
+    public String getLink(String oldLink) {
+        List<String> l = new ArrayList<>(playList.getLinks());
+        l.remove(oldLink);
+        return getLink(l);
+    }
+
+    private String getLink(List<String> list) {
+        return list.get(new Random().nextInt(list.size()));
     }
 
     public void updateTime(float timeToPlay) {

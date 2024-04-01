@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.core.websocket.packets;
 
 import fr.supermax_8.boostedaudio.api.packet.Packet;
-import fr.supermax_8.boostedaudio.api.user.Audio;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
 
@@ -16,6 +16,7 @@ public class RemoveAudioPacket implements Packet {
      * Fade in ms
      */
     private final int fade;
+    private String audioLink = null;
 
     public RemoveAudioPacket(UUID uuid, int fade) {
         this.uuid = uuid;
@@ -32,7 +33,7 @@ public class RemoveAudioPacket implements Packet {
             return;
         }
         if (audio.isLoop()) {
-            AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(), audio.getFadeIn(), audio.getFadeOut(), audio.isSynchronous(), audio.getSpatialInfo());
+            AddAudioPacket packet = new AddAudioPacket(audio.getId(), audio.getLink(audioLink), audio.getFadeIn(), audio.getFadeOut(), audio.isSynchronous(), audio.getSpatialInfo());
             session.sendPacket(packet);
         } else audioMap.remove(audio.getId());
     }

@@ -1,6 +1,6 @@
 package fr.supermax_8.boostedaudio.core.proximitychat;
 
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
@@ -9,7 +9,6 @@ import lombok.Getter;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 // Host Only
 public class VoiceChatManager {
@@ -75,13 +74,13 @@ public class VoiceChatManager {
                     for (UUID peer : oldPeersOfUser) {
                         User peerUsr = users.get(peer);
                         if (peerUsr != null)
-                            toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId()));
+                            toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId(), layerInfo.isSpatialized()));
                     }
                 }
                 continue;
             }
 
-            List<UUID> newPeersOfUser = playerInfo.getPeers();
+            Set<UUID> newPeersOfUser = playerInfo.getPeers();
 
             if (newPeersOfUser == null || oldPeersOfUser == null) continue;
 
@@ -89,7 +88,7 @@ public class VoiceChatManager {
                 if (!oldPeersOfUser.contains(peer)) {
                     User peerUsr = users.get(peer);
                     if (peerUsr != null)
-                        toLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId()));
+                        toLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId(), layerInfo.isSpatialized()));
                 }
             }
 
@@ -97,7 +96,7 @@ public class VoiceChatManager {
                 if (!newPeersOfUser.contains(peer)) {
                     User peerUsr = users.get(peer);
                     if (peerUsr != null)
-                        toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId()));
+                        toUnLink.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerInfo.getLayerId(), layerInfo.isSpatialized()));
                 }
             }
 
@@ -108,27 +107,22 @@ public class VoiceChatManager {
         }
     }
 
-    private void processPeers(ConcurrentHashMap<UUID, User> users, HostUser user, String layerId, Set<PeerConnection> links, Collection<UUID> peers1, Collection<UUID> peers2) {
-        for (UUID peer : peers1) {
-            if (!peers2.contains(peer)) {
-                User peerUsr = users.get(peer);
-                if (peerUsr != null)
-                    links.add(new PeerConnection(user.getPlayerId(), peerUsr.getPlayerId(), layerId));
-            }
-        }
-    }
-
     private void processPositionUpdate(LayerInfo layerInfo) {
-        for (Map.Entry<UUID, PlayerInfo> entry : new HashSet<>(layerInfo.getPlayersInfo().entrySet())) {
+        Map<UUID, PlayerInfo> playerInfoMap = layerInfo.getPlayersInfo();
+        for (Map.Entry<UUID, PlayerInfo> entry : new HashSet<>(playerInfoMap.entrySet())) {
             UUID playerId = entry.getKey();
             PlayerInfo playerInfo = entry.getValue();
             ConcurrentHashMap<UUID, User> users = AudioWebSocketServer.getInstance().manager.getUsers();
             User user = users.get(playerId);
 
-            sendUpdatePositions(user, playerInfo.getLocation(), playerInfo.getPeers().stream().collect(Collectors.toMap(
-                    peerId -> peerId,
-                    peerId -> layerInfo.getPlayersInfo().get(peerId).getLocation()
-            )));
+            Map<UUID, SerializableLocation> peerLocations = new HashMap<>();
+            for (UUID id : playerInfo.getPeers()) {
+                PlayerInfo info = playerInfoMap.get(id);
+                if (info != null)
+                    peerLocations.put(id, info.getLocation());
+            }
+
+            sendUpdatePositions(user, playerInfo.getLocation(), peerLocations);
         }
     }
 

@@ -1,7 +1,7 @@
 package fr.supermax_8.boostedaudio.core.websocket;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.user.User;
+import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.core.multiserv.ServerUser;
 import fr.supermax_8.boostedaudio.core.utils.Base64Utils;

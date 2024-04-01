@@ -1,5 +1,6 @@
-package fr.supermax_8.boostedaudio.api.user;
+package fr.supermax_8.boostedaudio.api;
 
+import fr.supermax_8.boostedaudio.api.audio.Audio;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
 

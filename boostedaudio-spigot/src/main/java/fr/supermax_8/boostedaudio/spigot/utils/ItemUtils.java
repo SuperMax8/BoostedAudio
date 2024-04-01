@@ -9,15 +9,21 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ItemUtils {
 
     public static ItemStack createItm(Material mat, String name, String... lore) {
+        return createItm(mat, name, Arrays.asList(lore));
+    }
+
+    public static ItemStack createItm(Material mat, String name, List<String> lore) {
         ItemStack itm = new ItemStack(mat);
         ItemMeta meta = itm.getItemMeta();
         meta.setDisplayName(name);
-        meta.setLore(Arrays.asList(lore));
+        meta.setLore(lore);
         meta.addItemFlags(ItemFlag.values());
         itm.setItemMeta(meta);
         return itm;

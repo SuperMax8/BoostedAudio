@@ -1,38 +1,38 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
+import fr.supermax_8.boostedaudio.api.audio.PlayList;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.core.utils.NaturalOrderComparator;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
-import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-public class DirectoryShowGUI extends AbstractGUI {
+public class PlayListListGUI extends AbstractGUI {
 
     private final File baseDir;
     private File currentDir;
     private final InventoryScroll scroll;
-
+    private boolean closeByPass = false;
     private final ArrayList<File> files = new ArrayList<>();
     private final ArrayList<ItemStack> items = new ArrayList<>();
 
-    public DirectoryShowGUI(Player p, File baseDir) {
-        super(p, 54, Lang.get("directory"), null);
+    public PlayListListGUI(Player p, File baseDir) {
+        super(p, 54, Lang.get("playlist_list"), null);
         this.baseDir = baseDir;
         this.currentDir = baseDir;
         scroll = new InventoryScroll(inv, items, InventoryScroll.InventoryScrollType.GAP, 0, 44, 9, false, false);
@@ -51,6 +51,9 @@ public class DirectoryShowGUI extends AbstractGUI {
         files.clear();
         items.clear();
 
+        inv.setItem(45, ItemUtils.createItm(XMaterial.EMERALD.parseMaterial(), Lang.get("add_playlist")));
+        inv.setItem(46, ItemUtils.createItm(XMaterial.CHEST.parseMaterial(), Lang.get("add_folder")));
+
         inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), Lang.get("previous"), Lang.get("previous_desc")));
         inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), Lang.get("next"), Lang.get("next_desc")));
 
@@ -67,18 +70,25 @@ public class DirectoryShowGUI extends AbstractGUI {
                         "§6§l" + f.getName(),
                         Lang.get("file_in_dir", f.listFiles().length),
                         "",
-                        Lang.get("click_to_open")
+                        Lang.get("click_to_open"),
+                        Lang.get("shift_click_delete")
                 );
             } else {
-                String s = f.getAbsolutePath();
-                s = s.substring(s.indexOf("audio"));
-                item = ItemUtils.createItm(XMaterial.CHEST.parseMaterial(),
-                        "§f§l" + f.getName(),
-                        Lang.get("path", s),
-                        "",
-                        Lang.get("left_click_copy"),
-                        Lang.get("right_click_volume"),
-                        Lang.get("shift_click_delete")
+                if (!f.getName().endsWith(".yml")) continue;
+
+                FileConfiguration fc = YamlConfiguration.loadConfiguration(f);
+                List<String> lore = new ArrayList<>() {{
+                    Optional<String> list = fc.getKeys(false).stream().findFirst();
+                    if (list.isPresent())
+                        for (String s : fc.getStringList(list.get()))
+                            add("§7-" + s);
+                    add("");
+                    add(Lang.get("click_to_open"));
+                    add(Lang.get("shift_click_delete"));
+                }};
+                item = ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(),
+                        "§e§l" + f.getName().replace(".yml", ""),
+                        lore
                 );
             }
             items.add(item);
@@ -96,6 +106,38 @@ public class DirectoryShowGUI extends AbstractGUI {
             case 53:
                 scroll.previousClick();
                 break;
+            case 45:
+                // Create playlist file
+                closeByPass = true;
+                new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
+                    String name = s.replaceAll("\\.", "").replaceAll(" ", "_").toLowerCase();
+                    File newPlayList = new File(currentDir, name + ".yml");
+                    try {
+                        newPlayList.createNewFile();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    YamlConfiguration fc = YamlConfiguration.loadConfiguration(newPlayList);
+                    fc.set(name, List.of(""));
+
+                    PlayList pl = new PlayList(name, List.of(""));
+                    BoostedAudioSpigot.getInstance().getAudioManager().getPlayListManager().addPlayList(pl);
+                    setItems(currentDir);
+                    reOpenGUI();
+                }, Lang.get("enter_playlist_name"));
+                break;
+            case 46:
+                closeByPass = true;
+                // Create folder
+                new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
+                    String name = s.replaceAll("\\.", "");
+                    File newPlayList = new File(currentDir, name);
+                    newPlayList.mkdirs();
+
+                    setItems(currentDir);
+                    reOpenGUI();
+                }, Lang.get("enter_folder_name"));
+                break;
             default:
                 int index = scroll.getListIndexFromSlot(e.getSlot());
                 if (index == -1) return;
@@ -105,43 +147,7 @@ public class DirectoryShowGUI extends AbstractGUI {
                     currentDir = file;
                 } else {
                     owner.closeInventory();
-                    switch (e.getClick()) {
-                        case LEFT:
-                            String s = file.getAbsolutePath();
-                            s = s.substring(s.indexOf("audio")).replaceAll("\\\\", "/");
-                            TextComponent component = new TextComponent(s);
-                            component.setUnderlined(true);
-                            component.setBold(true);
-                            try {
-                                component.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, s));
-                            } catch (Throwable ignored) {
-                            }
-                            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-                                    Lang.get("click_copy_clipboard")).create()));
-                            owner.spigot().sendMessage(component);
-                            break;
-                        case RIGHT:
-                            new ChatEditor(BoostedAudioSpigot.getInstance(), owner, value -> {
-                                try {
-                                    float v = Float.parseFloat(value);
-                                    try {
-                                        File outputFile = new File(file.getParentFile(), "Harmonized_" + file.getName());
-                                        if (outputFile.exists()) outputFile.delete();
-                                        FileUtils.adjustGain(file.getAbsolutePath(),
-                                                outputFile.getAbsolutePath(),
-                                                v);
-                                        owner.sendMessage(Lang.get("harmonized_message", file.getName(), v));
-                                    } catch (Exception exxx) {
-                                        if (FileUtils.ffmpeg == null || FileUtils.ffprobe == null) {
-                                            owner.sendMessage(Lang.get("ffmpeg_message"));
-                                        } else exxx.printStackTrace();
-                                    }
-                                } catch (Exception ex) {
-                                    owner.sendMessage(Lang.get("wrong_values"));
-                                }
-                            }, Lang.get("enter_chat_gain_adjustment"));
-                            break;
-                    }
+                    new PlayListEditGUI(owner, file, this);
                 }
         }
     }
@@ -153,11 +159,16 @@ public class DirectoryShowGUI extends AbstractGUI {
         if (index == -1) return;
         File file = files.get(index);
         file.delete();
+        BoostedAudioSpigot.getInstance().getAudioManager().getPlayListManager().remove(file.getName().replace(".yml", ""));
         setItems(currentDir);
     }
 
     @Override
     public void onClose(Player p) {
+        if (closeByPass) {
+            closeByPass = false;
+            return;
+        }
         if (currentDir.equals(baseDir)) return;
         currentDir = currentDir.getParentFile();
         setItems(currentDir);

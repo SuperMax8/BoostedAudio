@@ -1,20 +1,15 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
-import fr.supermax_8.boostedaudio.api.user.Audio;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
+import fr.supermax_8.boostedaudio.api.audio.PlayList;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.SpeakerManager;
 import fr.supermax_8.boostedaudio.spigot.utils.InternalUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
-import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -63,7 +58,7 @@ public class SpeakerListGUI extends AbstractGUI {
 
     private ItemStack createSpeakerItem(Audio audio) {
         return ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(), "§l" + audio.getId(),
-                Lang.get("link", audio.getLinks()),
+                audio.getPlayList().getId() != null ? Lang.get("link_or_playlist", audio.getPlayList().getId()) : Lang.get("link_or_playlist", audio.getPlayList().getLinks()),
                 Lang.get("location", audio.getSpatialInfo().getLocation()),
                 Lang.get("maxdistance", audio.getSpatialInfo().getMaxVoiceDistance()),
                 Lang.get("distancemodel", audio.getSpatialInfo().getDistanceModel()),
@@ -102,7 +97,11 @@ public class SpeakerListGUI extends AbstractGUI {
                 Audio selectedSpeaker = speakersOfWorld.get(index);
 
                 StringJoiner linksJoiner = new StringJoiner(";");
-                for (String s : selectedSpeaker.getLinks()) linksJoiner.add(s);
+                String playlistId = selectedSpeaker.getPlayList().getId();
+                if (playlistId == null)
+                    for (String s : selectedSpeaker.getPlayList().getLinks()) linksJoiner.add(s);
+                else linksJoiner.add(playlistId);
+
                 owner.closeInventory();
                 BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
                     new SpeakerEditGUI(owner, this,
@@ -132,8 +131,8 @@ public class SpeakerListGUI extends AbstractGUI {
             Audio selectedSpeaker = speakersOfWorld.get(index);
 
             if (event.getClick().equals(ClickType.SHIFT_RIGHT)) {
-                speakerManager.removeSpeaker(InternalUtils.serializableLocToBukkitLocation(selectedSpeaker.getSpatialInfo().getLocation()));
-                BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+                speakerManager.removeSpeaker(InternalUtils.serializableLocToBukkitLocation(selectedSpeaker.getSpatialInfo().getLocation()), true);
+                //BoostedAudioSpigot.getInstance().getAudioManager().saveData();
                 setItems();
             }
         }

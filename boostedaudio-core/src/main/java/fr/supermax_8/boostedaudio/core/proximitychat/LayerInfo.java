@@ -9,24 +9,17 @@ import java.util.UUID;
 public class LayerInfo {
 
     private final String layerId;
-
+    private final boolean spatialized;
     // PlayerId : PlayerInfo
     private final Map<UUID, PlayerInfo> playersInfo;
 
 
-    public LayerInfo(Map<UUID, PlayerInfo> playersInfo, String layerId) {
+    public LayerInfo(Map<UUID, PlayerInfo> playersInfo, String layerId, boolean spatialized) {
         this.playersInfo = playersInfo;
         this.layerId = layerId;
+        this.spatialized = spatialized;
     }
 
-
-    @Override
-    public String toString() {
-        return "LayerInfo{" +
-                "layerId='" + layerId + '\'' +
-                ", playersInfo=" + playersInfo +
-                '}';
-    }
 
 
 }

@@ -366,6 +366,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
     // Map<String(layerId), Map<UUID, PeerConnectionContainer>>
     const peerConnections = new Map();
+    const layersSpatialized = new Map();
 
     // Map<String, Function>
     const registeredPackets = new Map();
@@ -537,6 +538,10 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             const from = packet.from;
             const to = packet.to;
             const layerId = packet.layerId;
+            const spatialized = packet.spatialized;
+
+            console.log("Spatialized", layerId, spatialized)
+            layersSpatialized.set(layerId, spatialized)
             let username = packet.username;
             let pc;
             switch (packet.rtcDesc.type) {
@@ -554,6 +559,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                                 "from": playerId,
                                 "to": from,
                                 "username": "",
+                                "spatialized": spatialized,
                                 "rtcDesc": {
                                     "type": offer.type,
                                     "sdp": offer.sdp,
@@ -584,6 +590,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                                 "from": to,
                                 "to": from,
                                 "username": "",
+                                "spatialized": spatialized,
                                 "rtcDesc": {
                                     "type": answer.type,
                                     "sdp": answer.sdp,
@@ -644,10 +651,12 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
             if (proximityChat)
                 peerConnections.forEach((layerMap, layerId) => {
-                    layerMap.forEach((peerObj, uuid) => {
-                        peerObj.loc = map.get(uuid)
-                        spatializeAudio(peerObj, peerObj.loc)
-                    })
+                    if (layersSpatialized.get(layerId) === true) {
+                        layerMap.forEach((peerObj, uuid) => {
+                            peerObj.loc = map.get(uuid)
+                            spatializeAudio(peerObj, peerObj.loc)
+                        })
+                    }
                 })
         });
         registeredPackets.set("UpdateAudioLocationPacket", async packet => {
@@ -719,7 +728,8 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                             "type": "RemoveAudioPacket",
                             "value": {
                                 "uuid": id,
-                                "fade": 0
+                                "fade": 0,
+                                "audioLink": link,
                             }
                         }
                     ]

@@ -194,8 +194,11 @@ public class BoostedAudioHost {
         try {
             BoostedAudioAPI.api.debug("SSL setup...");
 
-            ResourceUtils.saveResource("default.jks", new File(configuration.getDataFolder(), "default.jks").getAbsolutePath());
-            dummySslContext = getSSLContext(Files.newInputStream(new File(configuration.getDataFolder(), "default.jks").toPath()), "changeit".toCharArray());
+            try {
+                ResourceUtils.saveResource("default.jks", new File(configuration.getDataFolder(), "default.jks").getAbsolutePath());
+                dummySslContext = getSSLContext(Files.newInputStream(new File(configuration.getDataFolder(), "default.jks").toPath()), "changeit".toCharArray());
+            } catch (Exception e) {
+            }
             if (configuration.isSsl()) {
                 File jksFile = new File(configuration.getDataFolder(), configuration.getKeystoreFileName());
                 if (jksFile.exists()) {

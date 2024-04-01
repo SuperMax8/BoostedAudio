@@ -1,6 +1,5 @@
 package fr.supermax_8.boostedaudio.spigot.utils.gui;
 
-import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.TemporaryListener;
 import org.bukkit.Bukkit;
@@ -14,7 +13,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.wildfly.common.annotation.NotNull;
 
 public abstract class AbstractGUI implements InventoryHolder {
@@ -41,7 +39,21 @@ public abstract class AbstractGUI implements InventoryHolder {
 
     public abstract void setItems();
 
-    public abstract void onClose(Player p);
+    public void onClose(Player p) {
+        if (parent != null) reOpenGUI(parent);
+    }
+
+    public void reOpenGUI(AbstractGUI gui) {
+        BoostedAudioSpigot.getInstance().getScheduler().runAtEntityLater(owner, task -> {
+            gui.initSelfListener();
+            gui.setItems();
+            owner.openInventory(gui.getInventory());
+        }, 2);
+    }
+
+    public void reOpenGUI() {
+        reOpenGUI(this);
+    }
 
     public void onDrag(InventoryDragEvent e) {
         e.setCancelled(true);
@@ -133,13 +145,6 @@ public abstract class AbstractGUI implements InventoryHolder {
             click.unregister();
             drag.unregister();
             onClose(p);
-            if (parent != null)
-                BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
-                    if (p.getOpenInventory().getType().equals(InventoryType.CHEST)) return;
-                    parent.setItems();
-                    p.openInventory(parent.inv);
-                    parent.initSelfListener();
-                });
             return true;
         });
     }

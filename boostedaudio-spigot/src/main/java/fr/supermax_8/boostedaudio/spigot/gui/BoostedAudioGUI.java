@@ -22,41 +22,55 @@ public class BoostedAudioGUI extends AbstractGUI {
     public void setItems() {
         inv.setItem(1, ItemUtils.createItm(XMaterial.MUSIC_DISC_CAT.parseMaterial(), Lang.get("audio"),
                 Lang.get("audio_desc")));
-        inv.setItem(4, ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(), Lang.get("speakers"),
-                Lang.get("speaker_desc")));
+        inv.setItem(3, ItemUtils.createItm(XMaterial.JUKEBOX.parseMaterial(), Lang.get("playlist_list"), Lang.get("playlist_desc")));
+        inv.setItem(5, ItemUtils.createItm(XMaterial.NOTE_BLOCK.parseMaterial(), Lang.get("speakers"),
+                Lang.get("speaker_desc"),
+                "",
+                Lang.get("leftclick_to_open_in_the_world_you_are"),
+                Lang.get("rightclick_to_open_the_world_selection")
+        ));
         inv.setItem(7, ItemUtils.createItm(XMaterial.MAP.parseMaterial(), Lang.get("regions"),
-                Lang.get("region_desc")));
+                Lang.get("region_desc"),
+                "",
+                Lang.get("leftclick_to_open_in_the_world_you_are"),
+                Lang.get("rightclick_to_open_the_world_selection")
+        ));
     }
-
-    public void clickInCustomInv(InventoryClickEvent e) {
-        e.setCancelled(true);
-        switch (e.getSlot()) {
-            case 1:
-                owner.closeInventory();
-                new DirectoryShowGUI(owner, new File(BoostedAudioSpigot.getInstance().getDataFolder(), "webhost" + File.separator + "audio"));
-                break;
-            case 4:
-                owner.closeInventory();
-                new WorldSelectionGUI(owner, w -> {
-                    owner.closeInventory();
-                    new SpeakerListGUI(owner, w);
-                });
-                break;
-            case 7:
-                owner.closeInventory();
-                new WorldSelectionGUI(owner, w -> {
-                    owner.closeInventory();
-                    if (BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager() != null) new RegionListGUI(owner, w);
-                    else owner.sendMessage(Lang.get("worldguard_error"));
-                });
-                break;
-        }
-    }
-
 
     @Override
-    public void onClose(Player p) {
-
+    public void clickInCustomInv(InventoryClickEvent e) {
+        e.setCancelled(true);
+        owner.closeInventory();
+        switch (e.getSlot()) {
+            case 1:
+                new DirectoryShowGUI(owner, new File(BoostedAudioSpigot.getInstance().getDataFolder(), "webhost" + File.separator + "audio"));
+                break;
+            case 3:
+                new PlayListListGUI(owner, new File(BoostedAudioSpigot.getInstance().getDataFolder(), "data" + File.separator + "playlist"));
+                break;
+            case 5:
+                if (e.getClick().isLeftClick()) {
+                    new SpeakerListGUI(owner, owner.getWorld());
+                } else
+                    new WorldSelectionGUI(owner, w -> {
+                        owner.closeInventory();
+                        new SpeakerListGUI(owner, w);
+                    });
+                break;
+            case 7:
+                if (e.getClick().isLeftClick()) {
+                    if (BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager() != null)
+                        new RegionListGUI(owner, owner.getWorld());
+                    else owner.sendMessage(Lang.get("worldguard_error"));
+                } else
+                    new WorldSelectionGUI(owner, w -> {
+                        owner.closeInventory();
+                        if (BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager() != null)
+                            new RegionListGUI(owner, w);
+                        else owner.sendMessage(Lang.get("worldguard_error"));
+                    });
+                break;
+        }
     }
 
 
