@@ -20,7 +20,12 @@ import fr.supermax_8.boostedaudio.spigot.commands.AudioQRcodeCommand;
 import fr.supermax_8.boostedaudio.spigot.commands.BoostedAudioCommand;
 import fr.supermax_8.boostedaudio.spigot.commands.MuteCommand;
 import fr.supermax_8.boostedaudio.spigot.diffuser.DiffuserUser;
+import fr.supermax_8.boostedaudio.spigot.hooks.Hook;
+import fr.supermax_8.boostedaudio.spigot.hooks.holograms.DHologram;
+import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HD3Hologram;
+import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HologramType;
 import fr.supermax_8.boostedaudio.spigot.manager.AudioManager;
+import fr.supermax_8.boostedaudio.spigot.manager.HologramManager;
 import fr.supermax_8.boostedaudio.spigot.manager.PlaceHoldersManager;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.proximitychat.VoiceChatProcessor;
@@ -34,6 +39,7 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.wildfly.common.annotation.Nullable;
 
@@ -44,12 +50,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
 
@@ -81,6 +90,10 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private final FoliaLib folia = new FoliaLib(this);
     @Getter
     private final ServerImplementation scheduler = folia.getImpl();
+
+    private HologramType<?> ht;
+    private HologramManager hm;
+
 
     @Override
     public void onEnable() {
@@ -117,6 +130,18 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
         if (configuration.isDiffuser()) setupDiffuser();
         else setupHost();
+
+        enumList(Hook.class).stream().forEach(h -> getPlugin(h.toString(), l -> {
+			PluginDescriptionFile pdf  = l.getDescription();
+			h.enable();
+			h.setVersion(pdf.getVersion());
+		})); 
+
+        if(Hook.HOLOGRAPHICDISPLAYS.isEnabled()) ht = new HD3Hologram(this);
+
+		if(Hook.DECENTHOLOGRAMS.isEnabled()) ht = new DHologram(this);
+
+        if(ishologramInstalled()) new HologramManager();
 
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
 
@@ -164,6 +189,10 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if(ishologramInstalled()){
+            hm.getWrappedTask().cancel();
+            hm.getHolos().values().forEach(HologramType::delete);
+        }  
         if (diffuserWebSocketClient != null) diffuserWebSocketClient.close();
     }
 
@@ -174,7 +203,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         metrics.addCustomChart(new Metrics.SimplePie("ffmpeg_setuped", () -> String.valueOf(FileUtils.ffmpeg != null)));
         metrics.addCustomChart(new Metrics.SingleLineChart("players_connected_to_audio_panel", () ->
                 host.getWebSocketServer().manager.getUsers().size()));
-        metrics.addCustomChart(new Metrics.SimplePie("nbspeakers", () -> DataVisualisationUtils.intMetricToEzReadString(BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager().speakers.size())));
+        metrics.addCustomChart(new Metrics.SimplePie("nbspeakers", () -> DataVisualisationUtils.intMetricToEzReadString(BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager().getSpeakers().size())));
         metrics.addCustomChart(new Metrics.SimplePie("workingmode", () -> workingMode));
         metrics.addCustomChart(new Metrics.SimplePie("ispremium", () -> String.valueOf(Limiter.isPremium())));
         metrics.addCustomChart(new Metrics.SimplePie("nbregions", () -> {
@@ -342,6 +371,25 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         }
     }
 
+    private <T> List<T> enumList(Class<T> c) {
+		return Arrays.asList(c.getEnumConstants());
+	}
+
+    public boolean ishologramInstalled() {
+		List<Hook> hh = Arrays.asList(Hook.HOLOGRAPHICDISPLAYS, Hook.DECENTHOLOGRAMS).stream().filter(Hook::isEnabled).collect(Collectors.toList());
+		return !hh.isEmpty();
+	}
+
+    public static void getPlugin(String pluginName, Consumer<JavaPlugin> loaded) {
+		if (testCompatibility(pluginName)) loaded.accept((JavaPlugin) Bukkit.getPluginManager().getPlugin(pluginName));
+	}
+
+
+	public static boolean testCompatibility(String pluginName) {
+		if (!Bukkit.getPluginManager().isPluginEnabled(pluginName)) return false;
+		return true;
+	}
+
     public static void downloadAudio(String mediaLink, Consumer<String> whenDownloadedNewLink) {
         if (instance.configuration.isDiffuser()) {
             instance.hostRequester.request("downloadaudio", mediaLink, whenDownloadedNewLink, String.class);
@@ -359,6 +407,14 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     public static void registerServerPacketListener(String channel, ServerPacketListener listener) {
         DiffuserWebSocketClient.registerListener(channel, listener);
+    }
+
+    public HologramType<?> getHologramType() {
+		return ht;
+	}
+
+    public HologramManager getHologramManager(){
+        return hm;
     }
 
 }

@@ -21,7 +21,7 @@ public class SpeakerManager {
 
     private final AroundManager manager = BoostedAudioSpigot.getInstance().getAroundManager();
     @Getter
-    public final ConcurrentHashMap<Location, Audio> speakers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Location, Audio> speakers = new ConcurrentHashMap<>();
     private FileConfiguration speakersConfig;
     private File speakerConfigFile;
 
