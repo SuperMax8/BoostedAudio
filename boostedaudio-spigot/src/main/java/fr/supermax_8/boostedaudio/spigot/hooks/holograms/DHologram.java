@@ -34,10 +34,8 @@ public class DHologram extends HologramType<Hologram> implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onHologramClick(HologramClickEvent e) {
-		System.out.println("Hologram clické pd");
 		String name = e.getHologram().getName();
 		if(!arr.containsKey(name)) return;
-		System.out.println("Hologram clické pd pd");
 
 		//this.event = event;
 		arr.get(name).accept(e.getPlayer());

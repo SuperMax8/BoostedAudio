@@ -126,7 +126,6 @@ public class HologramManager implements Listener {
         holo.appendTextLine("§6getRolloffFactor: §a" + asi.getRolloffFactor());
         holo.appendItemLine(XMaterial.NOTE_BLOCK.parseItem());
         holo.interact(p -> {
-            p.sendMessage("Beuteu holo clickable");
             StringJoiner linksJoiner = new StringJoiner(";");
             String playlistId = au.getPlayList().getId();
             if (playlistId == null)
