@@ -134,9 +134,7 @@ public class HologramManager implements Listener {
             else
                 linksJoiner.add(playlistId);
             BoostedAudioSpigot.getInstance().getScheduler()
-                    .runNextTick(t -> new SpeakerEditGUI(p, null, linksJoiner.toString(), au.getFadeIn(),
-                            au.getFadeOut(), au.isLoop(), au.isSynchronous(), asi.getMaxVoiceDistance(),
-                            asi.getRefDistance(), asi.getRolloffFactor(), asi.getDistanceModel(), asi.getLocation()));
+                    .runNextTick(t -> new SpeakerEditGUI(p, null, au));
         });
         holos.put(au.getId(), holo);
         audioswaiting.remove(au.getId());

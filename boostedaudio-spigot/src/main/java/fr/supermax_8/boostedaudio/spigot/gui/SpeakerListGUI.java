@@ -96,27 +96,8 @@ public class SpeakerListGUI extends AbstractGUI {
                 if (index == -1) return;
                 Audio selectedSpeaker = speakersOfWorld.get(index);
 
-                StringJoiner linksJoiner = new StringJoiner(";");
-                String playlistId = selectedSpeaker.getPlayList().getId();
-                if (playlistId == null)
-                    for (String s : selectedSpeaker.getPlayList().getLinks()) linksJoiner.add(s);
-                else linksJoiner.add(playlistId);
-
                 owner.closeInventory();
-                BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
-                    new SpeakerEditGUI(owner, this,
-                            linksJoiner.toString(),
-                            selectedSpeaker.getFadeIn(),
-                            selectedSpeaker.getFadeOut(),
-                            selectedSpeaker.isLoop(),
-                            selectedSpeaker.isSynchronous(),
-                            selectedSpeaker.getSpatialInfo().getMaxVoiceDistance(),
-                            selectedSpeaker.getSpatialInfo().getRefDistance(),
-                            selectedSpeaker.getSpatialInfo().getRolloffFactor(),
-                            selectedSpeaker.getSpatialInfo().getDistanceModel(),
-                            selectedSpeaker.getSpatialInfo().getLocation()
-                    );
-                });
+                BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> new SpeakerEditGUI(owner, this, selectedSpeaker));
                 break;
         }
     }
