@@ -1,44 +1,41 @@
 package fr.supermax_8.boostedaudio.spigot.manager;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.tcoded.folialib.wrapper.task.WrappedTask;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
+import fr.supermax_8.boostedaudio.api.audio.Audio.AudioSpatialInfo;
+import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import fr.supermax_8.boostedaudio.spigot.gui.SpeakerEditGUI;
+import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HD3Hologram;
+import fr.supermax_8.boostedaudio.spigot.hooks.holograms.Hologram;
+import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HologramType;
+import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.tcoded.folialib.wrapper.task.WrappedTask;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-import fr.supermax_8.boostedaudio.api.audio.Audio;
-import fr.supermax_8.boostedaudio.api.audio.Audio.AudioSpatialInfo;
-import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
-import fr.supermax_8.boostedaudio.spigot.gui.SpeakerEditGUI;
-import fr.supermax_8.boostedaudio.spigot.hooks.holograms.Hologram;
-import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HologramType;
-import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
-
-//@SuppressWarnings("unchecked")
+// Thanks to Ender_Grifeur99 for PR contrib for this feature
 public class HologramManager implements Listener {
 
-    private List<Player> pls = new ArrayList<>();
+    @Getter
+    private List<Player> playerList = new ArrayList<>();
+    @Getter
     private Map<UUID, HologramType<?>> holos = new ConcurrentHashMap<>();
+    @Getter
     private WrappedTask wrappedTask;
-    private JavaPlugin instance = BoostedAudioSpigot.getInstance();
-    private LinkedList<UUID> audioswaiting = new LinkedList<>();
-    // private SpeakerManager sm;
+    private final JavaPlugin instance = BoostedAudioSpigot.getInstance();
+    private final LinkedList<UUID> audioswaiting = new LinkedList<>();
 
     public HologramManager(SpeakerManager sm) {
-        // this.sm = sm;
         sm.getSpeakers().forEach(this::checkSpeaker);
-        wrappedTask = BoostedAudioSpigot.getInstance().getScheduler().runTimerAsync(() -> {
-            if (pls.isEmpty())
+        Runnable r = () -> {
+            if (playerList.isEmpty())
                 return;
 
             new ConcurrentHashMap<>(holos).forEach((s, holo) -> {
@@ -70,27 +67,19 @@ public class HologramManager implements Listener {
                     return;
                 holo.teleport(new Location(loc.getWorld(), loc.getBlockX() + 0.5,
                         loc.getBlockY() + 1.75 + (holo.size() * 0.25), loc.getBlockZ() + 0.5));
-                AudioSpatialInfo asi = audio.getSpatialInfo();
-                setLine(holo, 0, audio.getId().toString());
-                setLine(holo, 1, "§6X: §a" + loc.getBlockX() + " §6Y: §a" + loc.getBlockY() + " §6Z: §a"
-                        + loc.getBlockZ() + " §6World: §a" + loc.getWorld().getName());
-                setLine(holo, 2, "§6FadeIn: §a" + audio.getFadeIn());
-                setLine(holo, 3, "§6FadeOut: §a" + audio.getFadeOut());
-                setLine(holo, 4, "§6Distance Model: §a" + asi.getDistanceModel());
-                setLine(holo, 5, "§6MaxVoiceDistance: §a" + asi.getMaxVoiceDistance());
-                setLine(holo, 6, "§6RefDistance: §a" + asi.getRefDistance());
-                setLine(holo, 7, "§6getRolloffFactor: §a" + asi.getRolloffFactor());
+
+                int i = 0;
+                for (String line : createHoloLines(audio)) {
+                    setLine(holo, i, line);
+                    i++;
+                }
             });
-        }, 10, 10);
+        };
+        wrappedTask = BoostedAudioSpigot.getInstance().getHologramType() instanceof HD3Hologram ?
+                BoostedAudioSpigot.getInstance().getScheduler().runTimer(r, 10, 10) :
+                BoostedAudioSpigot.getInstance().getScheduler().runTimerAsync(r, 10, 10);
 
     }
-
-    // private String toReadable(String string) {
-    // StringBuilder builder = new StringBuilder();
-    // for (String s : string.split("_"))
-    // builder.append(s.substring(0, 1)).append(s.substring(1).toLowerCase());
-    // return builder.toString();
-    // }
 
     private void setLine(HologramType<?> holo, int i, String txt) {
         BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
@@ -98,6 +87,26 @@ public class HologramManager implements Listener {
                 return;
             holo.setline(i, txt);
         });
+    }
+
+    private List<String> createHoloLines(Audio au) {
+        AudioSpatialInfo asi = au.getSpatialInfo();
+        SerializableLocation loc = asi.getLocation();
+        return List.of(
+                au.getId().toString(),
+                "§6X: §a" + loc.getX() + " §6Y: §a" + loc.getY() + " §6Z: §a"
+                        + loc.getZ() + " §6World: §a" + loc.getWorld(),
+                "§6Loop: §a" + au.isLoop(),
+                "§6Synchronous: §a" + au.isSynchronous(),
+                "§6FadeIn: §a" + au.getFadeIn(),
+                "§6FadeOut: §a" + au.getFadeOut(),
+                "§6Distance Model: §a" + asi.getDistanceModel(),
+                "§6MaxVoiceDistance: §a" + asi.getMaxVoiceDistance(),
+                "§6RefDistance: §a" + asi.getRefDistance(),
+                "§6getRolloffFactor: §a" + asi.getRolloffFactor(),
+                "",
+                "§6Links Or Playlist: §a" + (au.getPlayList().getId() == null ? au.getPlayList().getLinks() : au.getPlayList().getId())
+        );
     }
 
     private void checkSpeaker(Location lc, Audio au) {
@@ -112,44 +121,22 @@ public class HologramManager implements Listener {
                 lc.getBlockY() + 1.75, lc.getBlockZ() + 0.5);
         HologramType<?> holo = new Hologram(instance).getHolo();
         holo.createHologram(loc, false);
-        holo.setPlayersVisible(pls);
-        AudioSpatialInfo asi = au.getSpatialInfo();
+        holo.setPlayersVisible(playerList);
 
-        holo.appendTextLine(au.getId().toString());
-        holo.appendTextLine("§6X: §a" + loc.getBlockX() + " §6Y: §a" + loc.getBlockY() + " §6Z: §a" + loc.getBlockZ()
-                + " §6World: §a" + loc.getWorld().getName());
-        holo.appendTextLine("§6FadeIn: §a" + au.getFadeIn());
-        holo.appendTextLine("§6FadeOut: §a" + au.getFadeOut());
-        holo.appendTextLine("§6Distance Model: §a" + asi.getDistanceModel());
-        holo.appendTextLine("§6MaxVoiceDistance: §a" + asi.getMaxVoiceDistance());
-        holo.appendTextLine("§6RefDistance: §a" + asi.getRefDistance());
-        holo.appendTextLine("§6getRolloffFactor: §a" + asi.getRolloffFactor());
+        for (String line : createHoloLines(au)) holo.appendTextLine(line);
+
         holo.appendItemLine(XMaterial.NOTE_BLOCK.parseItem());
-        holo.interact(p -> {
-            StringJoiner linksJoiner = new StringJoiner(";");
-            String playlistId = au.getPlayList().getId();
-            if (playlistId == null)
-                for (String s : au.getPlayList().getLinks())
-                    linksJoiner.add(s);
-            else
-                linksJoiner.add(playlistId);
-            BoostedAudioSpigot.getInstance().getScheduler()
-                    .runNextTick(t -> new SpeakerEditGUI(p, null, au));
-        });
+
+        holo.interact(p -> BoostedAudioSpigot.getInstance().getScheduler()
+                .runNextTick(t -> {
+                    Audio currentAudio = BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager().getSpeakers()
+                            .entrySet().stream()
+                            .filter(e -> e.getValue().getId().equals(au.getId()))
+                            .findFirst().get().getValue();
+                    new SpeakerEditGUI(p, null, currentAudio);
+                }));
         holos.put(au.getId(), holo);
         audioswaiting.remove(au.getId());
-    }
-
-    public WrappedTask getWrappedTask() {
-        return wrappedTask;
-    }
-
-    public Map<UUID, HologramType<?>> getHolos() {
-        return holos;
-    }
-
-    public List<Player> getPlayerList() {
-        return pls;
     }
 
 }

@@ -52,9 +52,11 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     if(!hm.getPlayerList().contains(p)) {
 						hm.getPlayerList().add(p);
 						hm.getHolos().values().forEach(holo -> holo.show(p));
+                        p.sendMessage(Lang.get("show_all"));
 					} else {
 						hm.getPlayerList().remove(p);
 						hm.getHolos().values().forEach(holo -> holo.hide(p));
+                        p.sendMessage(Lang.get("no_longer_show_all"));
 					}
                 }
                 case "download" -> {
@@ -272,6 +274,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 "§7/boostedaudio help §8- " + Lang.get("command_help"),
                 //"§7/boostedaudio reload §8- §7Reload the plugin (can make the server freeze temporarily, and kick all players)",
                 "§7/boostedaudio edit §8-" + Lang.get("command_open_edition"),
+                "§7/boostedaudio showall §8-" + Lang.get("command_showall"),
                 "",
                 "§7/boostedaudio userlist §8- " + Lang.get("command_userlist"),
                 "",
@@ -297,7 +300,7 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
         switch (args.length) {
             case 1 -> {
                 arg = args[0];
-                completions = Arrays.asList("help", "edit", "userlist", "mute", "unmute", "download", "play", "playradius", "stop", "stopradius");
+                completions = Arrays.asList("help", "edit", "showall", "userlist", "mute", "unmute", "download", "play", "playradius", "stop", "stopradius");
             }
             case 2 -> {
                 arg = args[1];

@@ -25,7 +25,7 @@ public class DHologram extends HologramType<Hologram> implements Listener {
 
 	//private HologramClickEvent event;
 	//private Consumer<Player> interact;
-	private static HashMap<String, Consumer<Player>> arr = new HashMap<>();
+	private static final HashMap<String, Consumer<Player>> clickConsumer = new HashMap<>();
 
 	static {
 		Bukkit.getPluginManager().registerEvents(new DHologram(BoostedAudioSpigot.getInstance()),
@@ -35,10 +35,10 @@ public class DHologram extends HologramType<Hologram> implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onHologramClick(HologramClickEvent e) {
 		String name = e.getHologram().getName();
-		if(!arr.containsKey(name)) return;
+		if(!clickConsumer.containsKey(name)) return;
 
 		//this.event = event;
-		arr.get(name).accept(e.getPlayer());
+		clickConsumer.get(name).accept(e.getPlayer());
 	}
 
 	public DHologram(JavaPlugin instance/* , Location lc, boolean defaultVisible */) {
@@ -150,7 +150,7 @@ public class DHologram extends HologramType<Hologram> implements Listener {
 
 	@Override
 	public void interact(Consumer<Player> interact) {
-		arr.put(hologram.getName(), interact);
+		clickConsumer.put(hologram.getName(), interact);
 //		this.interact = interact;
 		//interact.accept(event.getPlayer());
 	}
