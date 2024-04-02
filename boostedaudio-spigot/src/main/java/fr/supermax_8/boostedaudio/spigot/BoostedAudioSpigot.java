@@ -1,11 +1,43 @@
 package fr.supermax_8.boostedaudio.spigot;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Server;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.wildfly.common.annotation.Nullable;
+
 import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.ServerImplementation;
+
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
 import fr.supermax_8.boostedaudio.api.User;
-import fr.supermax_8.boostedaudio.core.*;
+import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
+import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
+import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
+import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
+import fr.supermax_8.boostedaudio.core.InternalAPI;
+import fr.supermax_8.boostedaudio.core.Limiter;
 import fr.supermax_8.boostedaudio.core.multiserv.DiffuserWebSocketClient;
 import fr.supermax_8.boostedaudio.core.multiserv.ServerPacketListener;
 import fr.supermax_8.boostedaudio.core.multiserv.UsersFromUuids;
@@ -25,7 +57,6 @@ import fr.supermax_8.boostedaudio.spigot.hooks.holograms.DHologram;
 import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HD3Hologram;
 import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HologramType;
 import fr.supermax_8.boostedaudio.spigot.manager.AudioManager;
-import fr.supermax_8.boostedaudio.spigot.manager.HologramManager;
 import fr.supermax_8.boostedaudio.spigot.manager.PlaceHoldersManager;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.proximitychat.VoiceChatProcessor;
@@ -33,32 +64,6 @@ import fr.supermax_8.boostedaudio.spigot.utils.AroundManager;
 import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.TemporaryListener;
 import lombok.Getter;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Server;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.wildfly.common.annotation.Nullable;
-
-import javax.swing.plaf.synth.Region;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.NumberFormat;
-import java.text.ParseException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
 
@@ -92,7 +97,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private final ServerImplementation scheduler = folia.getImpl();
 
     private HologramType<?> ht;
-    private HologramManager hm;
 
 
     @Override
@@ -131,6 +135,12 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         if (configuration.isDiffuser()) setupDiffuser();
         else setupHost();
 
+        Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
+
+        aroundManager = new AroundManager();
+        scheduler.runTimerAsync(() -> aroundManager.run(), 0, 1);
+
+
         enumList(Hook.class).stream().forEach(h -> getPlugin(h.toString(), l -> {
 			PluginDescriptionFile pdf  = l.getDescription();
 			h.enable();
@@ -140,13 +150,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         if(Hook.HOLOGRAPHICDISPLAYS.isEnabled()) ht = new HD3Hologram(this);
 
 		if(Hook.DECENTHOLOGRAMS.isEnabled()) ht = new DHologram(this);
-
-        if(ishologramInstalled()) new HologramManager();
-
-        Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
-
-        aroundManager = new AroundManager();
-        scheduler.runTimerAsync(() -> aroundManager.run(), 0, 1);
 
         // Placeholders
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceHolderAPI")) {
@@ -190,8 +193,8 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     @Override
     public void onDisable() {
         if(ishologramInstalled()){
-            hm.getWrappedTask().cancel();
-            hm.getHolos().values().forEach(HologramType::delete);
+            audioManager.getSpeakerManager().getHologramManager().getWrappedTask().cancel();
+            audioManager.getSpeakerManager().getHologramManager().getHolos().values().forEach(HologramType::delete);
         }  
         if (diffuserWebSocketClient != null) diffuserWebSocketClient.close();
     }
@@ -375,7 +378,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 		return Arrays.asList(c.getEnumConstants());
 	}
 
-    public boolean ishologramInstalled() {
+    public static boolean ishologramInstalled() {
 		List<Hook> hh = Arrays.asList(Hook.HOLOGRAPHICDISPLAYS, Hook.DECENTHOLOGRAMS).stream().filter(Hook::isEnabled).collect(Collectors.toList());
 		return !hh.isEmpty();
 	}
@@ -412,9 +415,4 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     public HologramType<?> getHologramType() {
 		return ht;
 	}
-
-    public HologramManager getHologramManager(){
-        return hm;
-    }
-
 }

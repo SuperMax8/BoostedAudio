@@ -12,7 +12,6 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
-import org.apache.log4j.chainsaw.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.*;
@@ -48,8 +47,8 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 case "showall" -> {
                     if (!(sender instanceof Player p)) return false;
                     if (!sender.hasPermission("boostedaudio.admin")) return false;
-                    if(!BoostedAudioSpigot.getInstance().ishologramInstalled()) return false;
-                    HologramManager hm =  BoostedAudioSpigot.getInstance().getHologramManager();
+                    if(!BoostedAudioSpigot.ishologramInstalled()) return false;
+                    HologramManager hm =  BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager().getHologramManager();
                     if(!hm.getPlayerList().contains(p)) {
 						hm.getPlayerList().add(p);
 						hm.getHolos().values().forEach(holo -> holo.show(p));

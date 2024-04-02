@@ -25,15 +25,15 @@ import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 //@SuppressWarnings("unchecked")
 public class HologramManager implements Listener {
 
-    public static List<Player> pls = new ArrayList<>();
-    public static Map<UUID, HologramType<?>> holos = new ConcurrentHashMap<>();
-    private static WrappedTask wrappedTask;
-    private static JavaPlugin instance = BoostedAudioSpigot.getInstance();
+    private List<Player> pls = new ArrayList<>();
+    private Map<UUID, HologramType<?>> holos = new ConcurrentHashMap<>();
+    private WrappedTask wrappedTask;
+    private JavaPlugin instance = BoostedAudioSpigot.getInstance();
     private LinkedList<UUID> audioswaiting = new LinkedList<>();
-    private SpeakerManager sm;
+   // private SpeakerManager sm;
 
-    public HologramManager() {
-        sm = BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager();
+    public HologramManager(SpeakerManager sm) {
+     //   this.sm = sm;
         sm.getSpeakers().forEach(this::checkSpeaker);
         wrappedTask = BoostedAudioSpigot.getInstance().getScheduler().runTimerAsync(() -> {
             if (pls.isEmpty())
@@ -91,7 +91,7 @@ public class HologramManager implements Listener {
     // }
 
     private void setLine(HologramType<?> holo, int i, String txt) {
-        Bukkit.getScheduler().runTask(instance, () -> {
+        BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
             if (holo.isDeleted())
                 return;
             holo.setline(i, txt);
@@ -102,7 +102,7 @@ public class HologramManager implements Listener {
         if (!lc.getChunk().isLoaded()) {
             if (!audioswaiting.contains(au.getId()))
                 audioswaiting.add(au.getId());
-            Bukkit.getScheduler().runTaskLater(instance, () -> checkSpeaker(lc, au), 20);
+            BoostedAudioSpigot.getInstance().getScheduler().runLater(() -> checkSpeaker(lc, au), 20);
             return;
         }
 
