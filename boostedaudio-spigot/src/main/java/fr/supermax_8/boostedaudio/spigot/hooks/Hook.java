@@ -4,7 +4,6 @@ public enum Hook {
 	WORLDGUARD("WorldGuard"),
 	HOLOGRAPHICDISPLAYS("HolographicDisplays"),
 	PROTOCOLLIB("ProtocolLib"),
-	LIBSDISGUISES("LibsDisguises"),
 	DECENTHOLOGRAMS("DecentHolograms"),
 	PLACEHOLDER_API("PlaceholderAPI")
 	;

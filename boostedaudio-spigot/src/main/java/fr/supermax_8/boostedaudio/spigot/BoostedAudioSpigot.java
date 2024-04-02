@@ -387,6 +387,10 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 		if (testCompatibility(pluginName)) loaded.accept((JavaPlugin) Bukkit.getPluginManager().getPlugin(pluginName));
 	}
 
+    public static void getPlugin(String pluginName, Consumer<JavaPlugin> loaded, Consumer<String> notloaded) {
+		if (!testCompatibility(pluginName)) notloaded.accept(pluginName);
+		else loaded.accept((JavaPlugin) Bukkit.getPluginManager().getPlugin(pluginName));
+	}
 
 	public static boolean testCompatibility(String pluginName) {
 		if (!Bukkit.getPluginManager().isPluginEnabled(pluginName)) return false;

@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.hooks.holograms;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -65,5 +66,6 @@ public abstract class HologramType<T> {
 	public abstract void setline(int i, String txt);
 
 	public abstract void delete();
-
+	
+	public abstract void interact(Consumer<Player> interact);
 }

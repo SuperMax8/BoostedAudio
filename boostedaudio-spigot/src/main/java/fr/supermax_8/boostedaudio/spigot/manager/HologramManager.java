@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,6 +19,7 @@ import com.tcoded.folialib.wrapper.task.WrappedTask;
 import fr.supermax_8.boostedaudio.api.audio.Audio;
 import fr.supermax_8.boostedaudio.api.audio.Audio.AudioSpatialInfo;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import fr.supermax_8.boostedaudio.spigot.gui.SpeakerEditGUI;
 import fr.supermax_8.boostedaudio.spigot.hooks.holograms.Hologram;
 import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HologramType;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
@@ -30,10 +32,10 @@ public class HologramManager implements Listener {
     private WrappedTask wrappedTask;
     private JavaPlugin instance = BoostedAudioSpigot.getInstance();
     private LinkedList<UUID> audioswaiting = new LinkedList<>();
-   // private SpeakerManager sm;
+    // private SpeakerManager sm;
 
     public HologramManager(SpeakerManager sm) {
-     //   this.sm = sm;
+        // this.sm = sm;
         sm.getSpeakers().forEach(this::checkSpeaker);
         wrappedTask = BoostedAudioSpigot.getInstance().getScheduler().runTimerAsync(() -> {
             if (pls.isEmpty())
@@ -123,6 +125,20 @@ public class HologramManager implements Listener {
         holo.appendTextLine("§6RefDistance: §a" + asi.getRefDistance());
         holo.appendTextLine("§6getRolloffFactor: §a" + asi.getRolloffFactor());
         holo.appendItemLine(XMaterial.NOTE_BLOCK.parseItem());
+        holo.interact(p -> {
+            p.sendMessage("Beuteu holo clickable");
+            StringJoiner linksJoiner = new StringJoiner(";");
+            String playlistId = au.getPlayList().getId();
+            if (playlistId == null)
+                for (String s : au.getPlayList().getLinks())
+                    linksJoiner.add(s);
+            else
+                linksJoiner.add(playlistId);
+            BoostedAudioSpigot.getInstance().getScheduler()
+                    .runNextTick(t -> new SpeakerEditGUI(p, null, linksJoiner.toString(), au.getFadeIn(),
+                            au.getFadeOut(), au.isLoop(), au.isSynchronous(), asi.getMaxVoiceDistance(),
+                            asi.getRefDistance(), asi.getRolloffFactor(), asi.getDistanceModel(), asi.getLocation()));
+        });
         holos.put(au.getId(), holo);
         audioswaiting.remove(au.getId());
     }

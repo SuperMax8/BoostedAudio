@@ -1,15 +1,21 @@
 package fr.supermax_8.boostedaudio.spigot.hooks.holograms;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import me.filoghost.holographicdisplays.api.HolographicDisplaysAPI;
 import me.filoghost.holographicdisplays.api.hologram.Hologram;
 import me.filoghost.holographicdisplays.api.hologram.VisibilitySettings.Visibility;
+import me.filoghost.holographicdisplays.api.hologram.line.ClickableHologramLine;
+import me.filoghost.holographicdisplays.api.hologram.line.HologramLine;
+import me.filoghost.holographicdisplays.api.hologram.line.HologramLineClickEvent;
+import me.filoghost.holographicdisplays.api.hologram.line.HologramLineClickListener;
 import me.filoghost.holographicdisplays.api.hologram.line.TextHologramLine;
 
 
@@ -99,6 +105,14 @@ public class HD3Hologram extends HologramType<Hologram> {
 	@Override
 	public void show(Player p) {
 		hologram.getVisibilitySettings().setIndividualVisibility(p, Visibility.VISIBLE);
+	}
+
+	@Override
+	public void interact(Consumer<Player> interact) {
+		for (int i = 0; i < hologram.getLines().size(); i++) {
+			ClickableHologramLine line = (ClickableHologramLine) hologram.getLines().get(i);
+			line.setClickListener(e -> interact.accept(e.getPlayer()));
+		}
 	}
 
 }
