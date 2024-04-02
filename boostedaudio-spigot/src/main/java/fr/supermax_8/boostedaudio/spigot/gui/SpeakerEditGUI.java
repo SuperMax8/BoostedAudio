@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
 import fr.supermax_8.boostedaudio.api.audio.Audio;
+import fr.supermax_8.boostedaudio.api.audio.Audio.AudioSpatialInfo;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
@@ -19,11 +20,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.StringJoiner;
 import java.util.UUID;
 
 public class SpeakerEditGUI extends AbstractGUI {
 
-    private final SpeakerManager speakerManager = BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager();
+    private final SpeakerManager speakerManager = BoostedAudioSpigot.getInstance().getAudioManager()
+            .getSpeakerManager();
 
     private String linksOrPlayList = "", distanceModel = "";
     private int fadeIn = 300, fadeOut = 300;
@@ -32,19 +35,30 @@ public class SpeakerEditGUI extends AbstractGUI {
     private SerializableLocation location;
     private final AbstractGUI lastGui;
     private boolean edit = false;
+    private UUID id;
 
-    public SpeakerEditGUI(Player player, AbstractGUI lastGui, String linksOrPlayList, int fadeIn, int fadeOut, boolean loop, boolean synchronous, double maxVoiceDistance, double refDistance, double refFactor, String distanceModel, SerializableLocation location) {
+    public SpeakerEditGUI(Player player, AbstractGUI lastGui, Audio audio) {
         this(player, lastGui);
-        this.linksOrPlayList = linksOrPlayList;
-        this.fadeIn = fadeIn;
-        this.fadeOut = fadeOut;
-        this.loop = loop;
-        this.synchronous = synchronous;
-        this.maxVoiceDistance = maxVoiceDistance;
-        this.refDistance = refDistance;
-        this.refFactor = refFactor;
-        this.distanceModel = distanceModel;
-        this.location = location;
+        StringJoiner linksJoiner = new StringJoiner(";");
+        String playlistId = audio.getPlayList().getId();
+        if (playlistId == null)
+            for (String s : audio.getPlayList().getLinks())
+                linksJoiner.add(s);
+        else
+            linksJoiner.add(playlistId);
+        id = audio.getId();
+        linksOrPlayList = linksJoiner.toString();
+        fadeIn = audio.getFadeIn();
+        fadeOut = audio.getFadeOut();
+        loop = audio.isLoop();
+        synchronous = audio.isSynchronous();
+        AudioSpatialInfo asi = audio.getSpatialInfo();
+
+        maxVoiceDistance = asi.getMaxVoiceDistance();
+        refDistance = asi.getRefDistance();
+        refFactor = asi.getRolloffFactor();
+        distanceModel = asi.getDistanceModel();
+        location = asi.getLocation();
         setItems();
     }
 
@@ -63,11 +77,9 @@ public class SpeakerEditGUI extends AbstractGUI {
             linkss[i] = "§7- §f" + linkss[i];
         }
         inv.setItem(0, ItemUtils.createItm(
-                        XMaterial.NOTE_BLOCK,
-                        Lang.get("link_or_playlist", ""),
-                        linkss
-                )
-        );
+                XMaterial.NOTE_BLOCK,
+                Lang.get("link_or_playlist", ""),
+                linkss));
         inv.setItem(1, ItemUtils.createItm(XMaterial.DISPENSER, Lang.get("fadein", fadeIn)));
         inv.setItem(2, ItemUtils.createItm(XMaterial.DROPPER, Lang.get("fadeout", fadeOut)));
         inv.setItem(3, ItemUtils.createItm(XMaterial.REPEATING_COMMAND_BLOCK, Lang.get("loop", loop)));
@@ -105,7 +117,8 @@ public class SpeakerEditGUI extends AbstractGUI {
                     owner.openInventory(inv);
                     try {
                         maxVoiceDistance = Double.parseDouble(s);
-                        if (maxVoiceDistance <= 0) return;
+                        if (maxVoiceDistance <= 0)
+                            return;
                         if (refDistance == 0) {
                             Audio.AudioSpatialInfo calc = new Audio.AudioSpatialInfo(null, maxVoiceDistance);
                             refDistance = calc.getRefDistance();
@@ -145,7 +158,8 @@ public class SpeakerEditGUI extends AbstractGUI {
                     owner.openInventory(inv);
                     try {
                         double d = Double.parseDouble(s);
-                        if (d <= 0) return;
+                        if (d <= 0)
+                            return;
                         refDistance = d;
                         setItems();
                     } catch (Exception ex) {
@@ -160,7 +174,8 @@ public class SpeakerEditGUI extends AbstractGUI {
                     owner.openInventory(inv);
                     try {
                         double d = Double.parseDouble(s);
-                        if (d <= 0) return;
+                        if (d <= 0)
+                            return;
                         refFactor = d;
                         setItems();
                     } catch (Exception ex) {
@@ -213,37 +228,39 @@ public class SpeakerEditGUI extends AbstractGUI {
 
     @Override
     public void onClose(Player p) {
-        if (edit) return;
+        if (edit)
+            return;
         ArrayList<String> linkss = new ArrayList<>(Arrays.asList(linksOrPlayList.split(";")));
         Audio newAudio;
         if (isPlayList())
-            newAudio = new Audio(BoostedAudioSpigot.getInstance().getAudioManager().getPlayListManager().get(linksOrPlayList), new Audio.AudioSpatialInfo(
-                    location == null ? InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()) : location,
-                    maxVoiceDistance, distanceModel, refDistance, refFactor),
-                    UUID.randomUUID(),
+            newAudio = new Audio(
+                    BoostedAudioSpigot.getInstance().getAudioManager().getPlayListManager().get(linksOrPlayList),
+                    new Audio.AudioSpatialInfo(
+                            location == null ? InternalUtils.bukkitLocationToSerializableLoc(p.getLocation())
+                                    : location,
+                            maxVoiceDistance, distanceModel, refDistance, refFactor),
+                    id,
                     fadeIn,
                     fadeOut,
                     loop,
-                    synchronous
-            );
-        else newAudio = new Audio(linkss, new Audio.AudioSpatialInfo(
-                location == null ? InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()) : location,
-                maxVoiceDistance, distanceModel, refDistance, refFactor),
-                UUID.randomUUID(),
-                fadeIn,
-                fadeOut,
-                loop,
-                synchronous
-        );
+                    synchronous);
+        else
+            newAudio = new Audio(linkss, new Audio.AudioSpatialInfo(
+                    location == null ? InternalUtils.bukkitLocationToSerializableLoc(p.getLocation()) : location,
+                    maxVoiceDistance, distanceModel, refDistance, refFactor),
+                    id,
+                    fadeIn,
+                    fadeOut,
+                    loop,
+                    synchronous);
 
         speakerManager.addSpeaker(newAudio, true);
-        //BoostedAudioSpigot.getInstance().getAudioManager().saveData();
-        BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
+        // BoostedAudioSpigot.getInstance().getAudioManager().saveData();
+       if(lastGui != null) BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
             lastGui.initSelfListener();
             lastGui.setItems();
             p.openInventory(lastGui.getInventory());
         });
     }
-
 
 }

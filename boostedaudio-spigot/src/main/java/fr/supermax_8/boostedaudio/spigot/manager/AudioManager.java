@@ -1,18 +1,17 @@
 package fr.supermax_8.boostedaudio.spigot.manager;
 
-import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
-import fr.supermax_8.boostedaudio.api.audio.Audio;
-import fr.supermax_8.boostedaudio.api.audio.PlayList;
-import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
-import lombok.Getter;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
+
+import org.bukkit.configuration.ConfigurationSection;
+
+import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
+import fr.supermax_8.boostedaudio.api.audio.PlayList;
+import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
+import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
+import lombok.Getter;
 
 public class AudioManager {
 
@@ -37,6 +36,7 @@ public class AudioManager {
         regionManager = regionManager1;
         speakerManager = new SpeakerManager();
         loadData();
+
     }
 
     public void loadData() {

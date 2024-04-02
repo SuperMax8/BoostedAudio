@@ -21,11 +21,14 @@ public class SpeakerManager {
 
     private final AroundManager manager = BoostedAudioSpigot.getInstance().getAroundManager();
     @Getter
-    public final ConcurrentHashMap<Location, Audio> speakers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Location, Audio> speakers = new ConcurrentHashMap<>();
     private FileConfiguration speakersConfig;
     private File speakerConfigFile;
+    private HologramManager hm;
+
 
     public SpeakerManager() {
+        
     }
 
     public void load(File dataFolder) {
@@ -50,6 +53,7 @@ public class SpeakerManager {
                 e.printStackTrace();
             }
         }
+        if(BoostedAudioSpigot.ishologramInstalled()) hm = new HologramManager(this);
     }
 
     private void convertToV2() {
@@ -84,7 +88,7 @@ public class SpeakerManager {
                 p -> BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId())
         );
         if (saveInConfig) {
-            AudioManager.saveAudio(speakersConfig.createSection(audio.getSpatialInfo().getLocation().toString()), audio);
+            AudioManager.saveAudio(speakersConfig.createSection(audio.getSpatialInfo().getLocation().toString()).createSection("audio"), audio);
             try {
                 speakersConfig.save(speakerConfigFile);
             } catch (Exception e) {
@@ -105,6 +109,10 @@ public class SpeakerManager {
                 e.printStackTrace();
             }
         }
+    }
+
+    public HologramManager getHologramManager(){
+        return hm;
     }
 
 }

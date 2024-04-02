@@ -6,10 +6,12 @@ import fr.supermax_8.boostedaudio.core.Limiter;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.gui.BoostedAudioGUI;
+import fr.supermax_8.boostedaudio.spigot.manager.HologramManager;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.*;
@@ -41,6 +43,19 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                     if (!(sender instanceof Player p)) return false;
                     if (!sender.hasPermission("boostedaudio.admin")) return false;
                     new BoostedAudioGUI(p);
+                }
+                case "showall" -> {
+                    if (!(sender instanceof Player p)) return false;
+                    if (!sender.hasPermission("boostedaudio.admin")) return false;
+                    if(!BoostedAudioSpigot.ishologramInstalled()) return false;
+                    HologramManager hm =  BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager().getHologramManager();
+                    if(!hm.getPlayerList().contains(p)) {
+						hm.getPlayerList().add(p);
+						hm.getHolos().values().forEach(holo -> holo.show(p));
+					} else {
+						hm.getPlayerList().remove(p);
+						hm.getHolos().values().forEach(holo -> holo.hide(p));
+					}
                 }
                 case "download" -> {
                     if (!sender.hasPermission("boostedaudio.admin")) return false;
