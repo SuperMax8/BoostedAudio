@@ -88,7 +88,7 @@ public class SpeakerManager {
                 p -> BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId())
         );
         if (saveInConfig) {
-            AudioManager.saveAudio(speakersConfig.createSection(audio.getSpatialInfo().getLocation().toString()), audio);
+            AudioManager.saveAudio(speakersConfig.createSection(audio.getSpatialInfo().getLocation().toString()).createSection("audio"), audio);
             try {
                 speakersConfig.save(speakerConfigFile);
             } catch (Exception e) {

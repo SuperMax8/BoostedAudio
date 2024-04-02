@@ -256,7 +256,7 @@ public class SpeakerEditGUI extends AbstractGUI {
 
         speakerManager.addSpeaker(newAudio, true);
         // BoostedAudioSpigot.getInstance().getAudioManager().saveData();
-        BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
+       if(lastGui != null) BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
             lastGui.initSelfListener();
             lastGui.setItems();
             p.openInventory(lastGui.getInventory());
