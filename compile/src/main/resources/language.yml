@@ -35,6 +35,9 @@ add_sound: "§7Add a sound"
 add_playlist: "§7Add a playlist"
 add_folder: "§7Add a folder"
 
+show_all: "§2Now showing all speakers"
+no_longer_show_all: "§8No longer showing all speakers"
+
 path: "§7Path: {0}"
 left_click_copy: "§7Left click to copy path"
 right_click_volume: "§9Right click to modify audio file gain (volume)"
@@ -90,6 +93,7 @@ youreNowUnMuted: "§7You have unmuted yourself"
 
 command_help: "§7Show this help"
 command_open_edition: "Open edition GUI"
+command_showall: "§7Show all speakers with holograms, left-click on a holo to edit the speaker"
 command_userlist: "List the players connected to the audio panel on the server, the players in red are muted"
 command_mute: "<Player> <TimeInMinutes> - §8Mute a player in proximity chat"
 command_unmute: "<Player> - §8UnMute a player in proximity chat"
