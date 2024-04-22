@@ -66,6 +66,7 @@ public class RegionManager {
             ConfigurationSection oldsection = regionsConfig.getConfigurationSection(key);
             String region = oldsection.getString("region");
             Audio audio = AudioManager.parseAudio(oldsection.getConfigurationSection("audio"));
+            if (audio == null) return;
             regionsConfig.set(key, null);
             ConfigurationSection section = regionsConfig.createSection(region);
             AudioManager.saveAudio(section.createSection("audio"), audio);

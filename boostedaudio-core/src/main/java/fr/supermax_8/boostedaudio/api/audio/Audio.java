@@ -59,7 +59,7 @@ public class Audio {
 
     public String getLink(String oldLink) {
         List<String> l = new ArrayList<>(playList.getLinks());
-        l.remove(oldLink);
+        if (l.size() > 1) l.remove(oldLink);
         return getLink(l);
     }
 

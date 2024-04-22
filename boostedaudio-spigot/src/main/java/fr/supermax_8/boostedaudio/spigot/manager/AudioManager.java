@@ -49,6 +49,11 @@ public class AudioManager {
         if (regionManager != null) regionManager.load(data);
     }
 
+    /**
+     * Parse section in Audio
+     * @param section - aka the audio section
+     * @return the audio parsed
+     */
     public static Audio parseAudio(ConfigurationSection section) {
         PlayList playList;
         if (section.contains("playlist")) {

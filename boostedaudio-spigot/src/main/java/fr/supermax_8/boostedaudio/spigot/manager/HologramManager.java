@@ -33,7 +33,9 @@ public class HologramManager implements Listener {
     private final LinkedList<UUID> audioswaiting = new LinkedList<>();
 
     public HologramManager(SpeakerManager sm) {
-        sm.getSpeakers().forEach(this::checkSpeaker);
+        BoostedAudioSpigot.getInstance().getScheduler().runNextTick(t -> {
+            sm.getSpeakers().forEach(this::checkSpeaker);
+        });
         Runnable r = () -> {
             if (playerList.isEmpty())
                 return;

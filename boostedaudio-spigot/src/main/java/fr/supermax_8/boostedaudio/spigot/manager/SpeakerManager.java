@@ -60,6 +60,7 @@ public class SpeakerManager {
         speakersConfig.getKeys(false).forEach(key -> {
             ConfigurationSection oldsection = speakersConfig.getConfigurationSection(key);
             Audio audio = AudioManager.parseAudio(oldsection.getConfigurationSection("audio"));
+            if (audio == null) return;
             speakersConfig.set(key, null);
             ConfigurationSection section = speakersConfig.createSection(audio.getSpatialInfo().getLocation().toString());
             AudioManager.saveAudio(section.createSection("audio"), audio);
