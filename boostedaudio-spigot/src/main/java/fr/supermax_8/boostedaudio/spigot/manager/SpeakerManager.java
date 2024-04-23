@@ -2,6 +2,7 @@ package fr.supermax_8.boostedaudio.spigot.manager;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,8 +41,9 @@ public class SpeakerManager {
         Set<String> keys = speakersConfig.getKeys(false);
 
         try {
-            UUID.fromString(keys.stream().findFirst().get());
-        } catch (IllegalArgumentException e) {
+            Optional<String> first = keys.stream().findFirst();
+            first.ifPresent(UUID::fromString);
+        } catch (Exception e) {
             convertToV3();
             speakersConfig = YamlConfiguration.loadConfiguration(speakerConfigFile);
             keys = speakersConfig.getKeys(false);
