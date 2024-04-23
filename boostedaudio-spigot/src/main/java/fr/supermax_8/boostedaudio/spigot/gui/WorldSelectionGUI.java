@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class WorldSelectionGUI extends AbstractGUI {
@@ -21,12 +22,14 @@ public class WorldSelectionGUI extends AbstractGUI {
     private final List<World> worldList;
     private final List<ItemStack> items;
     private final Consumer<World> onClick;
+    private final BiConsumer<List<String>, World> editLore;
 
-    public WorldSelectionGUI(Player player, Consumer<World> onClick) {
+    public WorldSelectionGUI(Player player, BiConsumer<List<String>, World> editLore, Consumer<World> onClick) {
         super(player, 54, Lang.get("choose_world_title"), null);
         this.items = new ArrayList<>();
         this.onClick = onClick;
         this.worldList = Bukkit.getWorlds();
+        this.editLore = editLore;
         this.scroll = new InventoryScroll(getInventory(), items, InventoryScroll.InventoryScrollType.GAP, 0, 44, 9, false, false);
         setItems();
         player.openInventory(getInventory());
@@ -38,7 +41,9 @@ public class WorldSelectionGUI extends AbstractGUI {
         inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), Lang.get("next"), Lang.get("next_desc")));
 
         for (World world : worldList) {
-            ItemStack item = ItemUtils.createItm(XMaterial.MAP.parseMaterial(), "§6§l" + world.getName());
+            ArrayList<String> lore = new ArrayList<>();
+            editLore.accept(lore, world);
+            ItemStack item = ItemUtils.createItm(XMaterial.MAP.parseMaterial(), "§6§l" + world.getName(), lore);
             items.add(item);
         }
         scroll.setItems();

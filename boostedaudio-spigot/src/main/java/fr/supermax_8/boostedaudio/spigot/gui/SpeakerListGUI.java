@@ -43,7 +43,10 @@ public class SpeakerListGUI extends AbstractGUI {
         items.clear();
 
         Map<Location, Audio> speakers = speakerManager.getSpeakers();
-        speakersOfWorld = speakers.entrySet().stream().filter(entry -> entry.getKey().getWorld().equals(world)).map(Map.Entry::getValue).collect(Collectors.toList());
+        speakersOfWorld = speakers.entrySet().stream()
+                .filter(entry -> entry.getKey().getWorld().equals(world))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
 
         for (Audio audio : speakersOfWorld) {
             ItemStack item = createSpeakerItem(audio);

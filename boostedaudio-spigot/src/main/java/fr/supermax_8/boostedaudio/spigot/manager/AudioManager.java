@@ -101,15 +101,19 @@ public class AudioManager {
                 );
             }
         }
+        String stringId = section.getString("id");
+        UUID id = stringId == null ? UUID.randomUUID() : UUID.fromString(stringId);
         int fadeIn = section.getInt("fadeIn");
         int fadeOut = section.getInt("fadeOut");
         boolean loop = section.getBoolean("loop");
         boolean synchronous = section.getBoolean("synchronous");
 
-        return new Audio(playList, spatialInfo, UUID.randomUUID(), fadeIn, fadeOut, loop, synchronous);
+        return new Audio(playList, spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
     }
 
     public static void saveAudio(ConfigurationSection section, Audio audio) {
+        section.set("id", audio.getId().toString());
+
         PlayList list = audio.getPlayList();
         if (list.getId() == null) section.set("link", list.getLinks());
         else section.set("playlist", list.getId());

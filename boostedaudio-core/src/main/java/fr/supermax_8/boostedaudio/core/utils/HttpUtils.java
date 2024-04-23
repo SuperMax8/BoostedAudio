@@ -7,6 +7,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 
 public class HttpUtils {
 
@@ -39,6 +40,7 @@ public class HttpUtils {
             if (fieldValue == null || !fieldValue.contains("filename=\"")) {
                 // no file name there -> throw exception ...
             }
+
             // parse the file name from the header field
             String filename = fieldValue.substring(fieldValue.indexOf("filename=\"") + 10, fieldValue.length() - 1);
             filename = filename.replaceAll(" ", "_").replaceAll("[^a-zA-Z0-9._]", "");

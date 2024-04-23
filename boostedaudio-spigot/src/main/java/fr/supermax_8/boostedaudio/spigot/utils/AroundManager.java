@@ -30,6 +30,7 @@ public class AroundManager implements Runnable {
         int lengthCheck = (int) Math.max(1, Math.ceil(biggestRadius / 16));
         ConcurrentHashMap<UUID, ConcurrentHashMap<Location, Around>> whosAround = new ConcurrentHashMap<>();
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
             Location loc = p.getLocation();
             ChunkCoord playerChunkCoord = new ChunkCoord(loc);
             UUID pId = p.getUniqueId();

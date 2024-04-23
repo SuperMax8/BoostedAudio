@@ -1,7 +1,9 @@
 package fr.supermax_8.boostedaudio.spigot.manager;
 
 import java.io.File;
+import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Location;
@@ -28,7 +30,7 @@ public class SpeakerManager {
 
 
     public SpeakerManager() {
-        
+
     }
 
     public void load(File dataFolder) {
@@ -36,9 +38,14 @@ public class SpeakerManager {
         speakerConfigFile = new File(dataFolder, "speakers.yml");
         speakersConfig = YamlConfiguration.loadConfiguration(speakerConfigFile);
         Set<String> keys = speakersConfig.getKeys(false);
-        if (keys.contains("0")) {
-            convertToV2();
+
+        try {
+            UUID.fromString(keys.stream().findFirst().get());
+        } catch (IllegalArgumentException e) {
+            convertToV3();
+            speakersConfig = YamlConfiguration.loadConfiguration(speakerConfigFile);
             keys = speakersConfig.getKeys(false);
+            System.out.println("Convert speakers...");
         }
 
         for (String key : keys) {
@@ -53,18 +60,20 @@ public class SpeakerManager {
                 e.printStackTrace();
             }
         }
-        if(BoostedAudioSpigot.ishologramInstalled()) hm = new HologramManager(this);
+        if (BoostedAudioSpigot.ishologramInstalled()) hm = new HologramManager(this);
     }
 
-    private void convertToV2() {
+    private void convertToV3() {
         speakersConfig.getKeys(false).forEach(key -> {
             ConfigurationSection oldsection = speakersConfig.getConfigurationSection(key);
             Audio audio = AudioManager.parseAudio(oldsection.getConfigurationSection("audio"));
             if (audio == null) return;
             speakersConfig.set(key, null);
-            ConfigurationSection section = speakersConfig.createSection(audio.getSpatialInfo().getLocation().toString());
+            ConfigurationSection section = speakersConfig.createSection(audio.getId().toString());
             AudioManager.saveAudio(section.createSection("audio"), audio);
         });
+
+
         try {
             speakersConfig.save(speakerConfigFile);
         } catch (Exception e) {
@@ -74,6 +83,8 @@ public class SpeakerManager {
 
     public void addSpeaker(Audio audio, boolean saveInConfig) {
         Location location = InternalUtils.serializableLocToBukkitLocation(audio.getSpatialInfo().getLocation());
+        Objects.requireNonNull(audio, "Weird behavior, contact the dev");
+        Objects.requireNonNull(location.getWorld(), "World can't be null, please fix the world name with a valid world in the data file for this speaker");
         speakers.put(new Location(location.getWorld(), location.getX(), location.getY(), location.getZ()), audio);
         manager.addAround(location, audio.getSpatialInfo().getMaxVoiceDistance(),
                 p -> {
@@ -89,7 +100,7 @@ public class SpeakerManager {
                 p -> BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId())
         );
         if (saveInConfig) {
-            AudioManager.saveAudio(speakersConfig.createSection(audio.getSpatialInfo().getLocation().toString()).createSection("audio"), audio);
+            AudioManager.saveAudio(speakersConfig.createSection(audio.getId().toString()).createSection("audio"), audio);
             try {
                 speakersConfig.save(speakerConfigFile);
             } catch (Exception e) {
@@ -101,9 +112,9 @@ public class SpeakerManager {
 
     public void removeSpeaker(Location location, boolean removeInConfig) {
         manager.removeAround(location);
-        speakers.remove(new Location(location.getWorld(), location.getX(), location.getY(), location.getZ()));
+        Audio audio = speakers.remove(new Location(location.getWorld(), location.getX(), location.getY(), location.getZ()));
         if (removeInConfig) {
-            speakersConfig.set(InternalUtils.bukkitLocationToSerializableLoc(location).toString(), null);
+            speakersConfig.set(audio.getId().toString(), null);
             try {
                 speakersConfig.save(speakerConfigFile);
             } catch (Exception e) {
@@ -112,7 +123,7 @@ public class SpeakerManager {
         }
     }
 
-    public HologramManager getHologramManager(){
+    public HologramManager getHologramManager() {
         return hm;
     }
 

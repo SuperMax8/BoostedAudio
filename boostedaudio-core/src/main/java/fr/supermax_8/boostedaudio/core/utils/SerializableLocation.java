@@ -2,8 +2,6 @@ package fr.supermax_8.boostedaudio.core.utils;
 
 import com.google.gson.annotations.Expose;
 
-import java.awt.desktop.PrintFilesEvent;
-
 public class SerializableLocation {
 
     @Expose
@@ -48,20 +46,12 @@ public class SerializableLocation {
 
     @Override
     public String toString() {
-        long aInt = Math.round(x * 1000);
-        long bInt = Math.round(y * 1000);
-        long cInt = Math.round(z * 1000);
-        long dInt = Math.round(yaw * 1000);
-        return aInt + ";" + bInt + ";" + cInt + ";" + dInt + ";" + world;
-    }
-
-    public static SerializableLocation fromString(String serialized) {
-        String[] parts = serialized.split(";");
-        return new SerializableLocation(parseBigInt(parts[0]), parseBigInt(parts[1]), parseBigInt(parts[2]), parseBigInt(parts[3]), parts[4]);
-    }
-
-    private static float parseBigInt(String s) {
-        return Long.parseLong(s) / 1000f;
+        return "{" +
+                "x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                ", world='" + world + '\'' +
+                '}';
     }
 
 }

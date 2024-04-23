@@ -65,6 +65,7 @@ public class SpeakerEditGUI extends AbstractGUI {
     public SpeakerEditGUI(Player player, AbstractGUI lastGui) {
         super(player, 18, "§6Edit Speaker", null);
         this.lastGui = lastGui;
+        this.id = UUID.randomUUID();
         setItems();
         player.openInventory(getInventory());
     }
