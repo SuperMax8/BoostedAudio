@@ -59,10 +59,9 @@ public class ConnectionManager {
     }
 
     public String generateConnectionToken(UUID playerId) {
-        ConnectionManager manager = BoostedAudioHost.getInstance().getWebSocketServer().manager;
-        Map<UUID, String> tokenMap = manager.getPlayerTokens();
+        Map<UUID, String> tokenMap = getPlayerTokens();
         if (tokenMap.containsKey(playerId)) {
-            User user = manager.getUsers().get(playerId);
+            User user = getUsers().get(playerId);
             if (user != null) {
                 user.close();
                 BoostedAudioAPI.api.debug("sendConnectMessage close() session");
@@ -71,6 +70,11 @@ public class ConnectionManager {
         String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.generateConnectionToken();
         tokenMap.put(playerId, token);
         return token;
+    }
+
+    public String getConnectionToken(UUID playerId) {
+        if (playerTokens.containsKey(playerId)) return playerTokens.get(playerId);
+        else return generateConnectionToken(playerId);
     }
 
 

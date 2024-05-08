@@ -3,6 +3,7 @@ package fr.supermax_8.boostedaudio.spigot.manager;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
+import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,22 @@ public class PlaceHoldersManager extends PlaceholderExpansion {
                 BoostedAudioConfiguration config = api.getConfiguration();
                 if (user == null) return config.getNotconnectedSymbol();
                 return user.isMuted() ? config.getMutedSymbol() : config.getConnectedSymbol();
+            }
+            case "getlink" -> {
+                BoostedAudioAPI api = BoostedAudioAPI.getAPI();
+                BoostedAudioConfiguration config = api.getConfiguration();
+                String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.getConnectionToken(player.getUniqueId());
+                return config.getClientLink()
+                        + "?t="
+                        + token;
+            }
+            case "getnewlink" -> {
+                BoostedAudioAPI api = BoostedAudioAPI.getAPI();
+                BoostedAudioConfiguration config = api.getConfiguration();
+                String token = BoostedAudioHost.getInstance().getWebSocketServer().manager.generateConnectionToken(player.getUniqueId());
+                return config.getClientLink()
+                        + "?t="
+                        + token;
             }
         }
         return null;
