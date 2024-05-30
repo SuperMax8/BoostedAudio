@@ -501,16 +501,21 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
 
     function getUserMic(deviceId) {
-        let constraints = {
-            audio: {
-                noiseSuppression: noiseSuppression,
-                echoCancellation: echoCancellation,
-                channelCount: 1,
-                autoGainControl: true
-            }
-        };
-        if (deviceId) constraints.audio.deviceId = deviceId;
-        return navigator.mediaDevices.getUserMedia(constraints);
+        try {
+            let constraints = {
+                audio: {
+                    noiseSuppression: noiseSuppression,
+                    echoCancellation: echoCancellation,
+                    channelCount: 1,
+                    autoGainControl: true
+                }
+            };
+            if (deviceId) constraints.audio.deviceId = deviceId;
+            return navigator.mediaDevices.getUserMedia(constraints);
+        } catch (err) {
+            console.log("Error with getUserMic ", err)
+            return null;
+        }
     }
 
     function initWithServerInfo() {
@@ -1052,8 +1057,10 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             }
         }
 
-        const finalMicStream = micDestination.stream;
-        pc.addTrack(finalMicStream.getAudioTracks()[0], finalMicStream);
+        if (micStream) {
+            const finalMicStream = micDestination.stream;
+            pc.addTrack(finalMicStream.getAudioTracks()[0], finalMicStream);
+        }
 
         async function userThing() {
             // Show user
@@ -1380,7 +1387,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        if (proximityChat) {
+        if (proximityChat && micStream) {
             micDestination = audioContext.createMediaStreamDestination();
             micGainNode = audioContext.createGain();
             audioContext.createMediaStreamSource(micStream).connect(micGainNode);

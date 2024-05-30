@@ -6,9 +6,7 @@
 
     <groupId>fr.supermax_8.boostedaudio</groupId>
     <artifactId>boostedaudio-velocity</artifactId>
-    <version>2.16.4</version>
     <packaging>jar</packaging>
-
     <name>BoostedAudioVelocity</name>
 
     <description>Velocity implementation of BoostedAudio, proximitychat and music plugin</description>
@@ -20,7 +18,7 @@
     <parent>
         <groupId>fr.supermax_8.boostedaudio</groupId>
         <artifactId>BoostedAudio</artifactId>
-        <version>2.16.4</version>
+        <version>2.16.5</version>
     </parent>
 
 <!--    <profiles>

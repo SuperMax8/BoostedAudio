@@ -25,6 +25,7 @@ public class AudioWebSocketServer extends WebSocketServer {
     @Getter
     private static AudioWebSocketServer instance;
 
+    @Getter
     public final ConnectionManager manager = new ConnectionManager();
     private boolean isOpen = false;
     private static final Gson gson = BoostedAudioAPI.api.getGson();
