@@ -47,7 +47,10 @@ public class BoostedAudioCommand implements CommandExecutor, TabCompleter {
                 case "showall" -> {
                     if (!(sender instanceof Player p)) return false;
                     if (!sender.hasPermission("boostedaudio.admin")) return false;
-                    if(!BoostedAudioSpigot.ishologramInstalled()) return false;
+                    if(!BoostedAudioSpigot.ishologramInstalled()) {
+                        p.sendMessage(Lang.get("hologram_error"));
+                        return false;
+                    }
                     HologramManager hm =  BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager().getHologramManager();
                     if(!hm.getPlayerList().contains(p)) {
 						hm.getPlayerList().add(p);

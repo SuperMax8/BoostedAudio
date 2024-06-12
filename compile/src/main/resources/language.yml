@@ -10,6 +10,7 @@ speaker_desc: "§7Edit the speakers"
 regions: "§6§lRegions"
 region_desc: "§7Edit the audio played when a player enters a worldguard region"
 worldguard_error: "§c§lYou need to install WorldGuard to use this feature"
+hologram_error: "§c§lYou need to install a hologram plugin to use this feature, I recommend DecentHolograms"
 
 leftclick_to_open_in_the_world_you_are: "§e§lLeftClick to open directly in the world you are"
 rightclick_to_open_the_world_selection: "§9§lRightClick to open the world selection"

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
+import fr.supermax_8.boostedaudio.spigot.hooks.Hook;
 import org.bukkit.configuration.ConfigurationSection;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
@@ -27,11 +28,11 @@ public class AudioManager {
     public AudioManager() {
         instance = this;
         playListManager = new PlayListManager();
-        RegionManager regionManager1;
+        RegionManager regionManager1 = null;
         try {
-            regionManager1 = RegionManager.create();
-        } catch (Throwable e) {
-            regionManager1 = null;
+            if (Hook.WORLDGUARD.isEnabled())
+                regionManager1 = RegionManager.create();
+        } catch (Throwable ignored) {
         }
         regionManager = regionManager1;
         speakerManager = new SpeakerManager();

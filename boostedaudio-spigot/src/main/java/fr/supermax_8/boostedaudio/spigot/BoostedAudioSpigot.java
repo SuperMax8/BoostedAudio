@@ -140,22 +140,29 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         aroundManager = new AroundManager();
         scheduler.runTimerAsync(() -> aroundManager.run(), 0, 1);
 
-
+        BoostedAudioAPI.getAPI().info("§e§lHooks:");
         enumList(Hook.class).stream().forEach(h -> getPlugin(h.toString(), l -> {
-			PluginDescriptionFile pdf  = l.getDescription();
-			h.enable();
-			h.setVersion(pdf.getVersion());
-		})); 
+            PluginDescriptionFile pdf = l.getDescription();
+            h.enable();
+            h.setVersion(pdf.getVersion());
+        }));
 
-        if(Hook.HOLOGRAPHICDISPLAYS.isEnabled()) ht = new HD3Hologram(this);
+        if (Hook.DECENTHOLOGRAMS.isEnabled()) {
+            ht = new DHologram(this);
+            BoostedAudioAPI.getAPI().info("§8- §aDecentHolograms §eloaded successfully");
+        } else if (Hook.HOLOGRAPHICDISPLAYS.isEnabled()) {
+            ht = new HD3Hologram(this);
+            BoostedAudioAPI.getAPI().info("§8- §aHolographicDisplays §eloaded successfully");
+        }
 
-		if(Hook.DECENTHOLOGRAMS.isEnabled()) ht = new DHologram(this);
-
-        // Placeholders
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceHolderAPI")) {
+        if (Hook.PLACEHOLDER_API.isEnabled()) {
             new PlaceHoldersManager().register();
-            BoostedAudioAPI.getAPI().info("Placeholders loaded successfully");
-        } else BoostedAudioAPI.getAPI().info("PlaceholderAPI is not on the server");
+            BoostedAudioAPI.getAPI().info("§8- §aPlaceholderAPI §eloaded successfully");
+        }
+
+        if (Hook.WORLDGUARD.isEnabled()) {
+            BoostedAudioAPI.getAPI().info("§8- §aWorldGuard §eloaded successfully");
+        }
 
         scheduler.runAsync(task -> {
             try {
@@ -192,10 +199,10 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if(ishologramInstalled()){
+        if (ishologramInstalled()) {
             audioManager.getSpeakerManager().getHologramManager().getWrappedTask().cancel();
             audioManager.getSpeakerManager().getHologramManager().getHolos().values().forEach(HologramType::delete);
-        }  
+        }
         if (diffuserWebSocketClient != null) diffuserWebSocketClient.close();
     }
 
@@ -375,27 +382,27 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     }
 
     private <T> List<T> enumList(Class<T> c) {
-		return Arrays.asList(c.getEnumConstants());
-	}
+        return Arrays.asList(c.getEnumConstants());
+    }
 
     public static boolean ishologramInstalled() {
-		List<Hook> hh = Arrays.asList(Hook.HOLOGRAPHICDISPLAYS, Hook.DECENTHOLOGRAMS).stream().filter(Hook::isEnabled).collect(Collectors.toList());
-		return !hh.isEmpty();
-	}
+        List<Hook> hh = Arrays.asList(Hook.HOLOGRAPHICDISPLAYS, Hook.DECENTHOLOGRAMS).stream().filter(Hook::isEnabled).collect(Collectors.toList());
+        return !hh.isEmpty();
+    }
 
     public static void getPlugin(String pluginName, Consumer<JavaPlugin> loaded) {
-		if (testCompatibility(pluginName)) loaded.accept((JavaPlugin) Bukkit.getPluginManager().getPlugin(pluginName));
-	}
+        if (testCompatibility(pluginName)) loaded.accept((JavaPlugin) Bukkit.getPluginManager().getPlugin(pluginName));
+    }
 
     public static void getPlugin(String pluginName, Consumer<JavaPlugin> loaded, Consumer<String> notloaded) {
-		if (!testCompatibility(pluginName)) notloaded.accept(pluginName);
-		else loaded.accept((JavaPlugin) Bukkit.getPluginManager().getPlugin(pluginName));
-	}
+        if (!testCompatibility(pluginName)) notloaded.accept(pluginName);
+        else loaded.accept((JavaPlugin) Bukkit.getPluginManager().getPlugin(pluginName));
+    }
 
-	public static boolean testCompatibility(String pluginName) {
-		if (!Bukkit.getPluginManager().isPluginEnabled(pluginName)) return false;
-		return true;
-	}
+    public static boolean testCompatibility(String pluginName) {
+        if (!Bukkit.getPluginManager().isPluginEnabled(pluginName)) return false;
+        return true;
+    }
 
     public static void downloadAudio(String mediaLink, Consumer<String> whenDownloadedNewLink) {
         if (instance.configuration.isDiffuser()) {
@@ -417,6 +424,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     }
 
     public HologramType<?> getHologramType() {
-		return ht;
-	}
+        return ht;
+    }
 }

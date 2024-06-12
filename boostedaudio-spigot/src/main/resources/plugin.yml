@@ -10,7 +10,9 @@ website: https://www.spigotmc.org/resources/boostedaudio-%E2%9C%A8proximity-voic
 softdepend:
   - WorldGuard
   - ProtocolLib
-  - PlaceHolderAPI
+  - PlaceholderAPI
+  - DecentHolograms
+  - HolographicDisplays
 commands:
   audio:
     aliases:
