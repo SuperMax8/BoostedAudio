@@ -6,7 +6,7 @@
     <parent>
         <groupId>fr.supermax_8.boostedaudio</groupId>
         <artifactId>BoostedAudio</artifactId>
-        <version>2.16.7</version>
+        <version>2.16.8</version>
     </parent>
 
     <artifactId>boostedaudio-standalone</artifactId>
@@ -63,13 +63,13 @@
         <dependency>
             <groupId>fr.supermax_8.boostedaudio</groupId>
             <artifactId>boostedaudio-core</artifactId>
-            <version>2.16.7</version>
+            <version>${project.parent.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>fr.supermax_8.boostedaudio</groupId>
             <artifactId>ba-utils</artifactId>
-            <version>2.16.7</version>
+            <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

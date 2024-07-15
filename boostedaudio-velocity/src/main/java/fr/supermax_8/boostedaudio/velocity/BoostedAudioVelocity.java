@@ -5,10 +5,12 @@ import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.BaPluginVersion;
 import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.multiserv.BoostedAudioProxy;
 import fr.supermax_8.boostedaudio.core.InternalAPI;
+import fr.supermax_8.boostedaudio.core.utils.ColorUtils;
 import lombok.Getter;
 import org.slf4j.Logger;
 
@@ -35,8 +37,8 @@ public class BoostedAudioVelocity {
     }
 
     public void load() {
-        BoostedAudioAPIImpl.sendMessage = s -> logger.info("§8§l[§9§lBoostedAudio§8§l] §7" + s);
-        logger.info("Initializing...");
+        BoostedAudioAPIImpl.sendMessage = s -> logger.info(ColorUtils.translateColorCodes("§8§l[§9§lBoostedAudio§8§l] §7" + s));
+        BoostedAudioAPI.getAPI().info("Initializing...");
         instance = this;
         BoostedAudioAPIImpl.internalAPI = new InternalAPI() {
             @Override
