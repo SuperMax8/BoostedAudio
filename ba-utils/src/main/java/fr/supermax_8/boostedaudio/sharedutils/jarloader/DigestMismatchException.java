@@ -1,4 +1,4 @@
-package fr.supermax_8.jarloader;
+package fr.supermax_8.boostedaudio.sharedutils.jarloader;
 
 public final class DigestMismatchException extends RuntimeException {
     private final String expected;

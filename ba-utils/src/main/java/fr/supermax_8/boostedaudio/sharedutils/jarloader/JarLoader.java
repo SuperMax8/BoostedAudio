@@ -1,13 +1,15 @@
-package fr.supermax_8.jarloader;
+package fr.supermax_8.boostedaudio.sharedutils.jarloader;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 public final class JarLoader {
     /**
@@ -55,6 +57,45 @@ public final class JarLoader {
             loader.addURL(jarDependency.getPath().toUri().toURL());
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Appends the jar specified by the {@code jarDependency} to the list of
+     * jars to search for classes and resources.
+     *
+     * @param path dependency path whose classes should be loaded
+     * @param classLoader   classloader which loads the classes
+     * @throws NullPointerException if any argument is null
+     */
+    public static void load(Path path, URLClassLoader classLoader) {
+        try {
+            URLClassLoaderAccess loader = URLClassLoaderAccess.create(classLoader);
+            loader.addURL(path.toUri().toURL());
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void load(JarDependency jarDependency) {
+        ClassLoader loader = new URLClassLoader(new URL[]{}, JarLoader.class.getClass().getClassLoader());
+        if (loader instanceof URLClassLoader)
+            load(jarDependency, (URLClassLoader) loader);
+        else {
+            try {
+                Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+                method.setAccessible(true);
+
+                Method getURLsMethod = loader.getClass().getMethod("getURLs");
+                getURLsMethod.setAccessible(true);
+                URL[] urls = (URL[]) getURLsMethod.invoke(loader);
+                for (URL existingUrl : urls) {
+                    System.out.println(existingUrl);
+                }
+                method.invoke(loader, jarDependency.getPath().toUri().toURL());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

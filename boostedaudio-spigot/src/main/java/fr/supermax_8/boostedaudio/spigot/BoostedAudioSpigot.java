@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import fr.supermax_8.boostedaudio.sharedutils.BoostedAudioLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
@@ -35,7 +36,6 @@ import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
-import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
 import fr.supermax_8.boostedaudio.core.InternalAPI;
 import fr.supermax_8.boostedaudio.core.Limiter;
 import fr.supermax_8.boostedaudio.core.multiserv.DiffuserWebSocketClient;
@@ -103,7 +103,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     public void onEnable() {
         instance = this;
         usersOnServer = new ConcurrentHashMap<>();
-        BoostedAudioAPIImpl.sendMessage = s -> Bukkit.getConsoleSender().sendMessage(s);
+        BoostedAudioAPIImpl.sendMessage = s -> Bukkit.getConsoleSender().sendMessage("§8§l[§9§lBoostedAudio§8§l] §7" + s);
 
         configuration = new BoostedAudioConfiguration(new File(getDataFolder(), "config.yml"));
         BoostedAudioAPIImpl.configuration = configuration;

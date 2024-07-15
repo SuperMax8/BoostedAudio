@@ -1,4 +1,4 @@
-package fr.supermax_8.jarloader;
+package fr.supermax_8.boostedaudio.sharedutils.jarloader;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -68,11 +68,11 @@ public final class JarDependency {
         }
     }
 
-    URL getDownloadUrl() {
+    public URL getDownloadUrl() {
         return downloadUrl;
     }
 
-    Path getPath() {
+    public Path getPath() {
         return path;
     }
 

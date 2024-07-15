@@ -14,10 +14,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,13 +74,22 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
 
     @Override
     public void info(String message) {
-        String finalMessage = "§8§l[§9§lBoostedAudio§8§l] §7" + message;
-        sendMessage.accept(finalMessage);
+        sendMessage.accept(message);
     }
 
     @Override
     public void debug(String message) {
         if (configuration.isDebugMode()) info("Debug: " + message);
+    }
+
+    @Override
+    public void addVoiceLayer(String uniqueId, boolean audioSpatialized, int priority, Predicate<UUID> playerInLayer) {
+
+    }
+
+    @Override
+    public void removeVoiceLayer(String uniqueId) {
+
     }
 
     public static void startStat(Supplier<Integer> playerCountSupplier) {

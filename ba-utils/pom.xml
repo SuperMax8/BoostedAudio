@@ -9,26 +9,12 @@
         <version>2.16.7</version>
     </parent>
 
-    <artifactId>boostedaudio-core</artifactId>
-    <version>${project.parent.version}</version>
+    <artifactId>ba-utils</artifactId>
 
     <properties>
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <dependencies>
-        <dependency>
-            <groupId>net.md-5</groupId>
-            <artifactId>bungeecord-chat</artifactId>
-            <version>1.16-R0.4</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.supermax_8.boostedaudio</groupId>
-            <artifactId>ba-utils</artifactId>
-            <version>2.16.7</version>
-        </dependency>
-    </dependencies>
 
 </project>

@@ -5,6 +5,7 @@ import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+import fr.supermax_8.boostedaudio.core.BaPluginVersion;
 import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.multiserv.BoostedAudioProxy;
 import fr.supermax_8.boostedaudio.core.InternalAPI;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class BoostedAudioVelocity {
 
     private static String fqsfdsqfdsq = "%%__USER__%% %%__RESOURCE__%% %%__NONCE__%% %%__USER__%% %%__RESOURCE__%% %%__NONCE__%%";
+    @Getter
     private static final String version = "2.16.4";
     private Logger logger;
     private final ProxyServer server;
@@ -33,7 +35,7 @@ public class BoostedAudioVelocity {
     }
 
     public void load() {
-        BoostedAudioAPIImpl.sendMessage = s -> logger.info(s);
+        BoostedAudioAPIImpl.sendMessage = s -> logger.info("§8§l[§9§lBoostedAudio§8§l] §7" + s);
         logger.info("Initializing...");
         instance = this;
         BoostedAudioAPIImpl.internalAPI = new InternalAPI() {
@@ -47,7 +49,7 @@ public class BoostedAudioVelocity {
     }
 
     private String getPluginVersion() {
-        return version;
+        return BaPluginVersion.getVersion();
     }
 
     @Subscribe

@@ -10,6 +10,8 @@
     <file url="file://$PROJECT_DIR$/boostedaudio-folia/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/boostedaudio-spigot/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/boostedaudio-spigot/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/boostedaudio-standalone/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/boostedaudio-standalone/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/boostedaudio-velocity/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/boostedaudio-velocity/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/client" charset="UTF-8" />
@@ -21,5 +23,8 @@
     <file url="file://$PROJECT_DIR$/compile/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/volcarium-edit/client" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/volcarium-edit/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/volcarium-edit/src/main/resources" charset="UTF-8" />
   </component>
 </project>

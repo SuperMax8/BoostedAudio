@@ -190,7 +190,6 @@ public class BoostedAudioProxy {
     private void setupDiffuser() {
         BoostedAudioAPI.getAPI().debug("Setup Diffuser");
         try {
-            diffuserWebSocketClient = new DiffuserWebSocketClient(new URI(configuration.getMainProxyWebsocketLink()));
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
                 if (diffuserWebSocketClient != null && diffuserWebSocketClient.isConnected()) return;
                 CompletableFuture.runAsync(() -> {
@@ -228,7 +227,7 @@ public class BoostedAudioProxy {
             if (!configuration.isNotification()) return;
             BoostedAudioAPI.api.info("Checking for updates...");
             new UpdateChecker(112747).getVersion(v -> {
-                if (v.equals(pluginVersion)) return;
+                if (v.equals(pluginVersion) || pluginVersion.contains("Stand")) return;
                 BoostedAudioAPI.api.info("§aNew version available : §6" + v + " §ayou are on §7" + pluginVersion);
             });
 

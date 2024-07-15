@@ -6,7 +6,7 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import fr.supermax_8.boostedaudio.core.BoostedAudioLoader;
+import fr.supermax_8.boostedaudio.sharedutils.BoostedAudioLoader;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
@@ -14,7 +14,7 @@ import java.nio.file.Path;
 @Plugin(
         id = "boostedaudio",
         name = "BoostedAudioVelocity",
-        version = "2",
+        version = "2.0+",
         description = "Velocity implementation of BoostedAudio, proximitychat and music plugin",
         authors = {"SuperMax_8"}
 )
@@ -30,8 +30,11 @@ public class BoostedAudioVelocityLoader {
         this.logger = logger;
         this.dataDirectory = dataDirectory;
 
-        long elapsedTime = BoostedAudioLoader.loadLibs(dataDirectory.toFile());
-        System.out.println("Libs loaded in " + elapsedTime + " ms");
+        try {
+            BoostedAudioLoader.loadExternalLibs(dataDirectory.toFile());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Subscribe

@@ -1,4 +1,4 @@
-package fr.supermax_8.jarloader;
+package fr.supermax_8.boostedaudio.sharedutils.jarloader;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

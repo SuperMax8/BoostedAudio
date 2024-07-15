@@ -5,8 +5,12 @@ import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.InternalAPI;
+import fr.supermax_8.boostedaudio.core.proximitychat.VoiceLayer;
+import org.wildfly.common.annotation.Nullable;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.function.Predicate;
 
 public interface BoostedAudioAPI {
 
@@ -35,9 +39,12 @@ public interface BoostedAudioAPI {
 
     void debug(String message);
 
+    void addVoiceLayer(String uniqueId, boolean audioSpatialized, int priority, @Nullable Predicate<UUID> playerInLayer);
+
+    void removeVoiceLayer(String uniqueId);
+
     static BoostedAudioAPI getAPI() {
         return api;
     }
-
 
 }
