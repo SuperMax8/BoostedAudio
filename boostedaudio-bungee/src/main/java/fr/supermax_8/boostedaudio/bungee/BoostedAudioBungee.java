@@ -3,9 +3,11 @@ package fr.supermax_8.boostedaudio.bungee;
 import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.InternalAPI;
 import fr.supermax_8.boostedaudio.core.multiserv.BoostedAudioProxy;
+import fr.supermax_8.boostedaudio.core.utils.MojangAPI;
 import fr.supermax_8.boostedaudio.sharedutils.BoostedAudioLoader;
 import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectedEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -36,7 +38,14 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
         BoostedAudioAPIImpl.internalAPI = new InternalAPI() {
             @Override
             public String getUsername(UUID uuid) {
-                return ProxyServer.getInstance().getPlayer(uuid).getName();
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
+                if (player != null) return player.getName();
+                try {
+                    return MojangAPI.getUsernameFromUUID(uuid.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return " ";
+                }
             }
         };
 

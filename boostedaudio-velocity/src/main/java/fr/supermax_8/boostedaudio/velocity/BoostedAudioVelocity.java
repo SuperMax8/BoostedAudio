@@ -4,6 +4,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.BaPluginVersion;
@@ -11,10 +12,12 @@ import fr.supermax_8.boostedaudio.core.BoostedAudioAPIImpl;
 import fr.supermax_8.boostedaudio.core.multiserv.BoostedAudioProxy;
 import fr.supermax_8.boostedaudio.core.InternalAPI;
 import fr.supermax_8.boostedaudio.core.utils.ColorUtils;
+import fr.supermax_8.boostedaudio.core.utils.MojangAPI;
 import lombok.Getter;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.UUID;
 
 public class BoostedAudioVelocity {
@@ -43,7 +46,14 @@ public class BoostedAudioVelocity {
         BoostedAudioAPIImpl.internalAPI = new InternalAPI() {
             @Override
             public String getUsername(UUID uuid) {
-                return server.getPlayer(uuid).get().getUsername();
+                Optional<Player> playerOpt = server.getPlayer(uuid);
+                if (playerOpt.isPresent()) return playerOpt.get().getUsername();
+                try {
+                    return MojangAPI.getUsernameFromUUID(uuid.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return " ";
+                }
             }
         };
         boostedAudioProxy = new BoostedAudioProxy(dataDirectory.toFile(), getPluginVersion());

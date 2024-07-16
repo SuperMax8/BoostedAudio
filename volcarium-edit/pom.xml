@@ -18,7 +18,7 @@
     </properties>
 
     <build>
-        <finalName>BoostedAudio-${project.parent.version}</finalName>
+        <finalName>Volcarium-BoostedAudio</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
