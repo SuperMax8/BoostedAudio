@@ -9,6 +9,7 @@ import fr.supermax_8.boostedaudio.core.Limiter;
 import fr.supermax_8.boostedaudio.core.websocket.AudioWebSocketServer;
 import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
 import fr.supermax_8.boostedaudio.core.websocket.HostUser;
+import fr.supermax_8.boostedaudio.core.websocket.ServerInfo;
 
 import java.util.Map;
 import java.util.Optional;
@@ -49,7 +50,7 @@ public class TrustPacket implements Packet {
                     configuration.getRefDistance(),
                     configuration.getDistanceModel(),
                     playerId.toString(),
-                    configuration.getIceServersJson()
+                    configuration.generateIceForUser()
             )
             ));
             UserJoinEvent userJoinEvent = new UserJoinEvent(newUser);

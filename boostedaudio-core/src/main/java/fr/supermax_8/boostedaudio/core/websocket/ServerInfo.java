@@ -1,4 +1,4 @@
-package fr.supermax_8.boostedaudio.core.websocket.packets;
+package fr.supermax_8.boostedaudio.core.websocket;
 
 import com.google.gson.JsonArray;
 

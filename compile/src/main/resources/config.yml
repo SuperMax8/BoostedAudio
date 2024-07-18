@@ -159,3 +159,7 @@ clientConfig:
   - "{settings-echoCancellation-label}=Echo Cancellation"
   - "{settings-echoCancellation-description}=Removes echo from your microphone audio"
   - "{settings-close-button-label}=Close Settings"
+
+
+# NEVER CHANGE THIS VALUE
+config-version: 1

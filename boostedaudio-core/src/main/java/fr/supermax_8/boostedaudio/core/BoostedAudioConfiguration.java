@@ -1,10 +1,12 @@
 package fr.supermax_8.boostedaudio.core;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
+import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
@@ -12,15 +14,15 @@ import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.Base64Utils;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
+import fr.supermax_8.boostedaudio.core.utils.TurnUtils;
+import fr.supermax_8.boostedaudio.core.websocket.TurnConfig;
 import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Getter
 public class BoostedAudioConfiguration {
@@ -39,6 +41,7 @@ public class BoostedAudioConfiguration {
     private boolean ssl;
     private List<String> iceServers;
     private JsonArray iceServersJson;
+    private List<TurnConfig> turnConfigs;
     private String keystorePassword;
     private String keystoreFileName;
     private int webSocketPort;
@@ -83,16 +86,19 @@ public class BoostedAudioConfiguration {
             e.printStackTrace();
         }*/
 
+        YamlDocument defaultConfig = YamlDocument.create(ResourceUtils.getResourceAsStream("config.yml"));
+        String latestVer = defaultConfig.getString("config-version");
+
         YamlDocument config = YamlDocument.create(
                 configFile,
                 ResourceUtils.getResourceAsStream("config.yml"),
                 GeneralSettings.builder().build(),
                 LoaderSettings.builder().setAutoUpdate(true).build(),
                 DumperSettings.builder().build(),
-                UpdaterSettings.builder().build()
+                UpdaterSettings.builder().setVersioning(new BasicVersioning("config-version"))
+                        .addIgnoredRoute("1", Route.fromString("turns")).build()
         );
 
-        YamlDocument defaultConfig = YamlDocument.create(ResourceUtils.getResourceAsStream("config.yml"));
 
         notification = (boolean) config.get("notification", true);
         debugMode = (boolean) config.get("debugMode");
@@ -116,13 +122,30 @@ public class BoostedAudioConfiguration {
 
         StringBuilder iceServersBuilder = new StringBuilder();
         iceServersBuilder.append("[");
-        for (String s : iceServers) iceServersBuilder.append(s);
+        for (String s : iceServers) {
+            if (!s.isEmpty()) iceServersBuilder.append(s);
+        }
         iceServersBuilder.append("]");
         iceServersJson = new JsonArray();
         new JsonParser().parse(iceServersBuilder.toString()).getAsJsonArray().forEach(jsonElement -> {
             if (jsonElement == null || jsonElement.isJsonNull()) return;
             iceServersJson.add(jsonElement);
         });
+
+        if (config.isSection("turns")) {
+            turnConfigs = new ArrayList<>();
+            Section turns = config.getSection("turns");
+            for (Route route : turns.getRoutes(false)) {
+                Section customTurn = turns.getSection(route);
+                turnConfigs.add(new TurnConfig(
+                        customTurn.getString("sharedSecret"),
+                        customTurn.getString("url"),
+                        customTurn.getInt("expirationTimeInMinutes")
+                ));
+                BoostedAudioAPI.getAPI().info("Custom turn loaded with url: " + customTurn.getString("url"));
+            }
+        }
+
 
         keystorePassword = (String) config.get("ssl.keystorePassword", "YOUR_PASSWORD");
         keystoreFileName = (String) config.get("ssl.keystoreFileName", "keystore.jks");
@@ -188,6 +211,25 @@ public class BoostedAudioConfiguration {
         if (modified) config.save();
 
         if (isDebugMode()) showConfiguration();
+    }
+
+    public JsonArray generateIceForUser() {
+        if (turnConfigs == null) return iceServersJson;
+        JsonArray servers = new JsonArray();
+        servers.addAll(iceServersJson);
+        try {
+            for (TurnConfig turnConfig : turnConfigs) {
+                JsonObject server = new JsonObject();
+                server.addProperty("urls", turnConfig.getUrl());
+                String username = TurnUtils.generateTurnUsername(TimeUnit.MINUTES.toSeconds(turnConfig.getExpirationTimeInMinutes()), "bauser");
+                server.addProperty("username", username);
+                server.addProperty("credential", TurnUtils.generateTurnCredential(turnConfig.getSharedSecret(), username));
+                servers.add(server);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return servers;
     }
 
     public Map<String, String> convertConfigList(List<String> config) {
