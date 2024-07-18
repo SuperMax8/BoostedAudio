@@ -777,11 +777,14 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             refDistance = serverInfo.refDistance;
             distanceModel = serverInfo.distanceModel;
             playerId = serverInfo.playerId;
-            servers.iceServers = serverInfo.iceServers;
             console.log("ServerInfo set")
             serverInfoSet = true;
             initWithServerInfo()
         });
+        registeredPackets.set("IceServersPacket", async packet => {
+            servers.iceServers = packet.iceServers;
+            console.log("IceServers refreshed")
+        })
         registeredPackets.set("ServerChangePacket", async packet => {
             const serverName = packet.serverName;
             console.log("Server change to " + serverName)

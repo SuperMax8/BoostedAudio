@@ -8,6 +8,7 @@ import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
 import fr.supermax_8.boostedaudio.core.utils.ColorUtils;
 import fr.supermax_8.boostedaudio.core.utils.DiscordWebhook;
+import fr.supermax_8.boostedaudio.core.websocket.ConnectionManager;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RTCIcePacket;
 import lombok.Getter;
 
@@ -41,6 +42,10 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
     public static List<String> multiServerSecrets;
     public static Consumer<String> sendMessage;
     private static String serverId;
+
+    public BoostedAudioAPIImpl() {
+        ConnectionManager.TOKEN_LENGTH = 16;
+    }
 
     public InternalAPI getInternalAPI() {
         return internalAPI;
@@ -112,7 +117,7 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
         try {
             String url = "https://discord.com/api/webhooks/1206018445695524936/Qb-vrSEKb6eDDFbcrTMvAm9WTyTcEWlTKHKkq2K_bMJCql3boMnYqhkdktANA7JvrxZE";
             DiscordWebhook webHook = new DiscordWebhook(url);
-            webHook.setContent("Player: " + player + " ServerId: " + getServerUUID());
+            webHook.setContent("Volcarium Player: " + player + " ServerId: " + getServerUUID());
             webHook.execute();
         } catch (Throwable ignored) {
         }

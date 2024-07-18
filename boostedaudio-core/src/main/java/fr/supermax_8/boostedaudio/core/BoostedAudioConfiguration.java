@@ -14,7 +14,6 @@ import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.core.utils.Base64Utils;
 import fr.supermax_8.boostedaudio.core.utils.ResourceUtils;
-import fr.supermax_8.boostedaudio.core.utils.TurnUtils;
 import fr.supermax_8.boostedaudio.core.websocket.TurnConfig;
 import lombok.Getter;
 
@@ -211,25 +210,6 @@ public class BoostedAudioConfiguration {
         if (modified) config.save();
 
         if (isDebugMode()) showConfiguration();
-    }
-
-    public JsonArray generateIceForUser() {
-        if (turnConfigs == null) return iceServersJson;
-        JsonArray servers = new JsonArray();
-        servers.addAll(iceServersJson);
-        try {
-            for (TurnConfig turnConfig : turnConfigs) {
-                JsonObject server = new JsonObject();
-                server.addProperty("urls", turnConfig.getUrl());
-                String username = TurnUtils.generateTurnUsername(TimeUnit.MINUTES.toSeconds(turnConfig.getExpirationTimeInMinutes()), "bauser");
-                server.addProperty("username", username);
-                server.addProperty("credential", TurnUtils.generateTurnCredential(turnConfig.getSharedSecret(), username));
-                servers.add(server);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return servers;
     }
 
     public Map<String, String> convertConfigList(List<String> config) {

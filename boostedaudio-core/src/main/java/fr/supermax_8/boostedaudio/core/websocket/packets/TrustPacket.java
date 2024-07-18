@@ -49,10 +49,10 @@ public class TrustPacket implements Packet {
                     configuration.getRolloffFactor(),
                     configuration.getRefDistance(),
                     configuration.getDistanceModel(),
-                    playerId.toString(),
-                    configuration.generateIceForUser()
+                    playerId.toString()
             )
             ));
+            newUser.sendIceServers();
             UserJoinEvent userJoinEvent = new UserJoinEvent(newUser);
             EventManager.getInstance().callEvent(userJoinEvent);
         } else {

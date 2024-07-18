@@ -2,23 +2,17 @@ package fr.supermax_8.boostedaudio.core.websocket;
 
 import com.google.gson.annotations.Expose;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
 import fr.supermax_8.boostedaudio.api.packet.Packet;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
-import fr.supermax_8.boostedaudio.api.audio.Audio;
-import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.proximitychat.VoiceChatManager;
-import fr.supermax_8.boostedaudio.core.websocket.packets.AddAudioPacket;
-import fr.supermax_8.boostedaudio.core.websocket.packets.ServerMutePacket;
-import fr.supermax_8.boostedaudio.core.websocket.packets.PausePlayAudioPacket;
-import fr.supermax_8.boostedaudio.core.websocket.packets.RemoveAudioPacket;
+import fr.supermax_8.boostedaudio.core.websocket.packets.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.java_websocket.WebSocket;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HostUser implements User {
@@ -26,6 +20,9 @@ public class HostUser implements User {
     @Getter
     private final WebSocket session;
 
+    @Getter
+    @Setter
+    private List<TurnCredential> turnCredentials;
     @Expose
     private final Map<String, Set<UUID>> remotePeers = new ConcurrentHashMap<>();
     @Expose
@@ -39,6 +36,7 @@ public class HostUser implements User {
     @Expose
     @Setter
     private boolean clientMuted = false;
+
 
     private long waitUntil = 0;
 
@@ -190,6 +188,10 @@ public class HostUser implements User {
             VoiceChatManager.getMutedUsers().put(playerId, new VoiceChatManager.MuteUser(playerId, endTime));
         else
             VoiceChatManager.getMutedUsers().remove(playerId);
+    }
+
+    public void sendIceServers() {
+        sendPacket(new IceServersPacket(ConnectionManager.getInstance().generateIceServers(this)));
     }
 
     public void applyMuteIfMute() {
