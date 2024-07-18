@@ -1,5 +1,9 @@
 package fr.supermax_8.boostedaudio.core;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
@@ -34,6 +38,7 @@ public class BoostedAudioConfiguration {
     private int autoHostPort;
     private boolean ssl;
     private List<String> iceServers;
+    private JsonArray iceServersJson;
     private String keystorePassword;
     private String keystoreFileName;
     private int webSocketPort;
@@ -87,6 +92,8 @@ public class BoostedAudioConfiguration {
                 UpdaterSettings.builder().build()
         );
 
+        YamlDocument defaultConfig = YamlDocument.create(ResourceUtils.getResourceAsStream("config.yml"));
+
         notification = (boolean) config.get("notification", true);
         debugMode = (boolean) config.get("debugMode");
 
@@ -101,7 +108,21 @@ public class BoostedAudioConfiguration {
         autoHostPort = (int) config.get("autoHostPort", 8080);
 
         ssl = (boolean) config.get("ssl.ssl", false);
-        iceServers = config.getStringList("iceServers");
+
+        if (config.getBoolean("useCustomIce"))
+            iceServers = config.getStringList("iceServers");
+        else
+            iceServers = defaultConfig.getStringList("iceServers");
+
+        StringBuilder iceServersBuilder = new StringBuilder();
+        iceServersBuilder.append("[");
+        for (String s : iceServers) iceServersBuilder.append(s);
+        iceServersBuilder.append("]");
+        iceServersJson = new JsonArray();
+        new JsonParser().parse(iceServersBuilder.toString()).getAsJsonArray().forEach(jsonElement -> {
+            if (jsonElement == null || jsonElement.isJsonNull()) return;
+            iceServersJson.add(jsonElement);
+        });
 
         keystorePassword = (String) config.get("ssl.keystorePassword", "YOUR_PASSWORD");
         keystoreFileName = (String) config.get("ssl.keystoreFileName", "keystore.jks");
@@ -136,8 +157,7 @@ public class BoostedAudioConfiguration {
 
         clientConfig = config.getStringList("clientConfig");
 
-        Map<String, String> defaultParams = convertConfigList(YamlDocument.create(ResourceUtils.getResourceAsStream("config.yml"))
-                .getStringList("clientConfig"));
+        Map<String, String> defaultParams = convertConfigList(defaultConfig.getStringList("clientConfig"));
         Map<String, String> params = convertConfigList(clientConfig);
 
         boolean updated = false;

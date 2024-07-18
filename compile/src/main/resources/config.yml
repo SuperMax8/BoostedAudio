@@ -63,10 +63,11 @@ ssl:
 # using turn made for your server can resolve proximity chat connections problems
 # https://github.com/coturn/coturn Free open src project to host yourself a stun/turn server
 # https://www.metered.ca/tools/openrelay/ They have a free plan with 50GB for stun/turn servers
+# If useCustomIce is false it will use default iceServers, set this param to true to provide custom ice
+useCustomIce: false
 iceServers:
   - "{urls: 'stun:stun2.l.google.com:19302'},"
-  - "{urls: 'turns:freestun.net:5350', username: 'free', credential: 'free'},"
-  - "{urls: 'turn:freestun.net:3479', username: 'free', credential: 'free'},"
+  - "{urls: 'turn:freeturn.net:3479', username: 'free', credential: 'free'}"
 
 #VoiceChat
 voicechat:
