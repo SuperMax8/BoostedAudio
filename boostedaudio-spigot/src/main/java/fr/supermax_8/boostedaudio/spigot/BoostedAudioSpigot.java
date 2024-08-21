@@ -182,7 +182,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
                     } catch (Throwable e) {
                         e.printStackTrace();
                     }
-                }, 0, 0);
+                }, 0, 1);
 
             // Plugin reload handle
             for (Player p : Bukkit.getOnlinePlayers())
