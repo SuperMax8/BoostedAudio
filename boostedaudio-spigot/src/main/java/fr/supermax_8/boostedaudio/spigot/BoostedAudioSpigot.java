@@ -149,19 +149,19 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
         if (Hook.DECENTHOLOGRAMS.isEnabled()) {
             ht = new DHologram(this);
-            BoostedAudioAPI.getAPI().info("§8- §aDecentHolograms §eloaded successfully");
+            BoostedAudioAPI.getAPI().info("§8- §aDecentHolograms §reloaded successfully");
         } else if (Hook.HOLOGRAPHICDISPLAYS.isEnabled()) {
             ht = new HD3Hologram(this);
-            BoostedAudioAPI.getAPI().info("§8- §aHolographicDisplays §eloaded successfully");
+            BoostedAudioAPI.getAPI().info("§8- §aHolographicDisplays §reloaded successfully");
         }
 
         if (Hook.PLACEHOLDER_API.isEnabled()) {
             new PlaceHoldersManager().register();
-            BoostedAudioAPI.getAPI().info("§8- §aPlaceholderAPI §eloaded successfully");
+            BoostedAudioAPI.getAPI().info("§8- §aPlaceholderAPI §reloaded successfully");
         }
 
         if (Hook.WORLDGUARD.isEnabled()) {
-            BoostedAudioAPI.getAPI().info("§8- §aWorldGuard §eloaded successfully");
+            BoostedAudioAPI.getAPI().info("§8- §aWorldGuard §reloaded successfully");
         }
 
         scheduler.runAsync(task -> {
