@@ -5,6 +5,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.gson.annotations.Expose;
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 public class PlayList {
@@ -15,14 +16,19 @@ public class PlayList {
     private String id;
     @Expose
     private final CopyOnWriteArrayList<String> links;
+    @Expose
+    @Getter
+    @Setter
+    private boolean synchronous;
 
-    public PlayList(List<String> list) {
-        this(null, list);
+    public PlayList(List<String> list, boolean synchronous) {
+        this(null, list, synchronous);
     }
 
-    public PlayList(String id, List<String> list) {
+    public PlayList(@Nullable String id, List<String> list, boolean synchronous) {
         this.id = id;
         links = new CopyOnWriteArrayList<>(list);
+        this.synchronous = synchronous;
     }
 
     public List<String> getLinks() {

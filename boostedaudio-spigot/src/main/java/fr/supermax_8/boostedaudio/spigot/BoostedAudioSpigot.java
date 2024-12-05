@@ -61,9 +61,12 @@ import fr.supermax_8.boostedaudio.spigot.manager.PlaceHoldersManager;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.proximitychat.VoiceChatProcessor;
 import fr.supermax_8.boostedaudio.spigot.utils.AroundManager;
-import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
+import fr.supermax_8.boostedaudio.core.utils.FFmpegUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.TemporaryListener;
 import lombok.Getter;
+import revxrsal.commands.Lamp;
+import revxrsal.commands.bukkit.BukkitLamp;
+import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 
 public final class BoostedAudioSpigot extends JavaPlugin {
 
@@ -97,7 +100,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private final ServerImplementation scheduler = folia.getImpl();
 
     private HologramType<?> ht;
-
+    private Lamp<BukkitCommandActor> handler;
 
     @Override
     public void onEnable() {
@@ -110,10 +113,19 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
         Lang.init(getDataFolder());
 
-        getCommand("audio").setExecutor(new AudioCommandSpigot());
+        handler = BukkitLamp.builder(this)
+                .parameterTypes(b -> {
+                    /*b.addParameterType(Spell.class, new SpellCommandParameter());*/
+                }).build();
+        handler.register(new AudioCommandSpigot());
+        handler.register(new BoostedAudioCommand());
+        handler.register(new AudioQRcodeCommand());
+        handler.register(new MuteCommand());
+
+/*        getCommand("audio").setExecutor(new AudioCommandSpigot());
         getCommand("boostedaudio").setExecutor(new BoostedAudioCommand());
         getCommand("audioqrcode").setExecutor(new AudioQRcodeCommand());
-        getCommand("mute").setExecutor(new MuteCommand());
+        getCommand("mute").setExecutor(new MuteCommand());*/
 
         checkForUpdates();
 
@@ -149,19 +161,19 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
         if (Hook.DECENTHOLOGRAMS.isEnabled()) {
             ht = new DHologram(this);
-            BoostedAudioAPI.getAPI().info("§8- §aDecentHolograms §reloaded successfully");
+            BoostedAudioAPI.getAPI().info("§8- §aDecentHolograms §rreloaded successfully");
         } else if (Hook.HOLOGRAPHICDISPLAYS.isEnabled()) {
             ht = new HD3Hologram(this);
-            BoostedAudioAPI.getAPI().info("§8- §aHolographicDisplays §reloaded successfully");
+            BoostedAudioAPI.getAPI().info("§8- §aHolographicDisplays §rreloaded successfully");
         }
 
         if (Hook.PLACEHOLDER_API.isEnabled()) {
             new PlaceHoldersManager().register();
-            BoostedAudioAPI.getAPI().info("§8- §aPlaceholderAPI §reloaded successfully");
+            BoostedAudioAPI.getAPI().info("§8- §aPlaceholderAPI §rreloaded successfully");
         }
 
         if (Hook.WORLDGUARD.isEnabled()) {
-            BoostedAudioAPI.getAPI().info("§8- §aWorldGuard §reloaded successfully");
+            BoostedAudioAPI.getAPI().info("§8- §aWorldGuard §rreloaded successfully");
         }
 
         scheduler.runAsync(task -> {
@@ -199,6 +211,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        handler.unregisterAllCommands();
         if (ishologramInstalled()) {
             audioManager.getSpeakerManager().getHologramManager().getWrappedTask().cancel();
             audioManager.getSpeakerManager().getHologramManager().getHolos().values().forEach(HologramType::delete);
@@ -210,7 +223,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
         int pluginId = 19857;
         Metrics metrics = new Metrics(BoostedAudioSpigot.getInstance(), pluginId);
         metrics.addCustomChart(new Metrics.SimplePie("sucessful_setup", () -> String.valueOf(host.isSucessfulSetup())));
-        metrics.addCustomChart(new Metrics.SimplePie("ffmpeg_setuped", () -> String.valueOf(FileUtils.ffmpeg != null)));
+        metrics.addCustomChart(new Metrics.SimplePie("ffmpeg_setuped", () -> String.valueOf(FFmpegUtils.ffmpeg != null)));
         metrics.addCustomChart(new Metrics.SingleLineChart("players_connected_to_audio_panel", () ->
                 host.getWebSocketServer().manager.getUsers().size()));
         metrics.addCustomChart(new Metrics.SimplePie("nbspeakers", () -> DataVisualisationUtils.intMetricToEzReadString(BoostedAudioSpigot.getInstance().getAudioManager().getSpeakerManager().getSpeakers().size())));

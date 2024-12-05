@@ -2,7 +2,7 @@ package fr.supermax_8.boostedaudio.spigot.manager;
 
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 import fr.supermax_8.boostedaudio.api.audio.Audio;
-import fr.supermax_8.boostedaudio.api.audio.Audio.AudioSpatialInfo;
+import fr.supermax_8.boostedaudio.api.audio.Audio.AudioPlayInfo;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.gui.SpeakerEditGUI;
@@ -92,7 +92,7 @@ public class HologramManager implements Listener {
     }
 
     private List<String> createHoloLines(Audio au) {
-        AudioSpatialInfo asi = au.getSpatialInfo();
+        Audio.AudioSpatialInfo asi = au.getSpatialInfo();
         SerializableLocation loc = asi.getLocation();
         return List.of(
                 au.getId().toString(),

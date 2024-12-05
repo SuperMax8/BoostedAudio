@@ -23,6 +23,8 @@
     <file url="file://$PROJECT_DIR$/compile/client" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/compile/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/compile/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/libscompile/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/libscompile/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/volcarium-edit/client" charset="UTF-8" />

@@ -62,7 +62,7 @@ public class AudioManager {
             playList = instance.playListManager.get(playListId);
             if (playList == null) {
                 BoostedAudioAPI.getAPI().info("Playlist " + playListId + " not found");
-                playList = new PlayList(List.of());
+                playList = new PlayList(List.of(), false);
             }
         } else {
             List<String> link = section.getStringList("link");
@@ -70,7 +70,7 @@ public class AudioManager {
                 BoostedAudioAPI.api.info("No audio links found in the configuration file. !!");
                 return null;
             }
-            playList = new PlayList(link);
+            playList = new PlayList(link, false);
         }
         Audio.AudioSpatialInfo spatialInfo = null;
         if (section.contains("spatialInfo")) {

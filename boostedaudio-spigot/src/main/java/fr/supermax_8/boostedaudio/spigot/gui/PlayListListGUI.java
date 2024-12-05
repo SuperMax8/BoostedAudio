@@ -120,7 +120,7 @@ public class PlayListListGUI extends AbstractGUI {
                     YamlConfiguration fc = YamlConfiguration.loadConfiguration(newPlayList);
                     fc.set(name, List.of(""));
 
-                    PlayList pl = new PlayList(name, List.of(""));
+                    PlayList pl = new PlayList(name, List.of(""), false);
                     BoostedAudioSpigot.getInstance().getAudioManager().getPlayListManager().addPlayList(pl);
                     setItems(currentDir);
                     reOpenGUI();

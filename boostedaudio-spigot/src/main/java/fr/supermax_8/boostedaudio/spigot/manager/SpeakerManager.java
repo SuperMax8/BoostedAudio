@@ -29,7 +29,6 @@ public class SpeakerManager {
     private File speakerConfigFile;
     private HologramManager hm;
 
-
     public SpeakerManager() {
 
     }

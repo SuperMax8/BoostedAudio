@@ -10,29 +10,15 @@ import java.util.UUID;
 
 public class AddAudioPacket implements Packet {
 
-    private UUID uuid;
-    private String link;
-    private Audio.AudioSpatialInfo spatialInfo;
+    private final UUID uuid;
+    private final Audio.AudioPlayInfo playInfo;
+    private final Audio.AudioSpatialInfo spatialInfo;
 
-    /**
-     * Fade in ms
-     */
-    private int fadeIn;
 
-    /**
-     * Fade in ms
-     */
-    private int fadeOut;
-
-    private boolean synchronous;
-
-    public AddAudioPacket(UUID uuid, String link, int fadeIn, int fadeOut, boolean synchronous, Audio.AudioSpatialInfo spatialInfo) {
+    public AddAudioPacket(UUID uuid, Audio.AudioPlayInfo playInfo, Audio.AudioSpatialInfo spatialInfo) {
         this.uuid = uuid;
-        this.link = link;
+        this.playInfo = playInfo;
         this.spatialInfo = spatialInfo;
-        this.fadeIn = fadeIn;
-        this.fadeOut = fadeOut;
-        this.synchronous = synchronous;
     }
 
     @Override

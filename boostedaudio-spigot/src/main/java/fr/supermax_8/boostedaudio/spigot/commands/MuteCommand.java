@@ -5,17 +5,13 @@ import fr.supermax_8.boostedaudio.api.User;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.core.websocket.packets.ClientMutePacket;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+import revxrsal.commands.annotation.Command;
 
-public class MuteCommand implements CommandExecutor {
+public class MuteCommand {
 
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(sender instanceof Player p)) return false;
+    @Command({"mute", "mutetoggle", "mt"})
+    public boolean mute(Player p) {
         User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(p.getUniqueId());
         if (user == null) {
             p.performCommand("audio");

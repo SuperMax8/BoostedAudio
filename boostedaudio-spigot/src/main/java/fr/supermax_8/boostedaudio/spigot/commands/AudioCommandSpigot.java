@@ -7,27 +7,19 @@ import fr.supermax_8.boostedaudio.core.utils.MessageUtils;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.qrcode.QrCodeGenerator;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import revxrsal.commands.annotation.Command;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
-public class AudioCommandSpigot implements CommandExecutor {
+public class AudioCommandSpigot {
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player p)) {
-            sender.sendMessage("This command is for players");
-            return false;
-        }
+    @Command({"audio", "music"})
+    public boolean onCommand(Player p) {
         sendConnectMessage(p);
         return false;
     }

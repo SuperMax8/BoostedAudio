@@ -3,7 +3,7 @@ package fr.supermax_8.boostedaudio.spigot.gui;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.core.utils.NaturalOrderComparator;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
-import fr.supermax_8.boostedaudio.spigot.utils.FileUtils;
+import fr.supermax_8.boostedaudio.core.utils.FFmpegUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
@@ -127,12 +127,12 @@ public class DirectoryShowGUI extends AbstractGUI {
                                     try {
                                         File outputFile = new File(file.getParentFile(), "Harmonized_" + file.getName());
                                         if (outputFile.exists()) outputFile.delete();
-                                        FileUtils.adjustGain(file.getAbsolutePath(),
+                                        FFmpegUtils.adjustGain(file.getAbsolutePath(),
                                                 outputFile.getAbsolutePath(),
                                                 v);
                                         owner.sendMessage(Lang.get("harmonized_message", file.getName(), v));
                                     } catch (Exception exxx) {
-                                        if (FileUtils.ffmpeg == null || FileUtils.ffprobe == null) {
+                                        if (FFmpegUtils.ffmpeg == null || FFmpegUtils.ffprobe == null) {
                                             owner.sendMessage(Lang.get("ffmpeg_message"));
                                         } else exxx.printStackTrace();
                                     }

@@ -42,6 +42,7 @@ public class PlayListManager {
 
     private List<PlayList> getPlayListRecursivly(File folder, List<PlayList> list) {
         // MADNESS, INSANITY but it works I'm and Ender are genius
+        // 05/12/2024 - I JUST REREAD THIS IS STILL A GENIUS CODE!!!! - SuperMax_8
         for (File f : folder.listFiles((f -> {
             if (f.isDirectory()) {
                 getPlayListRecursivly(f, list);
@@ -50,8 +51,8 @@ public class PlayListManager {
             return f.getName().endsWith(".yml");
         }))) {
             FileConfiguration fc = YamlConfiguration.loadConfiguration(f);
-            for (String playlistId : fc.getKeys(false))
-                list.add(new PlayList(playlistId, fc.getStringList(playlistId)));
+            String id = f.getName().replace(".yml", "");
+            list.add(new PlayList(id, fc.getStringList(id), fc.getBoolean("synchronous", false)));
         }
         return list;
     }

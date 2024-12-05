@@ -13,8 +13,7 @@ public class HttpUtils {
 
     public static String downloadAudioSafely(String urlString, String saveDir) {
         File downloadedFile = downloadFile(urlString, saveDir);
-        if (downloadedFile == null) return "";
-        if (!downloadedFile.exists()) return "";
+        if (downloadedFile == null || !downloadedFile.exists()) return null;
         String[] split = downloadedFile.getName().split("\\.");
         String fileExtension = split[split.length - 1].toLowerCase();
         switch (fileExtension) {
@@ -24,7 +23,7 @@ public class HttpUtils {
             default -> {
                 downloadedFile.delete();
                 System.out.println("Weird audio file downloaded, PLEASE send a message to the dev of this software, " + urlString + " extension name " + fileExtension);
-                return "";
+                return null;
             }
         }
     }
@@ -128,5 +127,42 @@ public class HttpUtils {
         return null;
     }
 
+    /**
+     * Combines multiple parts of a URL into a valid, single URL.
+     * Ensures there are no duplicate or missing slashes between parts.
+     *
+     * @param parts The parts of the URL to combine, e.g., "https://pyritemc.fr:8085", "audio", "fichier.mp3".
+     * @return A combined URL as a string, e.g., "https://pyritemc.fr:8085/audio/fichier.mp3".
+     * @throws IllegalArgumentException If any part is null or empty.
+     */
+    public static String combineUrl(String... parts) {
+        if (parts == null || parts.length == 0) {
+            throw new IllegalArgumentException("URL parts cannot be null or empty");
+        }
+
+        StringBuilder urlBuilder = new StringBuilder();
+
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            if (part == null || part.isEmpty()) {
+                throw new IllegalArgumentException("URL part at index " + i + " cannot be null or empty");
+            }
+
+            // Normalize: Remove trailing slashes from all but the last part
+            if (i > 0 && urlBuilder.charAt(urlBuilder.length() - 1) == '/') {
+                part = part.startsWith("/") ? part.substring(1) : part;
+            }
+
+            // Add the part, ensuring no duplicate slashes
+            urlBuilder.append(part);
+
+            // Add a trailing slash for all but the last part
+            if (i < parts.length - 1 && !part.endsWith("/")) {
+                urlBuilder.append('/');
+            }
+        }
+
+        return urlBuilder.toString();
+    }
 
 }

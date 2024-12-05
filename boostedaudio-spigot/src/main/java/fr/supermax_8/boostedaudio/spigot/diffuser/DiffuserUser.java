@@ -93,7 +93,7 @@ public class DiffuserUser implements User {
     @Override
     public Audio pauseAudio(String link) {
         Audio audio = null;
-        for (Audio audio1 : playingAudio.values()) if (audio1.getLink().equals(link)) audio = audio1;
+        for (Audio audio1 : playingAudio.values()) if (link.equals(audio1.getCurrentPlayingLink())) audio = audio1;
         if (audio != null) pauseAudio(audio);
         return audio;
     }
@@ -115,7 +115,7 @@ public class DiffuserUser implements User {
     @Override
     public Audio stopAudio(String link) {
         Audio audio = null;
-        for (Audio audio1 : playingAudio.values()) if (audio1.getLink().equals(link)) audio = audio1;
+        for (Audio audio1 : playingAudio.values()) if (link.equals(audio1.getCurrentPlayingLink())) audio = audio1;
         if (audio != null) stopAudio(audio);
         return audio;
     }

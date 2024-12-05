@@ -19,12 +19,12 @@ public class BoostedAudioLoader {
             "https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.4.1/Java-WebSocket-1.4.1.jar",
             "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar",
             "https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.jar",
-            "https://repo1.maven.org/maven2/net/bramp/ffmpeg/ffmpeg/0.7.0/ffmpeg-0.7.0.jar",
+/*            "https://repo1.maven.org/maven2/net/bramp/ffmpeg/ffmpeg/0.8.0/ffmpeg-0.8.0.jar",*/
             // QR Code
             "https://repo1.maven.org/maven2/com/google/zxing/core/3.5.2/core-3.5.2.jar",
             "https://repo1.maven.org/maven2/com/google/zxing/javase/3.5.2/javase-3.5.2.jar",
             // BA DEPENDENCIES
-            "https://github.com/SuperMax8/BoostedAudioDependencies/releases/download/2.8.6/BA-dependencies.jar",
+            "https://github.com/SuperMax8/BoostedAudioDependencies/releases/download/2.17.0/BA-dependencies-jar-with-dependencies.jar",
     };
 
     public static URLClassLoader loadExternalLibs(File dataFolder) throws IOException {

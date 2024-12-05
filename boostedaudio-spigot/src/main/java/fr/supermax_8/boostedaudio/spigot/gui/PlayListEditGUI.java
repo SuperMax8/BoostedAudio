@@ -1,5 +1,6 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
+import fr.supermax_8.boostedaudio.api.audio.PlayList;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
@@ -24,8 +25,10 @@ public class PlayListEditGUI extends AbstractGUI {
     private File currentDir;
     private final InventoryScroll scroll;
     private boolean closeByPass = false;
-    private final ArrayList<String> songlist = new ArrayList<>();
     private final ArrayList<ItemStack> items = new ArrayList<>();
+
+    private ArrayList<String> songlist = new ArrayList<>();
+    private boolean synchronous;
 
     public PlayListEditGUI(Player p, File playlistfile, AbstractGUI parent) {
         super(p, 54, Lang.get("playlist_edit"), parent);
@@ -47,17 +50,18 @@ public class PlayListEditGUI extends AbstractGUI {
         songlist.clear();
         items.clear();
 
+        if (playlistfile == null || playlistfile.isDirectory()) return;
+
+        FileConfiguration fc = YamlConfiguration.loadConfiguration(playlistfile);
+        songlist.addAll(fc.getStringList(playlistfile.getName().replace(".yml", "")));
+        synchronous = fc.getBoolean("synchronous", false);
+
         inv.setItem(45, ItemUtils.createItm(XMaterial.EMERALD.parseMaterial(), Lang.get("add_sound")));
+        inv.setItem(46, ItemUtils.createItm(XMaterial.CLOCK, Lang.get("synchronous", synchronous)));
 
         inv.setItem(52, ItemUtils.createItm(XMaterial.RED_WOOL.parseMaterial(), Lang.get("previous"), Lang.get("previous_desc")));
         inv.setItem(53, ItemUtils.createItm(XMaterial.GREEN_WOOL.parseMaterial(), Lang.get("next"), Lang.get("next_desc")));
 
-
-        if (playlistfile == null || playlistfile.isDirectory()) return;
-
-        FileConfiguration fc = YamlConfiguration.loadConfiguration(playlistfile);
-        Optional<String> key = fc.getKeys(false).stream().findFirst();
-        if (key.isPresent()) songlist.addAll(fc.getStringList(key.get()));
 
         for (String song : songlist) {
             items.add(ItemUtils.createItm(
@@ -81,11 +85,15 @@ public class PlayListEditGUI extends AbstractGUI {
                 closeByPass = true;
                 new ChatEditor(BoostedAudioSpigot.getInstance(), owner, s -> {
                     songlist.add(s);
-                    refreshFileFromSongList();
+                    saveAndLoadPlaylist();
 
                     initSelfListener();
                     owner.openInventory(inv);
                 }, Lang.get("enter_sound"));
+                break;
+            case 46:
+                synchronous = !synchronous;
+                saveAndLoadPlaylist();
                 break;
             /*default:
                 int index = scroll.getListIndexFromSlot(e.getSlot());
@@ -102,19 +110,22 @@ public class PlayListEditGUI extends AbstractGUI {
         int index = scroll.getListIndexFromSlot(e.getSlot());
         if (index == -1) return;
         songlist.remove(index);
-        refreshFileFromSongList();
+        saveAndLoadPlaylist();
     }
 
-    private void refreshFileFromSongList() {
+    private void saveAndLoadPlaylist() {
         YamlConfiguration fc = YamlConfiguration.loadConfiguration(playlistfile);
         fc.set(playlistfile.getName().replace(".yml", ""), songlist);
+        fc.set("synchronous", synchronous);
         try {
             fc.save(playlistfile);
         } catch (Exception exx) {
             exx.printStackTrace();
         }
         setItems();
-        List<String> l = BoostedAudioSpigot.getInstance().getAudioManager().getPlayListManager().get(playlistfile.getName().replace(".yml", "")).getLinks();
+        PlayList playList = BoostedAudioSpigot.getInstance().getAudioManager().getPlayListManager().get(playlistfile.getName().replace(".yml", ""));
+        List<String> l = playList.getLinks();
+        playList.setSynchronous(synchronous);
         l.clear();
         l.addAll(songlist);
     }

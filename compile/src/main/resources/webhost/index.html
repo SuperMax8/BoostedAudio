@@ -670,13 +670,30 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             audioMap.get(packet.audioId).audio.currentTime = packet.timeToPlay;
         });
         registeredPackets.set("AddAudioPacket", async packet => {
+            // https://api.cors.lol/?url=
+            // https://corsproxy.io/? // Now paid
+            async function resolveLink(link) {
+                try {
+                    // Try request HEAD to check CORS
+                    const response = await fetch(link, {method: "HEAD", mode: "cors"});
+                    if (response.ok)
+                        return link; // No CORS problem
+                } catch (error) {
+                    console.warn("CORS issue detected for URL:", link, error);
+                    return 'https://api.cors.lol/?url=' + link; // Use the proxy
+                }
+                return link; // Fallback
+            }
+
+
             const id = packet.uuid;
             let panner;
             let audioSource;
-            const link = encodeURI(packet.link)
+            const playInfo = packet.playInfo;
+
+            const link = encodeURI(playInfo.link)
+            const timeToPlay = playInfo.timeToPlay;
             const spatialInfo = packet.spatialInfo;
-            const synchronous = packet.synchronous;
-            console.log(synchronous)
             let maxVoiceDistance = 0;
             let gainNode;
             let audio;
@@ -691,9 +708,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                     coneOuterGain: 1,
                 });
 
-                const url = link.startsWith("https") ? link : link.startsWith("http") ? 'https://corsproxy.io/?' + link : link;
-                const audioHtml = new Audio(url)
-                audioHtml.crossOrigin = "anonymous"
+                const url = await resolveLink(link);
+                const audioHtml = new Audio(url);
+                audioHtml.crossOrigin = "anonymous";
                 audioSource = audioContext.createMediaElementSource(audioHtml);
                 audio = audioSource.mediaElement;
                 maxVoiceDistance = spatialInfo.maxVoiceDistance;
@@ -710,15 +727,6 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             if (oldAudio) {
                 oldAudio.audio.pause();
             }
-
-            if (synchronous) {
-                audio.addEventListener('loadedmetadata', () => {
-                    let durMs = audio.duration * 1000;
-                    let ts = Date.now();
-                    audio.currentTime = ts % durMs / 1000;
-                    audio.play();
-                });
-            } else audio.play();
 
             audio.addEventListener('ended', function () {
                 console.log("Audio finished playing ", audioMap.get(id));
@@ -738,6 +746,13 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 ws.send(JSON.stringify(endAudioPacket))
             });
 
+            // Latency system to play perfectly the song
+            let latency = (Date.now() - playInfo.timestamp) / 1000.0;
+            if (timeToPlay > 0)
+                audio.currentTime = timeToPlay + latency;
+            audio.play();
+            console.log("Latency between server->client ", latency)
+
             const audioObj = {
                 audio: audio,
                 audioSource: audioSource,
@@ -747,7 +762,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 maxVoiceDistance: maxVoiceDistance,
                 fadeInterval: null,
             }
-            fadeIn(audio, packet.fadeIn, audioObj)
+            fadeIn(audio, playInfo.fadeIn, audioObj)
             audioMap.set(id, audioObj)
         });
         registeredPackets.set("PausePlayAudioPacket", async packet => {

@@ -2,15 +2,19 @@ package fr.supermax_8.boostedaudio.api.audio;
 
 import com.google.gson.annotations.Expose;
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.packet.Packet;
 import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.packet.Packet;
+import fr.supermax_8.boostedaudio.core.utils.FFmpegUtils;
+import fr.supermax_8.boostedaudio.core.utils.HttpUtils;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.core.websocket.packets.ChangeAudioTimePacket;
 import fr.supermax_8.boostedaudio.core.websocket.packets.UpdateAudioLocationPacket;
 import lombok.Getter;
+import lombok.Setter;
 import org.wildfly.common.annotation.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Getter
 public class Audio {
@@ -32,13 +36,15 @@ public class Audio {
     private final boolean loop;
     @Expose
     private final boolean synchronous;
+    @Expose
+    private String currentPlayingLink = null;
 
     public Audio(String link, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
         this(Collections.singletonList(link), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
     }
 
     public Audio(List<String> links, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
-        this(new PlayList(links), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
+        this(new PlayList(links, false), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
     }
 
 
@@ -52,19 +58,73 @@ public class Audio {
         this.synchronous = synchronous;
     }
 
-    public String getLink() {
-        // Get a random link from list
-        return getLink(playList.getLinks());
+    public AudioPlayInfo getPlayInfo() {
+        AudioPlayInfo audioPlayInfo = new AudioPlayInfo();
+        if (synchronous || playList.isSynchronous())
+            syncPlayInfo(audioPlayInfo);
+        else
+            audioPlayInfo.setLink(getRandomString(playList.getLinks()));
+        currentPlayingLink = audioPlayInfo.link;
+        setDefaultData(audioPlayInfo);
+        return audioPlayInfo;
     }
 
-    public String getLink(String oldLink) {
-        List<String> l = new ArrayList<>(playList.getLinks());
-        if (l.size() > 1) l.remove(oldLink);
-        return getLink(l);
+    public AudioPlayInfo getPlayInfo(String oldLink) {
+        AudioPlayInfo audioPlayInfo = new AudioPlayInfo();
+        if (synchronous || playList.isSynchronous()) syncPlayInfo(audioPlayInfo);
+        else {
+            List<String> l = new ArrayList<>(playList.getLinks());
+            if (l.size() > 1) l.remove(oldLink);
+            audioPlayInfo.setLink(getRandomString(l));
+        }
+        currentPlayingLink = audioPlayInfo.link;
+        setDefaultData(audioPlayInfo);
+        return audioPlayInfo;
     }
 
-    private String getLink(List<String> list) {
-        return list.get(new Random().nextInt(list.size()));
+    private void setDefaultData(AudioPlayInfo audioPlayInfo) {
+        audioPlayInfo.setTimestamp(System.currentTimeMillis());
+        audioPlayInfo.setFadeIn(fadeIn);
+        audioPlayInfo.setFadeOut(fadeOut);
+    }
+
+    private void syncPlayInfo(AudioPlayInfo playInfo) {
+        List<String> soundUrls = playList.getLinks();
+        double currentTimestampSeconds = System.currentTimeMillis() / 1000.0;
+        // Calculate the total duration of all sounds
+        double totalDuration = 0.0;
+        List<Double> durations = new ArrayList<>();
+        for (String url : soundUrls) {
+            if (!url.startsWith("http"))
+                url = HttpUtils.combineUrl(BoostedAudioAPI.getAPI().getConfiguration().getClientLink(), url);
+            double duration = FFmpegUtils.getAudioDuration(url);
+            BoostedAudioAPI.getAPI().debug("Duration for " + url + "  : " + duration);
+            durations.add(duration);
+            totalDuration += duration;
+        }
+
+        // Find the position in the timeline based on the current timestamp in seconds
+        double positionInLoop = currentTimestampSeconds % totalDuration;
+
+        // Identify which sound corresponds to this position
+        double accumulatedDuration = 0.0;
+        BoostedAudioAPI.getAPI().debug("positionInLoop " + positionInLoop);
+        for (int i = 0; i < soundUrls.size(); i++) {
+            double next = accumulatedDuration + durations.get(i);
+            if (positionInLoop < next) {
+                playInfo.setLink(soundUrls.get(i));
+                playInfo.setTimeToPlay(positionInLoop - accumulatedDuration);
+                return;
+            }
+            accumulatedDuration = next;
+        }
+
+        // Fallback (should not happen if logic is correct)
+        BoostedAudioAPI.getAPI().info("§cError while getting link synchronous on playlist: §6" + playList.getId());
+    }
+
+    private String getRandomString(List<String> list) {
+        return list.get(ThreadLocalRandom.current().nextInt(list.size()));
     }
 
     public void updateTime(float timeToPlay) {
@@ -90,6 +150,29 @@ public class Audio {
             User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(id);
             user.sendPacket(packet);
         }
+    }
+
+    @Getter
+    @Setter
+    public static class AudioPlayInfo {
+
+        @Expose
+        protected String link;
+        @Expose
+        private double timeToPlay;
+        @Expose
+        private long timestamp;
+        /**
+         * Fade in ms
+         */
+        @Expose
+        private int fadeIn;
+        /**
+         * Fade in ms
+         */
+        @Expose
+        private int fadeOut;
+
     }
 
     @Getter
