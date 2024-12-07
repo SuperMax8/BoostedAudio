@@ -722,13 +722,15 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             } else
                 audio = new Audio(link)
 
-            console.log("Playing " + id, " url", link)
+            audio.preload = "auto";
+
+            console.log("Init audio " + id, " url", link)
             const oldAudio = audioMap.get(id);
             if (oldAudio) {
                 oldAudio.audio.pause();
             }
 
-            audio.addEventListener('ended', function () {
+            const endFn = () => {
                 console.log("Audio finished playing ", audioMap.get(id));
                 audioMap.delete(id)
                 if (gainNode) gainNode.disconnect();
@@ -744,14 +746,46 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                         }
                     ]
                 ws.send(JSON.stringify(endAudioPacket))
+            }
+            audio.addEventListener('ended', endFn);
+
+            audio.addEventListener("canplaythrough", () => {
+                console.log("Audio can play through.");
+            });
+            audio.addEventListener("error", (e) => {
+                console.error("Audio error:", e, "URL:", link);
+            });
+            audio.addEventListener("stalled", () => {
+                console.warn("Audio stalled. Attempting reload...");
+                audio.play().catch(err => console.error("Reload error:", err));
+            });
+            audio.addEventListener("waiting", () => {
+                console.warn("Audio is buffering.");
+            });
+            audio.addEventListener("playing", () => {
+                console.log("Audio is playing.");
             });
 
-            // Latency system to play perfectly the song
+            // Latency system to perfectly play the song
             let latency = (Date.now() - playInfo.timestamp) / 1000.0;
-            if (timeToPlay > 0)
-                audio.currentTime = timeToPlay + latency;
-            audio.play();
-            console.log("Latency between server->client ", latency)
+            if (timeToPlay > 0) {
+                let playTime = timeToPlay + latency;
+                audio.addEventListener('loadedmetadata', () => {
+                    if (playTime > audio.duration - Math.min(1, audio.duration * 0.1))
+                        endFn();
+                    else {
+                        audio.currentTime = playTime;
+                        setTimeout(() => {
+                            audio.play().catch((e) => console.error("Error playing audio:", e));
+                            console.log("Play audio " + id, " url", link, audio)
+                        }, 0);
+                    }
+                });
+            } else {
+                console.log("Play audio " + id, " url", link, audio)
+                audio.play().catch((e) => console.error("Error playing audio:", e));
+            }
+            console.log("Latency between server->client with add audio packet: ", latency)
 
             const audioObj = {
                 audio: audio,
