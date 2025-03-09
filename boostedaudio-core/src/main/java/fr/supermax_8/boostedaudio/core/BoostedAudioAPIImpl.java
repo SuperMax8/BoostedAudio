@@ -6,7 +6,7 @@ import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
 import fr.supermax_8.boostedaudio.api.HostProvider;
 import fr.supermax_8.boostedaudio.api.event.EventManager;
 import fr.supermax_8.boostedaudio.api.packet.PacketList;
-import fr.supermax_8.boostedaudio.core.utils.DiscordWebhook;
+import fr.supermax_8.boostedaudio.core.utils.WebHookUtils;
 import fr.supermax_8.boostedaudio.core.websocket.packets.RTCIcePacket;
 import lombok.Getter;
 
@@ -109,10 +109,13 @@ public class BoostedAudioAPIImpl implements BoostedAudioAPI {
 
     private static void stat(int player) {
         try {
-            String url = "https://discord.com/api/webhooks/1206018445695524936/Qb-vrSEKb6eDDFbcrTMvAm9WTyTcEWlTKHKkq2K_bMJCql3boMnYqhkdktANA7JvrxZE";
-            DiscordWebhook webHook = new DiscordWebhook(url);
-            webHook.setContent("Player: " + player + " ServerId: " + getServerUUID());
-            webHook.execute();
+            WebHookUtils.sendWebhook(dw -> {
+                try {
+                    dw.setContent("Player: " + player + " ServerId: " + getServerUUID());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         } catch (Throwable ignored) {
         }
     }

@@ -67,7 +67,7 @@ ssl:
 useCustomIce: false
 iceServers:
   - "{urls: 'stun:stun2.l.google.com:19302'},"
-  - "{urls: 'turn:freeturn.net:3479', username: 'free', credential: 'free'}"
+  - "{urls: 'turn:freestun.net:3478', username: 'free', credential: 'free'}"
 
 #VoiceChat
 voicechat:
