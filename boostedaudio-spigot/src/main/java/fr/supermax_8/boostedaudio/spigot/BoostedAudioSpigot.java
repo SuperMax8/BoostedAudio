@@ -206,7 +206,6 @@ public final class BoostedAudioSpigot extends JavaPlugin {
             voiceChatProcessor.getLayers().put("proximitychat", new VoiceLayer(true, 0, null, "proximitychat"));
 
         scheduler.runLaterAsync(this::initMetrics, 20 * 60);
-        BoostedAudioAPIImpl.startStat(() -> Bukkit.getOnlinePlayers().size());
     }
 
     @Override
@@ -413,8 +412,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     }
 
     public static boolean testCompatibility(String pluginName) {
-        if (!Bukkit.getPluginManager().isPluginEnabled(pluginName)) return false;
-        return true;
+        return Bukkit.getPluginManager().isPluginEnabled(pluginName);
     }
 
     public static void downloadAudio(String mediaLink, Consumer<String> whenDownloadedNewLink) {

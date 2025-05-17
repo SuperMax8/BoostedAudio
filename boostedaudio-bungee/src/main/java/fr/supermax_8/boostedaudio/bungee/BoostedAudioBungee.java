@@ -51,7 +51,6 @@ public final class BoostedAudioBungee extends Plugin implements Listener {
 
         boostedAudioProxy = new BoostedAudioProxy(getDataFolder(), getPluginVersion());
         ProxyServer.getInstance().getPluginManager().registerListener(this, this);
-        BoostedAudioAPIImpl.startStat(() -> ProxyServer.getInstance().getOnlineCount());
     }
 
 
