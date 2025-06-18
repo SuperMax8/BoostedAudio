@@ -18,7 +18,7 @@ public class Lang {
 
     public static String get(String id, Object... obj) {
         String text = lang.get(id);
-        if (text == null) return "LANG ISSUE, MAYBE CALL THE DEV THERE IS A PROBLEM";
+        if (text == null) return "LANG ISSUE, MAYBE CALL THE DEV THERE IS A PROBLEM discord: supermax_8";
         if (obj.length == 0) return text;
 
         StringBuilder textBuilder = new StringBuilder(lang.get(id));
