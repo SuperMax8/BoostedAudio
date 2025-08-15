@@ -56,8 +56,10 @@ public class AudioCommandSpigot {
                 String textString = line.replace("{link}", link);
                 TextComponent text = XMaterial.supports(16) ? MessageUtils.colorFormatToTextComponent(new StringBuilder(textString)) : new TextComponent(textString);
 
-                text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
-                text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(config.getConnectionHoverMessage())).toString()).create()));
+                MessageUtils.applyRecursilvlyOnTextComponent(text, t -> {
+                    t.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
+                    t.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(MessageUtils.colorFormat(new StringBuilder(config.getConnectionHoverMessage())).toString()).create()));
+                });
                 p.spigot().sendMessage(text);
             }
 
