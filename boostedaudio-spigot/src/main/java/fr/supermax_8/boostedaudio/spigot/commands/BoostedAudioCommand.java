@@ -226,6 +226,7 @@ public class BoostedAudioCommand {
     }
 
     @CommandPermission("unmute")
+    @Subcommand("unmute")
     public void unmute(CommandSender sender, Player toUnmute) {
         User user = BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().get(toUnmute.getUniqueId());
         if (!user.isMuted()) {

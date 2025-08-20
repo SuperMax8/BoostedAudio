@@ -22,7 +22,7 @@ public class RegionEditGUI extends AbstractGUI {
 
     private String region = "", linksOrPlayList = "";
     private int fadeIn = 300, fadeOut = 300;
-    private boolean loop = true, synchronous = true;
+    private boolean loop = true, synchronous = false;
     private final AbstractGUI lastGui;
     private boolean edit = false;
 

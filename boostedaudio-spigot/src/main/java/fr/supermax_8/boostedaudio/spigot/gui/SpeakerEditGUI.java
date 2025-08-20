@@ -1,8 +1,6 @@
 package fr.supermax_8.boostedaudio.spigot.gui;
 
-import com.beust.ah.A;
 import fr.supermax_8.boostedaudio.api.audio.Audio;
-import fr.supermax_8.boostedaudio.api.audio.Audio.AudioPlayInfo;
 import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.core.utils.SerializableLocation;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;

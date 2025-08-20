@@ -159,6 +159,8 @@ clientConfig:
   - "{settings-echoCancellation-label}=Echo Cancellation"
   - "{settings-echoCancellation-description}=Removes echo from your microphone audio"
   - "{settings-close-button-label}=Close Settings"
+  - "{offline}=Offline"
+  - "{offline-text}=The websocket is not connected, try reconnecting with a new in-game link, you can close this page"
 
 
 # NEVER CHANGE THIS VALUE
