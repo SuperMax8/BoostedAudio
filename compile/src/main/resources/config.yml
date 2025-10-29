@@ -122,6 +122,12 @@ notconnectedSymbol: ""
 # this property allows you to fully customize the client by modifying the code of the client
 customClient: false
 
+# Don't use it if you are not sure
+# The webpage needs to use SSL/TLS. Otherwise, some parts might not work.
+# By default, the plugin tries to set up a self-signed certificate.
+# If you're using a reverse proxy in some setups, you might need to force HTTP
+forceHttp: false
+
 # WORKS ONLY WITH THE PREMIUM VERSION
 # Custom placeholder in the client html, if you custom the client you even can add new placeholder if you need it,
 # inside placeholder you can use html directly (if the placeholder target is not a tag parameter)
@@ -164,4 +170,4 @@ clientConfig:
 
 
 # NEVER CHANGE THIS VALUE
-config-version: 1
+config-version: 2

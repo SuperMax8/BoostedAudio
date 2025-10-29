@@ -67,6 +67,8 @@ public class BoostedAudioConfiguration {
     private String notconnectedSymbol;
     private String proxyServerName;
 
+    private boolean forceHttp;
+
     public BoostedAudioConfiguration(File configFile) {
         try {
             load(configFile);
@@ -176,6 +178,8 @@ public class BoostedAudioConfiguration {
         connectedSymbol = config.getString("connectedSymbol");
         mutedSymbol = config.getString("mutedSymbol");
         notconnectedSymbol = config.getString("notconnectedSymbol");
+
+        forceHttp = config.getBoolean("forceHttp", false);
 
         clientConfig = config.getStringList("clientConfig");
 

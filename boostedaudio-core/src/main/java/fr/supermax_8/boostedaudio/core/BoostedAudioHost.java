@@ -13,6 +13,7 @@ import lombok.Getter;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.pem.util.PemUtils;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
+import org.java_websocket.server.DefaultWebSocketServerFactory;
 import org.xnio.Options;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -144,7 +145,10 @@ public class BoostedAudioHost {
         BoostedAudioAPI.api.debug("unresolved" + inet.isUnresolved());
         BoostedAudioAPI.api.debug("websocket " + inet);
         webSocketServer = new AudioWebSocketServer(inet);
-        webSocketServer.setWebSocketFactory(new DefaultSSLWebSocketServerFactory(sslContext));
+        if (configuration.isForceHttp())
+            webSocketServer.setWebSocketFactory(new DefaultWebSocketServerFactory());
+        else
+            webSocketServer.setWebSocketFactory(new DefaultSSLWebSocketServerFactory(sslContext));
         webSocketServer.setReuseAddr(true);
         webSocketServer.setTcpNoDelay(true);
         CompletableFuture.runAsync(() -> {
@@ -174,8 +178,12 @@ public class BoostedAudioHost {
         ResourceHandler resourceHandler = new ResourceHandler(resourceManager);
 
         Undertow.Builder builder = Undertow.builder();
-        if (configuration.isSsl() && sslContext != null) builder.addHttpsListener(port, "0.0.0.0", sslContext);
-        else builder.addHttpsListener(port, "0.0.0.0", dummySslContext);
+        if (configuration.isForceHttp()) {
+            builder.addHttpListener(port, "0.0.0.0");
+        } else {
+            if (configuration.isSsl() && sslContext != null) builder.addHttpsListener(port, "0.0.0.0", sslContext);
+            else builder.addHttpsListener(port, "0.0.0.0", dummySslContext);
+        }
         webServer = builder
                 .setHandler(resourceHandler)
                 .setServerOption(Options.REUSE_ADDRESSES, true)
