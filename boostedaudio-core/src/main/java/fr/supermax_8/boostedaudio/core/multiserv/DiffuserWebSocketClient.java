@@ -1,6 +1,7 @@
 package fr.supermax_8.boostedaudio.core.multiserv;
 
 import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import lombok.Getter;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -27,28 +28,29 @@ public class DiffuserWebSocketClient extends WebSocketClient {
     public DiffuserWebSocketClient(URI serverUri) {
         super(serverUri);
         BoostedAudioAPI.api.info("DiffuserWebSocketClient init...");
-        try {
-            TrustManager[] trustAllCerts = new TrustManager[]{
-                    new X509TrustManager() {
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return null;
+        if (!BoostedAudioAPI.getAPI().getConfiguration().isForceHttp())
+            try {
+                TrustManager[] trustAllCerts = new TrustManager[]{
+                        new X509TrustManager() {
+                            public X509Certificate[] getAcceptedIssuers() {
+                                return null;
+                            }
+
+                            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                            }
+
+                            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                            }
                         }
+                };
 
-                        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                        }
+                SSLContext sslContext = SSLContext.getInstance("SSL");
+                sslContext.init(null, trustAllCerts, new SecureRandom());
 
-                        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                        }
-                    }
-            };
-
-            SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, trustAllCerts, new SecureRandom());
-
-            setSocketFactory(sslContext.getSocketFactory());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                setSocketFactory(sslContext.getSocketFactory());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
     @Override
