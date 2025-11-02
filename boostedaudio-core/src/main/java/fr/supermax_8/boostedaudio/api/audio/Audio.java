@@ -47,7 +47,6 @@ public class Audio {
         this(new PlayList(links, false), spatialInfo, id, fadeIn, fadeOut, loop, synchronous);
     }
 
-
     public Audio(PlayList playList, AudioSpatialInfo spatialInfo, UUID id, int fadeIn, int fadeOut, boolean loop, boolean synchronous) {
         this.playList = playList;
         this.spatialInfo = spatialInfo;
@@ -83,7 +82,6 @@ public class Audio {
     }
 
     private void setDefaultData(AudioPlayInfo audioPlayInfo) {
-        audioPlayInfo.setTimestamp(System.currentTimeMillis());
         audioPlayInfo.setFadeIn(fadeIn);
         audioPlayInfo.setFadeOut(fadeOut);
     }
@@ -160,8 +158,6 @@ public class Audio {
         protected String link;
         @Expose
         private double timeToPlay;
-        @Expose
-        private long timestamp;
         /**
          * Fade in ms
          */
@@ -202,6 +198,5 @@ public class Audio {
         }
 
     }
-
 
 }

@@ -548,23 +548,16 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
     function cleanupAudio(id, audioObj) {
         try {
-            if (audioObj.audio) {
+            if (audioObj.audio)
                 audioObj.audio.pause();
-                audioObj.audio.src = ""; // Free ressource
-                audioObj.audio.load();   // Empty buffers
-            }
-            if (audioObj.audioSource) {
+            if (audioObj.audioSource)
                 audioObj.audioSource.disconnect();
-            }
-            if (audioObj.panner) {
+            if (audioObj.panner)
                 audioObj.panner.disconnect();
-            }
-            if (audioObj.gainNode) {
+            if (audioObj.gainNode)
                 audioObj.gainNode.disconnect();
-            }
-            if (audioObj.fadeInterval) {
+            if (audioObj.fadeInterval)
                 clearInterval(audioObj.fadeInterval);
-            }
         } catch (e) {
             console.warn("Error cleaning audio:", id, e);
         }
@@ -728,7 +721,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             let audioSource;
             const playInfo = packet.playInfo;
 
-            const link = encodeURI(playInfo.link)
+            const link = encodeURI(playInfo.link);
             const timeToPlay = playInfo.timeToPlay;
             const spatialInfo = packet.spatialInfo;
             let maxVoiceDistance = 0;
@@ -747,7 +740,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
 
                 const url = await resolveLink(link);
                 const audioHtml = new Audio(url);
-                audioHtml.crossOrigin = "anonymous";
+                if (url.startsWith('http')) {
+                    audioHtml.crossOrigin = "anonymous";
+                }
                 audioSource = audioContext.createMediaElementSource(audioHtml);
                 audio = audioSource.mediaElement;
                 maxVoiceDistance = spatialInfo.maxVoiceDistance;
@@ -768,6 +763,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             }
 
             const endFn = () => {
+                if (!audioMap.has(audioId)) return;
                 console.log("Audio finished playing ", audioMap.get(audioId));
                 cleanupAudio(audioId, audioObj);
                 const endAudioPacket =
@@ -789,7 +785,28 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 console.log("Audio can play through.");
             });
             audio.addEventListener("error", (e) => {
-                console.error("Audio error:", e, "URL:", link);
+                // Le `e` seul n'est pas très utile. L'erreur réelle est dans audio.error
+                let errorDetails = 'Unknown error';
+                if (audio.error) {
+                    switch (audio.error.code) {
+                        case audio.error.MEDIA_ERR_ABORTED:
+                            errorDetails = 'Playback aborted by user.';
+                            break;
+                        case audio.error.MEDIA_ERR_NETWORK:
+                            errorDetails = 'A network error caused the audio download to fail.';
+                            break;
+                        case audio.error.MEDIA_ERR_DECODE:
+                            errorDetails = 'The audio playback was aborted due to a corruption problem or because the audio used features your browser did not support.';
+                            break;
+                        case audio.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                            errorDetails = 'The audio could not be loaded, either because the server or network failed or because the format is not supported.';
+                            break;
+                        default:
+                            errorDetails = `An unknown error occurred. Code: ${audio.error.code}`;
+                            break;
+                    }
+                }
+                console.error("Audio error:", errorDetails, "URL:", link, e);
             });
             audio.addEventListener("stalled", () => {
                 console.warn("Audio stalled. Attempting reload...");
@@ -802,26 +819,33 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 console.log("Audio is playing.");
             });
 
-            // Latency system to perfectly play the song
-            let latency = (Date.now() - playInfo.timestamp) / 1000.0;
+            console.log("Audio timeToPlay: ", timeToPlay);
             if (timeToPlay > 0) {
                 audio.addEventListener('loadedmetadata', () => {
-                    if (!isNaN(audio.duration)) {
-                        let playTime = timeToPlay + latency;
-                        if (playTime > audio.duration - Math.min(1, audio.duration * 0.1))
-                            endFn();
-                        playTime = Math.max(0, Math.min(playTime, audio.duration - 0.05)); // clamp
-
-                        audio.currentTime = playTime;
-                        audio.play().catch((e) => console.error("Error playing audio:", e));
-                        console.log(`Play audio ${audioId} at ${playTime.toFixed(2)}s (latency: ${latency.toFixed(2)}s)`);
+                    if (!isFinite(audio.duration)) {
+                        console.error("Audio duration is not a finite number. Cannot set currentTime. URL:", link);
+                        cleanupAudio(audioId, audioObj);
+                        return;
                     }
-                });
+                    let playTime = timeToPlay;
+                    if (playTime > audio.duration) {
+                        console.warn("Audio playback time > to end, skipping:", audioId);
+                        endFn();
+                        return;
+                    }
+                    playTime = Math.max(0, Math.min(playTime, audio.duration)); // clamp
+                    if (!isFinite(playTime)) playTime = 0;
+                    audio.currentTime = playTime;
+
+                    setTimeout(() => {
+                        audio.play().catch((e) => console.error("Error playing audio:", e));
+                        console.log(`Play audio ${audioId} at ${playTime.toFixed(2)}s`);
+                    }, 0);
+                }, {once: true});
             } else {
                 console.log("Play audio " + audioId, " url", link, audio)
                 audio.play().catch((e) => console.error("Error playing audio:", e));
             }
-            console.log("Latency between server->client with add audio packet: ", latency)
 
             const audioObj = {
                 audio: audio,
@@ -939,7 +963,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                             "Ambient Volume " + ambientVolume, audioObj
                         )*/
 
-            const interval = 10;
+            const interval = 20;
             const stepNb = duration / interval;
             const volumeStep = ambientVolume / stepNb;
             //const step = interval / duration;
@@ -1014,7 +1038,7 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 spatializeAudio0(pannerObject, lerpLoc)
                 //console.log("T: " + pannerObject.t + " ", lerpLoc)
                 pannerObject.t += 0.1;
-            }, 5);
+            }, 20);
         } else {
             pannerObject.lastLoc = pannerObject.currentLoc;
             pannerObject.currentLoc = loc;
@@ -1188,6 +1212,9 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         try {
             peerConnectionContainer.panner.disconnect();
         } catch {
+        }
+        if (peerConnectionContainer.dummyAudio) {
+            peerConnectionContainer.dummyAudio.srcObject = null; // Detach stream
         }
         peerConnectionContainer.pc.close();
         if (peerConnectionContainer.element != null) peerConnectionContainer.element.remove();
@@ -1424,8 +1451,12 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                         const currentAudioTrack = audioSender.track;
                         currentAudioTrack.stop();
                         const newTrack = micDestination.stream.getAudioTracks()[0];
-                        audioSender.replaceTrack(newTrack);
-                        console.log("replaceTrack", newTrack)
+                        try {
+                            audioSender.replaceTrack(newTrack);
+                            console.log("Track replaced successfully for peer:", newTrack);
+                        } catch (e) {
+                            console.error("Failed to replace track for peer:", peerObj.playerId, e, newTrack);
+                        }
                     }
                 })
             });
