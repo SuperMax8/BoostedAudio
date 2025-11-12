@@ -1,15 +1,9 @@
 package fr.supermax_8.boostedaudio.spigot.manager;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
+import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
+import fr.supermax_8.boostedaudio.api.User;
+import fr.supermax_8.boostedaudio.api.audio.Audio;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,10 +12,9 @@ import org.bukkit.entity.Player;
 import org.codemc.worldguardwrapper.WorldGuardWrapper;
 import org.codemc.worldguardwrapper.region.IWrappedRegion;
 
-import fr.supermax_8.boostedaudio.api.BoostedAudioAPI;
-import fr.supermax_8.boostedaudio.api.User;
-import fr.supermax_8.boostedaudio.api.audio.Audio;
-import lombok.Getter;
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RegionManager {
 
@@ -51,7 +44,7 @@ public class RegionManager {
                 ConfigurationSection section = regionsConfig.getConfigurationSection(region);
                 Audio audio = AudioManager.parseAudio(section.getConfigurationSection("audio"));
                 if (audio == null)
-                    return;
+                    continue;
                 addRegion(region, audio, false);
                 BoostedAudioAPI.api.debug("Loaded region: " + region);
             } catch (Exception e) {
@@ -82,21 +75,20 @@ public class RegionManager {
         for (Player p : Bukkit.getOnlinePlayers()) {
             UUID pId = p.getUniqueId();
             User user = connectedUsers.get(pId);
-            RegionInfo regionInfo = infoMap.get(pId);
-            if (regionInfo == null)
-                continue;
             if (user == null) {
-                infoMap.put(pId, new RegionInfo());
+                // Reset if not connected to audio
+                infoMap.remove(pId);
                 continue;
             }
+            RegionInfo regionInfo = infoMap.computeIfAbsent(pId, k -> new RegionInfo());
 
-            List<IWrappedRegion> lastRegions = regionInfo.getLastRegions();
-            Set<IWrappedRegion> playerRegions = api.getRegions(p.getLocation());
-            // Found highest priority regions
+            List<IWrappedRegion> playerLastPlayingRegions = regionInfo.getLastRegions();
+            Set<IWrappedRegion> currentPlayerRegions = api.getRegions(p.getLocation());
+            // Found highest priority regions meaning the regions that the player should be now hearing
             List<IWrappedRegion> highestPriorityRegions = new ArrayList<>();
             int highestPriority = Integer.MIN_VALUE;
 
-            for (IWrappedRegion region : playerRegions) {
+            for (IWrappedRegion region : currentPlayerRegions) {
                 if (!audioRegions.containsKey(region.getId()))
                     continue;
                 int priority = region.getPriority();
@@ -108,16 +100,16 @@ public class RegionManager {
                     highestPriorityRegions.add(region);
             }
 
-            HashSet<String> lastRegionsString = new HashSet<>();
-            for (IWrappedRegion region : lastRegions)
-                lastRegionsString.add(region.getId());
+            HashSet<String> playerLastPlayingRegionsString = new HashSet<>();
+            for (IWrappedRegion region : playerLastPlayingRegions)
+                playerLastPlayingRegionsString.add(region.getId());
 
             HashSet<String> highestPriorityRegionsString = new HashSet<>();
             for (IWrappedRegion region : highestPriorityRegions)
                 highestPriorityRegionsString.add(region.getId());
 
             for (String region : highestPriorityRegionsString) {
-                if (!lastRegionsString.contains(region)) {
+                if (!playerLastPlayingRegionsString.contains(region)) {
                     // To add
                     Audio audio = audioRegions.get(region);
                     if (audio != null)
@@ -125,7 +117,7 @@ public class RegionManager {
                 }
             }
 
-            for (String region : lastRegionsString) {
+            for (String region : playerLastPlayingRegionsString) {
                 if (!highestPriorityRegionsString.contains(region)) {
                     // To remove
                     Audio audio = audioRegions.get(region);
@@ -134,8 +126,8 @@ public class RegionManager {
                 }
             }
 
-            lastRegions.clear();
-            lastRegions.addAll(highestPriorityRegions);
+            playerLastPlayingRegions.clear();
+            playerLastPlayingRegions.addAll(highestPriorityRegions);
         }
     }
 
@@ -176,15 +168,8 @@ public class RegionManager {
 
     public static class RegionInfo {
 
+        @Getter
         private List<IWrappedRegion> lastRegions = new ArrayList<>();
-
-        public List<IWrappedRegion> getLastRegions() {
-            return lastRegions;
-        }
-
-        public void setLastRegions(List<IWrappedRegion> lastRegions) {
-            this.lastRegions = lastRegions;
-        }
 
     }
 

@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class DirectoryShowGUI extends AbstractGUI {
 
@@ -122,23 +123,25 @@ public class DirectoryShowGUI extends AbstractGUI {
                             break;
                         case RIGHT:
                             new ChatEditor(BoostedAudioSpigot.getInstance(), owner, value -> {
-                                try {
-                                    float v = Float.parseFloat(value);
+                                CompletableFuture.runAsync(() -> {
                                     try {
-                                        File outputFile = new File(file.getParentFile(), "Harmonized_" + file.getName());
-                                        if (outputFile.exists()) outputFile.delete();
-                                        FFmpegUtils.adjustGain(file.getAbsolutePath(),
-                                                outputFile.getAbsolutePath(),
-                                                v);
-                                        owner.sendMessage(Lang.get("harmonized_message", file.getName(), v));
-                                    } catch (Exception exxx) {
-                                        if (FFmpegUtils.ffmpeg == null || FFmpegUtils.ffprobe == null) {
-                                            owner.sendMessage(Lang.get("ffmpeg_message"));
-                                        } else exxx.printStackTrace();
+                                        float v = Float.parseFloat(value);
+                                        try {
+                                            File outputFile = new File(file.getParentFile(), "Harmonized_" + file.getName());
+                                            if (outputFile.exists()) outputFile.delete();
+                                            FFmpegUtils.adjustGain(file.getAbsolutePath(),
+                                                    outputFile.getAbsolutePath(),
+                                                    v);
+                                            owner.sendMessage(Lang.get("harmonized_message", file.getName(), v));
+                                        } catch (Exception exxx) {
+                                            if (FFmpegUtils.ffmpeg == null || FFmpegUtils.ffprobe == null) {
+                                                owner.sendMessage(Lang.get("ffmpeg_message"));
+                                            } else exxx.printStackTrace();
+                                        }
+                                    } catch (Exception ex) {
+                                        owner.sendMessage(Lang.get("wrong_values"));
                                     }
-                                } catch (Exception ex) {
-                                    owner.sendMessage(Lang.get("wrong_values"));
-                                }
+                                });
                             }, Lang.get("enter_chat_gain_adjustment"));
                             break;
                     }

@@ -21,11 +21,9 @@ public class FFmpegUtils {
         try {
             BoostedAudioAPI.getAPI().info("§7Initializing ffmpeg...");
             File ffmpegDir = new File(BoostedAudioAPI.getAPI().getConfiguration().getDataFolder(), "ffmpeg");
-            BoostedAudioAPI.getAPI().debug("ffmpeg 1");
             String ffmpegPath = ffmpegDir.listFiles((d, s) -> s.contains("ffmpeg"))[0].getAbsolutePath();
             String ffmprobe = ffmpegDir.listFiles((d, s) -> s.contains("ffprobe"))[0].getAbsolutePath();
             try {
-                BoostedAudioAPI.getAPI().debug("ffmpeg 2");
                 ffmpeg = new FFmpeg(ffmpegPath);
                 ffprobe = new FFprobe(ffmprobe);
                 BoostedAudioAPI.getAPI().info("§2FFmpeg initialized!");

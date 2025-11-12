@@ -7,7 +7,8 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HttpUtils {
 
@@ -28,32 +29,48 @@ public class HttpUtils {
         }
     }
 
+    public static String parseFilename(String contentDisposition) {
+        if (contentDisposition == null) return null;
+
+        // Cas 1: filename="file.txt"
+        Pattern p1 = Pattern.compile("filename=\"?([^\";]+)\"?");
+        Matcher m1 = p1.matcher(contentDisposition);
+        if (m1.find()) {
+            return m1.group(1);
+        }
+
+        // Cas 2: filename*=UTF-8''t%C3%A9st.txt
+        Pattern p2 = Pattern.compile("filename\\*=(?:UTF-8''|)([^;]+)");
+        Matcher m2 = p2.matcher(contentDisposition);
+        if (m2.find()) {
+            try {
+                return java.net.URLDecoder.decode(m2.group(1), "UTF-8");
+            } catch (Exception ignored) {
+            }
+        }
+
+        return null;
+    }
+
     public static File downloadFile(String fileURL, String saveDir) {
         try {
             URL url = new URL(fileURL);
             // open the connection
             URLConnection con = url.openConnection();
 
-            // get and verify the header field
             String fieldValue = con.getHeaderField("Content-Disposition");
-            if (fieldValue == null || !fieldValue.contains("filename=\"")) {
-                // no file name there -> throw exception ...
-            }
+            if (fieldValue == null)
+                throw new IOException("No Content-Disposition header found.");
 
-            // parse the file name from the header field
-            String filename = fieldValue.substring(fieldValue.indexOf("filename=\"") + 10, fieldValue.length() - 1);
-            filename = filename.replaceAll(" ", "_").replaceAll("[^a-zA-Z0-9._]", "");
+            String filename = parseFilename(fieldValue);
+            if (filename == null)
+                throw new IOException("Filename could not be parsed from header: " + fieldValue);
+            filename = filename.replaceAll("[\\\\/:*?\"<>|\\s]+", "_");
 
             File saveDirFile = new File(saveDir);
             if (!saveDirFile.exists()) saveDirFile.mkdirs();
             // create file in systems temporary directory
             File download = new File(saveDir, filename);
-
-            // open the stream and download
-//            ReadableByteChannel rbc = Channels.newChannel(con.getInputStream());
-//            try (FileOutputStream fos = new FileOutputStream(download)) {
-//                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-//            }
 
             int fileSize = con.getContentLength();
 

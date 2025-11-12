@@ -2,7 +2,6 @@ package fr.supermax_8.boostedaudio.core.utils;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
 
 import java.io.File;
 
@@ -10,11 +9,13 @@ public class MediaDownloader {
 
     // Old "https://loader.to/ajax/download.php?format=" + format + "&url=" + mediaLink
     // In 05/12/2024 https://p.oceansaver.in/ajax/download.php?format=wav&url=https://www.youtube.com/watch?v=YYX9Nup2MCs
+    // In 12/11/2025 https://p.oceansaver.in/ajax/download.php?format=
 
     public static String download(String mediaLink, String format, File directory) {
         System.out.println("Starting getLink...");
         long ts1 = System.currentTimeMillis();
-        JsonObject object = HttpUtils.httpGet("https://p.oceansaver.in/ajax/download.php?format=" + format + "&url=" + mediaLink);
+        //https://p.savenow.to/ajax/download.php?copyright=0&format=720&
+        JsonObject object = HttpUtils.httpGet("https://p.savenow.to/ajax/download.php?format=" + format + "&url=" + mediaLink);
         long ts2 = System.currentTimeMillis();
         String id = object.get("id").getAsString();
         System.out.println("Link got in " + (ts2 - ts1) + " ms Id: " + id);
@@ -53,7 +54,7 @@ public class MediaDownloader {
     }
 
     private static String progress(File directory, String id) {
-        JsonObject object = HttpUtils.httpGet("https://p.oceansaver.in/ajax/progress.php?id=" + id);
+        JsonObject object = HttpUtils.httpGet("https://p.savenow.to/ajax/progress.php?id=" + id);
         JsonElement text = object.get("text");
         if (text.isJsonNull()) return null;
         String status = text.getAsString();

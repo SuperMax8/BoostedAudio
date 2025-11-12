@@ -21,10 +21,6 @@ public class PlayerListener implements Listener {
             if (!BoostedAudioAPI.getAPI().getHostProvider().getUsersOnServer().containsKey(p.getUniqueId()))
                 AudioCommandSpigot.sendConnectMessage(p);
         }, BoostedAudioAPI.getAPI().getConfiguration().getSendOnConnectDelay());
-
-        RegionManager regionManager = BoostedAudioSpigot.getInstance().getAudioManager().getRegionManager();
-        if (regionManager != null)
-            regionManager.getInfoMap().put(p.getUniqueId(), new RegionManager.RegionInfo());
     }
 
     @EventHandler

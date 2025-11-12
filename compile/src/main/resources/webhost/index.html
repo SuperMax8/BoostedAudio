@@ -561,7 +561,6 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
         } catch (e) {
             console.warn("Error cleaning audio:", id, e);
         }
-        audioMap.delete(id);
     }
 
     function registerPackets() {
@@ -856,8 +855,8 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
                 maxVoiceDistance: maxVoiceDistance,
                 fadeInterval: null,
             }
-            fadeIn(audio, playInfo.fadeIn, audioObj)
-            audioMap.set(audioId, audioObj)
+            fadeIn(audio, playInfo.fadeIn, audioObj);
+            audioMap.set(audioId, audioObj);
         });
         registeredPackets.set("PausePlayAudioPacket", async packet => {
             const audioObj = audioMap.get(packet.uuid);
@@ -873,7 +872,8 @@ bg-gradient-to-t from-primary/{bg-opacity} via-secondary/{bg-opacity} to-primary
             const id = packet.uuid;
             const audioObj = audioMap.get(id);
             if (audioObj) {
-                console.log("Stop playing audio: " + id)
+                console.log("Stop playing audio: " + id);
+                audioMap.delete(id);
                 fadeOut(audioObj.audio, packet.fade, () => cleanupAudio(id, audioObj), audioObj);
             }
         });
