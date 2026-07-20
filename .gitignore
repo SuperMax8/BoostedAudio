@@ -36,3 +36,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+
+/design/*
+
+**/dependency-reduced-pom.xml
+**/pom.xml.versionsBackup
