@@ -8,7 +8,7 @@ import fr.supermax_8.boostedaudio.spigot.gui.SpeakerEditGUI;
 import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HD3Hologram;
 import fr.supermax_8.boostedaudio.spigot.hooks.holograms.Hologram;
 import fr.supermax_8.boostedaudio.spigot.hooks.holograms.HologramType;
-import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
+import com.cryptomorin.xseries.XMaterial;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

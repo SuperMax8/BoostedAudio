@@ -3,6 +3,7 @@ package fr.supermax_8.boostedaudio.spigot.utils;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
+import com.cryptomorin.xseries.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -34,9 +35,9 @@ public class ItemUtils {
     }
 
     public static void sendHandPacket(final Player player, final ItemStack mapiiitem) {
-        int slot = XMaterial.getVersion() > 8 ? 45 : player.getInventory().getHeldItemSlot();
+        int slot = XMaterial.supports(1, 9) ? 45 : player.getInventory().getHeldItemSlot();
         PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.SET_SLOT);
-        packet.getIntegers().write(XMaterial.getVersion() >= 19 ? 2 : 1, slot);
+        packet.getIntegers().write(XMaterial.supports(1, 19) ? 2 : 1, slot);
         packet.getItemModifier().write(0, mapiiitem);
 
         try {

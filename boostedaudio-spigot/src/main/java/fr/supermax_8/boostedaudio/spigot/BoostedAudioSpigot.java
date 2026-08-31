@@ -100,6 +100,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
     private final ServerImplementation scheduler = folia.getImpl();
 
     private HologramType<?> ht;
+    @Nullable
     private Lamp<BukkitCommandActor> handler;
 
     @Override
@@ -210,7 +211,7 @@ public final class BoostedAudioSpigot extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        handler.unregisterAllCommands();
+        if (handler != null) handler.unregisterAllCommands();
         if (ishologramInstalled()) {
             audioManager.getSpeakerManager().getHologramManager().getWrappedTask().cancel();
             audioManager.getSpeakerManager().getHologramManager().getHolos().values().forEach(HologramType::delete);

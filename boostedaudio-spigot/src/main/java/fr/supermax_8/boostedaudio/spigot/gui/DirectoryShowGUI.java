@@ -5,7 +5,7 @@ import fr.supermax_8.boostedaudio.core.utils.NaturalOrderComparator;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.core.utils.FFmpegUtils;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
-import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
+import com.cryptomorin.xseries.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.editor.ChatEditor;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;

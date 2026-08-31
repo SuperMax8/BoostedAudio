@@ -8,12 +8,14 @@
     <packaging>jar</packaging>
     <properties>
         <java.version>16</java.version>
+        <lamp.version>4.0.0-rc.18</lamp.version>
+        <xseries.version>13.7.1</xseries.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <parent>
         <groupId>fr.supermax_8.boostedaudio</groupId>
         <artifactId>BoostedAudio</artifactId>
-        <version>2.17.29</version>
+        <version>2.17.31</version>
     </parent>
     <build>
         <plugins>
@@ -117,24 +119,24 @@
             <version>1.2.1-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.github.cryptomorin</groupId>
+            <artifactId>XSeries</artifactId>
+            <version>${xseries.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.github.revxrsal</groupId>
             <artifactId>lamp.common</artifactId>
-            <version>4.0.0-rc.10</version>
+            <version>${lamp.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.revxrsal</groupId>
             <artifactId>lamp.bukkit</artifactId>
-            <version>4.0.0-rc.10</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.revxrsal</groupId>
-            <artifactId>lamp.paper</artifactId>
-            <version>4.0.0-beta.19</version>
+            <version>${lamp.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.revxrsal</groupId>
             <artifactId>lamp.brigadier</artifactId>
-            <version>4.0.0-rc.10</version>
+            <version>${lamp.version}</version>
         </dependency>
 
 

@@ -5,7 +5,7 @@ import fr.supermax_8.boostedaudio.core.BoostedAudioConfiguration;
 import fr.supermax_8.boostedaudio.core.BoostedAudioHost;
 import fr.supermax_8.boostedaudio.core.utils.MessageUtils;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
-import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
+import com.cryptomorin.xseries.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.qrcode.QrCodeGenerator;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -54,7 +54,7 @@ public class AudioCommandSpigot {
 
             for (String line : config.getConnectionMessage()) {
                 String textString = line.replace("{link}", link);
-                TextComponent text = XMaterial.supports(16) ? MessageUtils.colorFormatToTextComponent(new StringBuilder(textString)) : new TextComponent(textString);
+                TextComponent text = XMaterial.supports(1, 16) ? MessageUtils.colorFormatToTextComponent(new StringBuilder(textString)) : new TextComponent(textString);
 
                 MessageUtils.applyRecursilvlyOnTextComponent(text, t -> {
                     t.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));

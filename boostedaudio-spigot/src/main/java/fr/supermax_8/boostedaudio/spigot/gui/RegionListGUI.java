@@ -5,7 +5,7 @@ import fr.supermax_8.boostedaudio.core.utils.Lang;
 import fr.supermax_8.boostedaudio.spigot.BoostedAudioSpigot;
 import fr.supermax_8.boostedaudio.spigot.manager.RegionManager;
 import fr.supermax_8.boostedaudio.spigot.utils.ItemUtils;
-import fr.supermax_8.boostedaudio.spigot.utils.XMaterial;
+import com.cryptomorin.xseries.XMaterial;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.AbstractGUI;
 import fr.supermax_8.boostedaudio.spigot.utils.gui.InventoryScroll;
 import org.bukkit.World;
