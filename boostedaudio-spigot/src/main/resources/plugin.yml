@@ -5,7 +5,7 @@ api-version: '1.16'
 folia-supported: true
 authors:
   - SuperMax_8
-description: Realtime music and proximity voice chat
+description: Realtime music/sfx and proximity voice chat with web link
 website: https://www.spigotmc.org/resources/boostedaudio-%E2%9C%A8proximity-voice-chat-and-music.112942/
 softdepend:
   - WorldGuard
